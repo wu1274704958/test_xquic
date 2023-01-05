@@ -1,26 +1,35 @@
 #include <iostream>
-#include <xquic/xquic.h>
-#include <format>
-#include <platform.h>
+#include <lsquic.h>
 
-class XqcServerDef;
+int packets_out(
+    void* packets_out_ctx,
+    const struct lsquic_out_spec* out_spec,
+    unsigned                       n_packets_out
+    );
 
 int main(int argc,const char** argv)
 {
-    xqc_platform_init_env();
-
-    xqc_config_t config = {};
-    xqc_engine_get_default_config(&config,xqc_engine_type_t::XQC_ENGINE_CLIENT);
-
-    xqc_engine_ssl_config_t ssl_cfg = {};
-
-
-
+    if (0 != lsquic_global_init(LSQUIC_GLOBAL_SERVER))
+    {
+        printf("init lsquic failed!!!\n");
+        return -1;
+    }
+    lsquic_engine_api engine_api = {
+        .ea_packets_out = packets_out,
+        .ea_packets_out_ctx = nullptr,  /* For example */
+        .ea_stream_if = &stream_callbacks,
+        .ea_stream_if_ctx = &some_context,
+    };
+    lsquic_engine_t* engine = lsquic_engine_new(LSENG_SERVER, &engine_api);
+    lsquic_global_cleanup();
     return 0;
 }
 
-
-class XqcServerDef
+int packets_out(
+    void* packets_out_ctx,
+    const struct lsquic_out_spec* out_spec,
+    unsigned n_packets_out
+)
 {
-	
-};
+
+}
