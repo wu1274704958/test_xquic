@@ -2,3 +2,4 @@
 /.vs/**
 /.vscode/**
 /out/**
+/src/test_ser/out/**
