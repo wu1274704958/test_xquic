@@ -1,0 +1,3 @@
+D:/code/test_quic/src/test_ser/out/build/x64-Debug/CMakeFiles/test_ser.dir
+D:/code/test_quic/src/test_ser/out/build/x64-Debug/CMakeFiles/edit_cache.dir
+D:/code/test_quic/src/test_ser/out/build/x64-Debug/CMakeFiles/rebuild_cache.dir
