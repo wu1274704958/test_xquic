@@ -11,3 +11,14 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
     ${boringssl_LIBRARY}
     ZLIB::ZLIB
 )
+
+if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/cert-def.pem")
+#openssl req -newkey rsa:4096 -nodes -sha256 -keyout key-def.pem -x509 -days 365 -out cert-def.pem
+    add_custom_command(TARGET ${CUR_TARGET_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "certificate/cert-def.pem"   ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy "certificate/key-def.pem"   ${CMAKE_CURRENT_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        )
+
+endif()
