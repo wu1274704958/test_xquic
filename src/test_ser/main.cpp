@@ -18,7 +18,6 @@ public:
     asio::io_context io_context;
     std::shared_ptr<asio::ip::udp::socket> socket;
 };
-class Stream
 
 static SSL_CTX* s_ssl_ctx;
 
@@ -34,6 +33,7 @@ struct ssl_ctx_st* get_ssl_ctx(void* peer_ctx,const struct sockaddr* local);
 lsquic_conn_ctx_t* on_new_conn(void* stream_if_ctx,lsquic_conn_t* c);
 void on_conn_closed(lsquic_conn_t* c);
 lsquic_stream_ctx_t* on_new_stream(void* stream_if_ctx, lsquic_stream_t* s);
+void on_read(lsquic_stream_t* s, lsquic_stream_ctx_t* h);
 //main /////////////
 int main(int argc,const char** argv)
 {
@@ -48,6 +48,7 @@ int main(int argc,const char** argv)
     stream_if.on_new_conn = on_new_conn;
     stream_if.on_conn_closed = on_conn_closed;
     stream_if.on_new_stream = on_new_stream;
+    stream_if.on_read = on_read;
 
     lsquic_engine_api engine_api = {};
     engine_api.ea_packets_out = packets_out;
@@ -107,6 +108,18 @@ void on_conn_closed(lsquic_conn_t* c)
 lsquic_stream_ctx_t* on_new_stream(void* stream_if_ctx, lsquic_stream_t* s)
 {
     ::lsquic_stream_wantread(s, 1);
+    return nullptr;
+}
+void on_read(lsquic_stream_t* s, lsquic_stream_ctx_t* h)
+{
+	char buf[1024] = {0};
+    std::string str;
+    int len = 0;
+	while ((len = ::lsquic_stream_read(s, buf, sizeof(buf))) > 0)
+	{
+		str.append(buf,len);
+	}
+    printf("recv str = %s\n",str.c_str());
 }
 static int load_cert(const char* cert_file, const char* key_file)
 {
