@@ -220,7 +220,6 @@ void on_write(lsquic_stream_t* s, lsquic_stream_ctx_t* h)
 	::lsquic_stream_write(s, str, strlen(str));
 	::lsquic_stream_flush(s);
 	::lsquic_stream_wantwrite(s, 0);
-	::lsquic_stream_close(s);
 }
 void on_close(lsquic_stream_t* s, lsquic_stream_ctx_t* h)
 {

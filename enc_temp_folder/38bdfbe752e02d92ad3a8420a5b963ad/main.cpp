@@ -100,7 +100,7 @@ int main(int argc, const char** argv)
         asio::ip::udp::endpoint sender_endpoint;
         if (!is_receive)
         {
-            //printf("async_receive_from\n");
+            printf("async_receive_from\n");
             context.socket->async_receive_from(
                 asio::buffer(buffer), sender_endpoint,
                 [&](const asio::error_code& error, std::size_t bytes_transferred)
