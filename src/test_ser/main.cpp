@@ -17,6 +17,10 @@ public:
 		platform_handle(*socket);
 		socket->bind(asio::ip::udp::endpoint(asio::ip::address::from_string("127.0.0.1"), 8083));
 	}
+	~Context()
+	{
+		socket->close();
+	}
 	asio::io_context io_context;
 	std::shared_ptr<asio::ip::udp::socket> socket;
 	std::shared_ptr< asio::steady_timer> timer;
@@ -171,7 +175,7 @@ int packets_out(
 		}
 		catch (asio::system_error e)
 		{
-			std::cerr << "packets_out err = " << e.what() << std::endl;
+			std::cerr << "packets_out " << endpoint << " err = " << e.what() << std::endl;
 		}
 	}
 

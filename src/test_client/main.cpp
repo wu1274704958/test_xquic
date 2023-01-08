@@ -15,12 +15,17 @@ public:
         socket = std::make_shared<asio::ip::udp::socket>(io_context);
         socket->open(asio::ip::udp::v4());
         platform_handle(*socket);
-        socket->bind(asio::ip::udp::endpoint(asio::ip::address::from_string("0.0.0.0"), 8084));
+        socket->bind(asio::ip::udp::endpoint(asio::ip::address::from_string("127.0.0.1"), 8084));
+    }
+    ~Context()
+    {
+        socket->close();
     }
     asio::io_context io_context;
     std::shared_ptr<asio::ip::udp::socket> socket;
     std::shared_ptr< asio::steady_timer> timer;
-    lsquic_engine_t* engine;
+    lsquic_engine_t* engine = nullptr;
+    lsquic_stream_t* stream = nullptr;
 };
 
 void sig_handler(int sig)
@@ -126,7 +131,11 @@ int main(int argc, const char** argv)
         context.io_context.run_for(std::chrono::milliseconds(1));
     }
     printf("end===================================\n");
+    if (context.stream)
+        ::lsquic_stream_close(context.stream);
     ::lsquic_conn_close(conn);
+    process_conns(context);
+    context.io_context.run();
     lsquic_global_cleanup();
 
     return 0;
@@ -182,7 +191,7 @@ int packets_out(
         }
         catch (asio::system_error e)
         {
-            std::cerr << "packets_out err = " << e.what() << std::endl;
+            std::cerr << "packets_out "<< endpoint <<  " err = " << e.what() << std::endl;
         }
     }
     return n_packets_out;
@@ -201,6 +210,8 @@ void on_conn_closed(lsquic_conn_t* c)
 }
 lsquic_stream_ctx_t* on_new_stream(void* stream_if_ctx, lsquic_stream_t* s)
 {
+    auto cxt = reinterpret_cast<Context*>(stream_if_ctx);
+    cxt->stream = s;
     ::lsquic_stream_wantwrite(s, 1);
     printf("stream create %zx\n", (size_t)s);
     return reinterpret_cast<lsquic_stream_ctx_t*>(stream_if_ctx);
@@ -231,6 +242,8 @@ void on_write(lsquic_stream_t* s, lsquic_stream_ctx_t* h)
 void on_close(lsquic_stream_t* s, lsquic_stream_ctx_t* h)
 {
     printf("stream closed %zx\n", (size_t)s);
+    auto cxt = reinterpret_cast<Context*>(h);
+    cxt->stream = nullptr;
 }
 void on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s)
 {
