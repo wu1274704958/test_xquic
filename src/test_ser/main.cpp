@@ -15,7 +15,7 @@ public:
 		socket = std::make_shared<asio::ip::udp::socket>(io_context);
 		socket->open(asio::ip::udp::v4());
 		platform_handle(*socket);
-		socket->bind(asio::ip::udp::endpoint(asio::ip::address::from_string("127.0.0.1"), 8083));
+		socket->bind(asio::ip::udp::endpoint(asio::ip::address::from_string("0.0.0.0"), 8083));
 	}
 	~Context()
 	{

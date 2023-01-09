@@ -15,7 +15,7 @@ public:
         socket = std::make_shared<asio::ip::udp::socket>(io_context);
         socket->open(asio::ip::udp::v4());
         platform_handle(*socket);
-        socket->bind(asio::ip::udp::endpoint(asio::ip::address::from_string("127.0.0.1"), 8084));
+        socket->bind(asio::ip::udp::endpoint(asio::ip::address::from_string("0.0.0.0"), 8084));
     }
     ~Context()
     {
@@ -58,6 +58,9 @@ tut_log_buf(void* ctx, const char* buf, size_t len) {
 //main /////////////
 int main(int argc, const char** argv)
 {
+    const char *ip = "129.211.8.222";
+    if(argc >= 2)
+		ip = argv[1];
     signal(SIGINT, sig_handler);
     if (0 != lsquic_global_init(LSQUIC_GLOBAL_CLIENT))
     {
@@ -90,7 +93,7 @@ int main(int argc, const char** argv)
     lsquic_set_log_level("warning");
 
     auto local_addr = context.socket->local_endpoint();
-    asio::ip::udp::endpoint peer_addr = asio::ip::udp::endpoint(asio::ip::address::from_string("127.0.0.1"), 8083);
+    asio::ip::udp::endpoint peer_addr = asio::ip::udp::endpoint(asio::ip::address::from_string(ip), 8083);
 
     auto conn = ::lsquic_engine_connect(engine, N_LSQVER, local_addr.data(), peer_addr.data(), nullptr, nullptr, nullptr, 0, nullptr, 0, nullptr, 0);
     printf("conn = %zx engine = %zx\n", (size_t)conn,(size_t)engine);
