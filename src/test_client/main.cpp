@@ -97,12 +97,11 @@ int main(int argc, const char** argv)
     process_conns(context);
 
     bool is_receive = false;
-
+    std::array<char, 1500> buffer;
+    // 寮傛鎺ユ敹鏁版嵁
+    asio::ip::udp::endpoint sender_endpoint;
     while (IsRunning)
     {
-        std::array<char, 1500> buffer;
-        // 异步接收数据
-        asio::ip::udp::endpoint sender_endpoint;
         if (!is_receive)
         {
             //printf("async_receive_from\n");

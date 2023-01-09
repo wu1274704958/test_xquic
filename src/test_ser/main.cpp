@@ -90,12 +90,12 @@ int main(int argc, const char** argv)
 	lsquic_engine_t* engine = lsquic_engine_new(LSENG_SERVER, &engine_api);
 
 	bool is_receive = false;
+	std::array<char, 1500> buffer;
+	// 寮傛鎺ユ敹鏁版嵁
+	asio::ip::udp::endpoint sender_endpoint;
 	process_conns(engine, context);
 	while (IsRunning)
 	{
-		std::array<char, 1500> buffer;
-		// 异步接收数据
-		asio::ip::udp::endpoint sender_endpoint;
 		if (!is_receive)
 		{
 			context.socket->async_receive_from(
