@@ -134,7 +134,6 @@ int main(int argc, const char** argv)
         ::lsquic_stream_close(context.stream);
     ::lsquic_conn_close(conn);
     process_conns(context);
-    context.io_context.run();
     lsquic_global_cleanup();
 
     return 0;
