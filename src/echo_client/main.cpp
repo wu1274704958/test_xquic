@@ -19,7 +19,7 @@ public:
 		socket = std::make_shared<uv_udp_t>();
 		uv_udp_init(loop.get(), socket.get());
 		struct sockaddr_in recv_addr;
-		uv_ip4_addr("0.0.0.0", 8084, &recv_addr);
+		uv_ip4_addr("0.0.0.0", 8085, &recv_addr);
 		uv_udp_bind(socket.get(), (const struct sockaddr*)&recv_addr, UV_UDP_REUSEADDR);
 		platform_handle(*socket);
 
@@ -89,13 +89,13 @@ void recv_cb(uv_udp_t* req, ssize_t nread, const uv_buf_t* buf, const struct soc
 		return;
 	if (nread < 0) {
 		// there seems to be no way to get an error code here (none of the udp tests do)
-		printf("recv error unexpected %d\n",nread);
+		printf("recv error unexpected %zd\n",nread);
 		uv_close((uv_handle_t*)req, NULL);
 		return;
 	}
 	char sender[17] = { 0 };
 	uv_ip4_name((struct sockaddr_in*)addr, sender, 16);
-	fprintf(stderr, "recv from %s %d bytes\n", sender, nread);
+	fprintf(stderr, "recv from %s %zd bytes\n", sender, nread);
 	auto cxt = reinterpret_cast<Context*>(req->data);
 	if(!cxt)return;
 	
