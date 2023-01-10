@@ -6,6 +6,7 @@
 #include <platform.h>
 #include <uv.h>
 
+
 static bool IsRunning = true;
 class Context
 {
@@ -61,6 +62,31 @@ void on_read(lsquic_stream_t* s, lsquic_stream_ctx_t* h);
 void on_write(lsquic_stream_t* s, lsquic_stream_ctx_t* h);
 void on_close(lsquic_stream_t* s, lsquic_stream_ctx_t* h);
 void process_conns(lsquic_engine_t* engine, Context& cxt);
+
+void alloc_cb(uv_handle_t* handle, size_t size, uv_buf_t* buf) {
+	std::vector<char>* arr = reinterpret_cast<std::vector<char>*>(handle->data);
+	if(size > arr->size())
+		arr->resize(size);
+	buf->base = arr->data();
+	buf->len = arr->size();
+}
+void recv_cb(uv_udp_t* req, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr, unsigned int flags) {
+
+	if (nread < 0) {
+		// there seems to be no way to get an error code here (none of the udp tests do)
+		printf("recv error unexpected %d\n",nread);
+		uv_close((uv_handle_t*)req, NULL);
+		return;
+	}
+
+	char sender[17] = { 0 };
+	uv_ip4_name((struct sockaddr_in*)addr, sender, 16);
+	fprintf(stderr, "recv from %s %d bytes\n", sender,nread);
+}
+void print_uv_err(int e)
+{
+	printf("Got error = %s\n", uv_strerror(e));
+}
 //main /////////////
 int main(int argc, const char** argv)
 {
@@ -94,15 +120,19 @@ int main(int argc, const char** argv)
 	engine_api.ea_get_ssl_ctx = get_ssl_ctx;
 	lsquic_engine_t* engine = lsquic_engine_new(LSENG_SERVER, &engine_api);
 
-	std::array<char, 1500> buffer;
-	// 异步接收数据
-	asio::ip::udp::endpoint sender_endpoint;
-
 	process_conns(engine, context);
+	std::vector<char> buf;
+	context.socket->data = &buf;
+	int ret = uv_udp_recv_start(context.socket.get(), alloc_cb, recv_cb);
+	if(ret)
+	{
+		print_uv_err(ret);
+		goto END;
+	}
 
 	printf("Default loop.\n");
 	uv_run(context.loop.get(), UV_RUN_DEFAULT);
-
+	END:
 	printf("end\n");
 	lsquic_global_cleanup();
 
