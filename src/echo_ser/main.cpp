@@ -23,13 +23,21 @@ public:
 		uv_udp_bind(socket.get(), (const struct sockaddr*)&recv_addr, UV_UDP_REUSEADDR);
 		platform_handle(*socket);
 	}
+	void close_loop()
+	{
+		if(!loop)return;
+		uv_loop_close(loop.get());
+		loop.reset();
+	}
 	~Context()
 	{
-		uv_loop_close(loop.get());
+		close_loop();
 	}
 	std::shared_ptr<uv_loop_t> loop;
 	std::shared_ptr<uv_udp_t> socket;
 	std::shared_ptr<uv_timer_t> proc_conns_timer;
+	lsquic_engine_t* engine;
+	std::vector<char> recv_buf;
 };
 
 void sig_handler(int sig)
@@ -61,31 +69,41 @@ lsquic_stream_ctx_t* on_new_stream(void* stream_if_ctx, lsquic_stream_t* s);
 void on_read(lsquic_stream_t* s, lsquic_stream_ctx_t* h);
 void on_write(lsquic_stream_t* s, lsquic_stream_ctx_t* h);
 void on_close(lsquic_stream_t* s, lsquic_stream_ctx_t* h);
-void process_conns(lsquic_engine_t* engine, Context& cxt);
-
+void process_conns( Context& cxt);
+void print_uv_err(int e, const char* msg)
+{
+	printf("%s Got error = %s\n", msg, uv_strerror(e));
+}
 void alloc_cb(uv_handle_t* handle, size_t size, uv_buf_t* buf) {
-	std::vector<char>* arr = reinterpret_cast<std::vector<char>*>(handle->data);
-	if(size > arr->size())
-		arr->resize(size);
-	buf->base = arr->data();
-	buf->len = arr->size();
+	auto cxt = reinterpret_cast<Context*>(handle->data);
+	if (!cxt)return;
+	if(size > cxt->recv_buf.size())
+		cxt->recv_buf.resize(size);
+	buf->base = cxt->recv_buf.data();
+	buf->len = cxt->recv_buf.size();
 }
 void recv_cb(uv_udp_t* req, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr, unsigned int flags) {
-
+	if (nread == 0 || addr == nullptr)
+		return;
 	if (nread < 0) {
 		// there seems to be no way to get an error code here (none of the udp tests do)
 		printf("recv error unexpected %d\n",nread);
 		uv_close((uv_handle_t*)req, NULL);
 		return;
 	}
-
 	char sender[17] = { 0 };
 	uv_ip4_name((struct sockaddr_in*)addr, sender, 16);
-	fprintf(stderr, "recv from %s %d bytes\n", sender,nread);
-}
-void print_uv_err(int e)
-{
-	printf("Got error = %s\n", uv_strerror(e));
+	fprintf(stderr, "recv from %s %d bytes\n", sender, nread);
+	auto cxt = reinterpret_cast<Context*>(req->data);
+	if(!cxt)return;
+	struct sockaddr local_addr;
+	int addrlen = sizeof(sockaddr);
+	int ret = uv_udp_getsockname(req,&local_addr,&addrlen);
+	if(ret) print_uv_err(ret, "get local addr");
+	ret = ::lsquic_engine_packet_in(cxt->engine, reinterpret_cast<const unsigned char*>(buf->base), nread,
+		&local_addr, addr, nullptr, 0);
+	printf("lsquic_engine_packet_in %d\n", ret);
+	process_conns(*cxt);
 }
 //main /////////////
 int main(int argc, const char** argv)
@@ -104,6 +122,7 @@ int main(int argc, const char** argv)
 	lsquic_set_log_level("warning");
 
 	Context context;
+
 	struct lsquic_stream_if stream_if = {};
 	stream_if.on_new_conn = on_new_conn;
 	stream_if.on_conn_closed = on_conn_closed;
@@ -119,19 +138,29 @@ int main(int argc, const char** argv)
 	engine_api.ea_stream_if_ctx = &context;
 	engine_api.ea_get_ssl_ctx = get_ssl_ctx;
 	lsquic_engine_t* engine = lsquic_engine_new(LSENG_SERVER, &engine_api);
+	context.engine = engine;
+	context.socket->data = &context;
 
-	process_conns(engine, context);
-	std::vector<char> buf;
-	context.socket->data = &buf;
+	process_conns(context);
 	int ret = uv_udp_recv_start(context.socket.get(), alloc_cb, recv_cb);
 	if(ret)
 	{
-		print_uv_err(ret);
+		print_uv_err(ret,"start recv");
 		goto END;
 	}
 
+	uv_idle_t idler;
+	idler.data = context.loop.get();
+	uv_idle_init(context.loop.get(), &idler);
+	uv_idle_start(&idler, [](uv_idle_t* handle)
+	{
+		if(!IsRunning)
+			uv_stop(reinterpret_cast<uv_loop_t*>(handle->data));
+	});
+	
 	printf("Default loop.\n");
 	uv_run(context.loop.get(), UV_RUN_DEFAULT);
+	
 	END:
 	printf("end\n");
 	lsquic_global_cleanup();
@@ -143,24 +172,39 @@ int main(int argc, const char** argv)
 	}
 	return 0;
 }
-void process_conns(lsquic_engine_t* engine, Context& cxt)
+void process_conns(Context& cxt)
 {
-	//if (cxt.timer)cxt.timer->cancel();
-	//int diff;
-	//int timeout;
-	//lsquic_engine_process_conns(engine);
-	//if (lsquic_engine_earliest_adv_tick(engine, &diff)) {
-	//	if (diff > 0)
-	//		timeout = diff;   /* To seconds */
-	//	else
-	//		timeout = 0;
-	//	cxt.timer = std::make_shared< asio::steady_timer>(cxt.io_context, std::chrono::microseconds(timeout));
-	//	Context* cxt_ptr = &cxt;
-	//	cxt.timer->async_wait([=](const asio::error_code& error) {
-	//		if (!error)
-	//			process_conns(engine, *cxt_ptr);
-	//		});
-	//}
+	if (cxt.proc_conns_timer)
+	{
+		uv_timer_stop(cxt.proc_conns_timer.get());
+		cxt.proc_conns_timer.reset();
+	}
+	int diff;
+	int timeout;
+	lsquic_engine_process_conns(cxt.engine);
+	if (lsquic_engine_earliest_adv_tick(cxt.engine, &diff)) {
+		if (diff >= LSQUIC_DF_CLOCK_GRANULARITY)
+			/* Expected case: convert to millisecond */
+			timeout = diff / 1000;
+		else if (diff <= 0)
+			/* It should not happen often that the next tick is in the past
+			 * as we just processed connections.  Avoid a busy loop by
+			 * scheduling an event:
+			 */
+			timeout = 0.0;
+		else
+			/* Round up to granularity */
+			timeout = LSQUIC_DF_CLOCK_GRANULARITY / 1000;
+		cxt.proc_conns_timer = std::make_shared<uv_timer_t>();
+		uv_timer_init(cxt.loop.get(),cxt.proc_conns_timer.get());
+		cxt.proc_conns_timer->data = &cxt;
+		int ret = uv_timer_start(cxt.proc_conns_timer.get(),[](uv_timer_t* handle)
+		{
+			auto cxt_p = reinterpret_cast<Context*>( handle->data);
+			process_conns(*cxt_p);
+		},timeout,0);
+		if (ret)print_uv_err(ret, "start proc conns timer");
+	}
 }
 
 int packets_out(
@@ -170,26 +214,25 @@ int packets_out(
 )
 {
 	auto cxt = reinterpret_cast<Context*>(packets_out_ctx);
-
+	std::vector<uv_buf_t> bufs;
+	int succ_num = n_packets_out;
 	for (int n = 0; n < n_packets_out; ++n)
 	{
-		asio::ip::address addr(asio::ip::make_address_v4(ntohl(*(u_long*)(out_spec[n].dest_sa->sa_data + 2))));
-		u_short port = ntohs(*(u_short*)out_spec[n].dest_sa->sa_data);
-		asio::ip::udp::endpoint endpoint(addr, port);
-
-		std::vector<asio::const_buffer> buffers;
-		for (size_t i = 0; i < out_spec[n].iovlen; ++i)
-			buffers.emplace_back(asio::const_buffer(out_spec[n].iov[i].iov_base, out_spec[n].iov[i].iov_len));
-		try {
-			//cxt->socket->send_to(buffers, endpoint);
-		}
-		catch (asio::system_error e)
+		if(bufs.size() < out_spec[n].iovlen)
+			bufs.resize(out_spec[n].iovlen);
+		for (int i = 0; i < out_spec[n].iovlen; ++i)
 		{
-			std::cerr << "packets_out " << endpoint << " err = " << e.what() << std::endl;
+			bufs[i].base = (char*)(out_spec[n].iov[i].iov_base);
+			bufs[i].len = out_spec[n].iov[i].iov_len;
+		}
+		int ret = uv_udp_try_send( cxt->socket.get(), bufs.data(), bufs.size(),out_spec[n].dest_sa);
+		if(ret < 0)
+		{
+			print_uv_err(ret,"try_send");
+			--succ_num;
 		}
 	}
-
-	return n_packets_out;
+	return succ_num;
 }
 
 struct ssl_ctx_st* get_ssl_ctx(void* peer_ctx,
