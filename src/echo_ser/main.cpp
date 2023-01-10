@@ -263,9 +263,17 @@ void on_read(lsquic_stream_t* s, lsquic_stream_ctx_t* h)
 	std::string str;
 	int len = 0;
 	printf("begin read \n");
-	while ((len = ::lsquic_stream_read(s, buf, sizeof(buf))) > 0)
+	while (true)
 	{
-		str.append(buf, len);
+		len = ::lsquic_stream_read(s, buf, sizeof(buf));
+		if(len > 0)
+			str.append(buf, len);
+		else if(len == 0)
+		{
+			lsquic_stream_close(s);
+			return;
+		}else
+			break;
 	}
 	::lsquic_stream_wantwrite(s, 1);
 	::lsquic_stream_wantread(s, 0);
@@ -277,6 +285,7 @@ void on_write(lsquic_stream_t* s, lsquic_stream_ctx_t* h)
 	::lsquic_stream_write(s, str, strlen(str));
 	::lsquic_stream_flush(s);
 	::lsquic_stream_wantwrite(s, 0);
+	::lsquic_stream_wantread(s, 1);
 }
 void on_close(lsquic_stream_t* s, lsquic_stream_ctx_t* h)
 {

@@ -13,6 +13,10 @@ class Context
 public:
 	Context()
 	{
+		
+	}
+	void init()
+	{
 		loop = std::make_shared<uv_loop_t>();
 		uv_loop_init(loop.get());
 
@@ -26,6 +30,11 @@ public:
 		int addrlen = sizeof(sockaddr);
 		int ret = uv_udp_getsockname(socket.get(), &local_addr, &addrlen);
 		if (ret) print_uv_err(ret, "get local addr");
+		socket->data = this;
+		proc_conns_timer = std::make_shared<uv_timer_t>();
+		ret = uv_timer_init(loop.get(),proc_conns_timer.get());
+		if (ret) print_uv_err(ret, "init proc_conns_timer");
+		proc_conns_timer->data = this;
 	}
 	void close_loop()
 	{
@@ -43,6 +52,7 @@ public:
 	lsquic_engine_t* engine = nullptr;
 	lsquic_conn_t* conn = nullptr;
 	lsquic_stream_t* stream = nullptr;
+	lsquic_stream_t* stream2 = nullptr;
 	std::vector<char> recv_buf;
 	struct sockaddr local_addr;
 };
@@ -107,7 +117,7 @@ void recv_cb(uv_udp_t* req, ssize_t nread, const uv_buf_t* buf, const struct soc
 //main /////////////
 int main(int argc, const char** argv)
 {
-	const char* ip = "129.211.8.222";
+	const char* ip = "127.0.0.1";
 	if (argc >= 2)
 		ip = argv[1];
 	signal(SIGINT, sig_handler);
@@ -123,6 +133,7 @@ int main(int argc, const char** argv)
 	lsquic_set_log_level("warning");
 
 	Context context;
+	context.init();
 
 	struct lsquic_stream_if stream_if = {};
 	stream_if.on_new_conn = on_new_conn;
@@ -140,7 +151,7 @@ int main(int argc, const char** argv)
 	engine_api.ea_alpn = "echo";
 	lsquic_engine_t* engine = lsquic_engine_new(0, &engine_api);
 	context.engine = engine;
-	context.socket->data = &context;
+	
 	
 	struct sockaddr_in conn_addr;
 	uv_ip4_addr(ip, 8083, &conn_addr);
@@ -169,6 +180,8 @@ int main(int argc, const char** argv)
 	
 	END:
 	printf("end\n");
+	if (context.stream2)
+		::lsquic_stream_close(context.stream2);
 	if (context.stream)
 		::lsquic_stream_close(context.stream);
 	if(context.conn)
@@ -182,10 +195,7 @@ int main(int argc, const char** argv)
 void process_conns(Context& cxt)
 {
 	if (cxt.proc_conns_timer)
-	{
 		uv_timer_stop(cxt.proc_conns_timer.get());
-		cxt.proc_conns_timer.reset();
-	}
 	int diff;
 	int timeout;
 	lsquic_engine_process_conns(cxt.engine);
@@ -202,8 +212,7 @@ void process_conns(Context& cxt)
 		else
 			/* Round up to granularity */
 			timeout = LSQUIC_DF_CLOCK_GRANULARITY / 1000;
-		cxt.proc_conns_timer = std::make_shared<uv_timer_t>();
-		uv_timer_init(cxt.loop.get(),cxt.proc_conns_timer.get());
+		
 		cxt.proc_conns_timer->data = &cxt;
 		int ret = uv_timer_start(cxt.proc_conns_timer.get(),[](uv_timer_t* handle)
 		{
@@ -212,6 +221,18 @@ void process_conns(Context& cxt)
 		},timeout,0);
 		if (ret)print_uv_err(ret, "start proc conns timer");
 	}
+}
+void async_process_conns(Context& cxt)
+{
+	if (cxt.proc_conns_timer)
+		uv_timer_stop(cxt.proc_conns_timer.get());
+	
+	int ret = uv_timer_start(cxt.proc_conns_timer.get(), [](uv_timer_t* handle)
+		{
+			auto cxt_p = reinterpret_cast<Context*>(handle->data);
+			process_conns(*cxt_p);
+		}, 0, 0);
+	if (ret)print_uv_err(ret, "start proc conns timer");
 }
 
 int packets_out(
@@ -256,7 +277,10 @@ void on_conn_closed(lsquic_conn_t* c)
 lsquic_stream_ctx_t* on_new_stream(void* stream_if_ctx, lsquic_stream_t* s)
 {
 	auto cxt = reinterpret_cast<Context*>(stream_if_ctx);
-	cxt->stream = s;
+	if(!cxt->stream) 
+		cxt->stream = s;
+	else
+		cxt->stream2 = s;
 	::lsquic_stream_wantwrite(s, 1);
 	printf("stream create %zx\n", (size_t)s);
 	return reinterpret_cast<lsquic_stream_ctx_t*>(stream_if_ctx);
@@ -274,10 +298,15 @@ void on_read(lsquic_stream_t* s, lsquic_stream_ctx_t* h)
 	}
 	printf("recv %zx str = %s\n", (size_t)s, str.c_str());
 	::lsquic_stream_wantread(s, 0);
+	if(!cxt->stream2)
+		lsquic_conn_make_stream(cxt->conn);
+	else
+		lsquic_stream_close(s);
 }
 void on_write(lsquic_stream_t* s, lsquic_stream_ctx_t* h)
 {
-	const char* str = "Hi! server";
+	auto cxt = reinterpret_cast<Context*>(h);
+	const char* str = cxt->stream2 ? "Ohhhh hahaha!!!" : "Hi! server";
 	printf("begin write \n");
 	::lsquic_stream_write(s, str, strlen(str));
 	::lsquic_stream_flush(s);
@@ -288,5 +317,8 @@ void on_close(lsquic_stream_t* s, lsquic_stream_ctx_t* h)
 {
 	printf("stream closed %zx\n", (size_t)s);
 	auto cxt = reinterpret_cast<Context*>(h);
-	cxt->stream = nullptr;
+	if(s == cxt->stream)
+		cxt->stream = nullptr;
+	if (s == cxt->stream2)
+		cxt->stream2 = nullptr;
 }
