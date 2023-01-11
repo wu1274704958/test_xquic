@@ -1,3 +1,4 @@
+#pragma once
 #ifdef HAS_ASIO
 #include <asio.hpp>
 #endif
