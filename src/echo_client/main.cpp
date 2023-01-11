@@ -5,6 +5,7 @@
 #include <lsquic.h>
 #include <platform.h>
 #include <uv.h>
+#include <vector>
 
 void print_uv_err(int e, const char* msg);
 static bool IsRunning = true;

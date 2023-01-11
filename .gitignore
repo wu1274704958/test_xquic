@@ -3,3 +3,7 @@
 /.vscode/**
 /out/**
 /src/test_ser/out/**
+/build_arm64_android/**
+/build_arm_android/**
+/build_x64_android/**
+/build_x86_android/**
