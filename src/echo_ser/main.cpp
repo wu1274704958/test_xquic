@@ -6,12 +6,16 @@
 #include <platform.h>
 #include <uv.h>
 
-
+void print_uv_err(int e, const char* msg);
 static bool IsRunning = true;
 class Context
 {
 public:
 	Context()
+	{
+
+	}
+	void init()
 	{
 		loop = std::make_shared<uv_loop_t>();
 		uv_loop_init(loop.get());
@@ -22,6 +26,15 @@ public:
 		uv_ip4_addr("0.0.0.0", 8083, &recv_addr);
 		uv_udp_bind(socket.get(), (const struct sockaddr*)&recv_addr, UV_UDP_REUSEADDR);
 		platform_handle(*socket);
+
+		int addrlen = sizeof(sockaddr);
+		int ret = uv_udp_getsockname(socket.get(), &local_addr, &addrlen);
+		if (ret) print_uv_err(ret, "get local addr");
+		socket->data = this;
+		proc_conns_timer = std::make_shared<uv_timer_t>();
+		ret = uv_timer_init(loop.get(), proc_conns_timer.get());
+		if (ret) print_uv_err(ret, "init proc_conns_timer");
+		proc_conns_timer->data = this;
 	}
 	void close_loop()
 	{
@@ -38,6 +51,7 @@ public:
 	std::shared_ptr<uv_timer_t> proc_conns_timer;
 	lsquic_engine_t* engine;
 	std::vector<char> recv_buf;
+	struct sockaddr local_addr;
 };
 
 void sig_handler(int sig)
@@ -96,12 +110,9 @@ void recv_cb(uv_udp_t* req, ssize_t nread, const uv_buf_t* buf, const struct soc
 	fprintf(stderr, "recv from %s %zd bytes\n", sender, nread);
 	auto cxt = reinterpret_cast<Context*>(req->data);
 	if(!cxt)return;
-	struct sockaddr local_addr;
-	int addrlen = sizeof(sockaddr);
-	int ret = uv_udp_getsockname(req,&local_addr,&addrlen);
-	if(ret) print_uv_err(ret, "get local addr");
-	ret = ::lsquic_engine_packet_in(cxt->engine, reinterpret_cast<const unsigned char*>(buf->base), nread,
-		&local_addr, addr, nullptr, 0);
+	
+	int ret = ::lsquic_engine_packet_in(cxt->engine, reinterpret_cast<const unsigned char*>(buf->base), nread,
+		&cxt->local_addr, addr, nullptr, 0);
 	printf("lsquic_engine_packet_in %d\n", ret);
 	process_conns(*cxt);
 }
@@ -122,7 +133,7 @@ int main(int argc, const char** argv)
 	lsquic_set_log_level("warning");
 
 	Context context;
-
+	context.init();
 	struct lsquic_stream_if stream_if = {};
 	stream_if.on_new_conn = on_new_conn;
 	stream_if.on_conn_closed = on_conn_closed;
@@ -139,7 +150,6 @@ int main(int argc, const char** argv)
 	engine_api.ea_get_ssl_ctx = get_ssl_ctx;
 	lsquic_engine_t* engine = lsquic_engine_new(LSENG_SERVER, &engine_api);
 	context.engine = engine;
-	context.socket->data = &context;
 
 	process_conns(context);
 	int ret = uv_udp_recv_start(context.socket.get(), alloc_cb, recv_cb);
@@ -175,10 +185,7 @@ int main(int argc, const char** argv)
 void process_conns(Context& cxt)
 {
 	if (cxt.proc_conns_timer)
-	{
 		uv_timer_stop(cxt.proc_conns_timer.get());
-		cxt.proc_conns_timer.reset();
-	}
 	int diff;
 	int timeout;
 	lsquic_engine_process_conns(cxt.engine);
@@ -195,9 +202,6 @@ void process_conns(Context& cxt)
 		else
 			/* Round up to granularity */
 			timeout = LSQUIC_DF_CLOCK_GRANULARITY / 1000;
-		cxt.proc_conns_timer = std::make_shared<uv_timer_t>();
-		uv_timer_init(cxt.loop.get(),cxt.proc_conns_timer.get());
-		cxt.proc_conns_timer->data = &cxt;
 		int ret = uv_timer_start(cxt.proc_conns_timer.get(),[](uv_timer_t* handle)
 		{
 			auto cxt_p = reinterpret_cast<Context*>( handle->data);
