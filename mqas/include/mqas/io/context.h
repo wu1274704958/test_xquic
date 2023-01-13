@@ -36,9 +36,11 @@ namespace mqas::io
 		{
 			auto h = std::make_shared<H>();
 			h->init(*this);
-			handles.push_back(std::reinterpret_pointer_cast<uv_handle_t>(h));
+			const auto ptr = reinterpret_cast<uv_handle_t*>(h.get());
+			handles.push_back(std::shared_ptr<uv_handle_t>(std::move(h), ptr));
 			return h;
 		}
+		
 	protected:
 		std::shared_ptr<uv_loop_t> loop;
 		std::vector<std::shared_ptr<uv_handle_t>> handles;
