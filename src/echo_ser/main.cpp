@@ -151,7 +151,7 @@ int main(int argc, const char** argv)
 	engine_api.ea_get_ssl_ctx = get_ssl_ctx;
 	lsquic_engine_t* engine = lsquic_engine_new(LSENG_SERVER, &engine_api);
 	context.engine = engine;
-
+	auto idler = std::make_shared<uv_idle_t>();
 	process_conns(context);
 	int ret = uv_udp_recv_start(context.socket.get(), alloc_cb, recv_cb);
 	if(ret)
@@ -160,10 +160,10 @@ int main(int argc, const char** argv)
 		goto END;
 	}
 
-	uv_idle_t idler;
-	idler.data = context.loop.get();
-	uv_idle_init(context.loop.get(), &idler);
-	uv_idle_start(&idler, [](uv_idle_t* handle)
+	
+	idler->data = context.loop.get();
+	uv_idle_init(context.loop.get(), idler.get());
+	uv_idle_start(idler.get(), [](uv_idle_t* handle)
 	{
 		if(!IsRunning)
 			uv_stop(reinterpret_cast<uv_loop_t*>(handle->data));
