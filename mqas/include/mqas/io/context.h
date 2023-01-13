@@ -3,7 +3,7 @@
 #include <memory>
 #include <mqas/macro.h>
 #include <vector>
-
+#include <atomic>
 namespace mqas::io
 {
 	class Idle;

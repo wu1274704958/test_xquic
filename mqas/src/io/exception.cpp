@@ -7,7 +7,7 @@ namespace mqas::io
 		this->code_ = code;
 	}
 
-	char const* Exception::what() const
+	char const* Exception::what() const noexcept
 	{
 		return uv_strerror(code_);
 	}

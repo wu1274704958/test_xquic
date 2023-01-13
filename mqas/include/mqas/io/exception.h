@@ -8,7 +8,7 @@ namespace mqas::io
 	{
 	public:
 		explicit Exception(int);
-		[[nodiscard]] char const* what() const override;
+		[[nodiscard]] char const* what() const noexcept override;
 		[[nodiscard]] char const* err_name() const;
 		[[nodiscard]] int error_code() const;
 	protected:
