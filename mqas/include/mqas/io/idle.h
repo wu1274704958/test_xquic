@@ -15,6 +15,11 @@ namespace mqas::io
 	class MQAS_EXTERN Idle : public Handle<uv_idle_t,IdleOp>
 	{
 	public:
+		Idle()=default;
+		Idle(Idle&&) = default;
+		Idle(const Idle&) = delete;
+		Idle& operator=(Idle&&) = default;
+		Idle& operator=(const Idle&) = delete;
 		void start(std::function<void(Idle*)>);
 		void stop();
 		static void idle_cb_static(uv_idle_t* handle);

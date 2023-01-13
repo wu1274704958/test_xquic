@@ -9,11 +9,16 @@
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "cmakeCommandArgs": "-DBUILD_MQAS_EXAMPLES=ON -DBUILD_SHARED_LIBS=ON",
+      "cmakeCommandArgs": "-DBUILD_MQAS_EXAMPLES=ON",
       "variables": [
         {
           "name": "BUILD_MQAS_LIB_OBJ",
           "value": "OFF",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "ON",
           "type": "STRING"
         }
       ]

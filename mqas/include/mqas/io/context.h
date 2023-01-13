@@ -32,16 +32,20 @@ namespace mqas::io
 			new H();
 			h.init(std::declval<const Context&>());
 		}
-		std::shared_ptr<H> make_handle()
+		H* make_handle()
 		{
-			auto h = std::make_shared<H>();
-			h->init(*this);
-			handles.push_back(std::reinterpret_pointer_cast<uv_handle_t>(h));
-			return h;
+			H h;
+			h.init(*this);
+			if constexpr (std::is_same_v<H,Idle>)
+			{
+				IdleArr.push_back(std::move(h));
+				return &IdleArr.back();
+			}
+			return nullptr;
 		}
 	protected:
 		std::shared_ptr<uv_loop_t> loop;
-		std::vector<std::shared_ptr<uv_handle_t>> handles;
+		std::vector<Idle> IdleArr;
 	};
 
 
