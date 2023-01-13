@@ -1,7 +1,7 @@
 #include <csignal>
 #include <lsquic.h>
 #include <mqas/context.h>
-#include <exception>
+#include <stdexcept>
 
 namespace mqas
 {
@@ -10,14 +10,14 @@ namespace mqas
 	{
 		if(Context::IsRunning)
 		{
-			throw std::exception("Context instance must only one!");
+			throw std::runtime_error("Context instance must only one!");
 			return;
 		}
 		Context::IsRunning = true;
 		::signal(SIGINT, sig_handler);
 		if (0 != ::lsquic_global_init(LSQUIC_GLOBAL_SERVER))
 		{
-			throw std::exception("Init lsquic failed!");
+			throw std::runtime_error("Init lsquic failed!");
 			return;
 		}
 	}
