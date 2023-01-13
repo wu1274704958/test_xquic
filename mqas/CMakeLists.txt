@@ -12,8 +12,6 @@ else()
     if(BUILD_SHARED_LIBS)
         add_library(${CUR_TARGET_NAME} SHARED ${CUR_SRC_FILES})
         target_compile_definitions(${CUR_TARGET_NAME} PRIVATE BUILDING_MQAS_SHARED)
-        set_target_properties(${CUR_TARGET_NAME} PROPERTIES 
-            INTERFACE_COMPILE_DEFINITIONS "BUILDING_MQAS_SHARED=1")
     else()
         add_library(${CUR_TARGET_NAME} STATIC ${CUR_SRC_FILES})
         target_compile_definitions(${CUR_TARGET_NAME} PRIVATE MQAS_NO_EXPORT)

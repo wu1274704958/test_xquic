@@ -14,6 +14,11 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
     mqas
 )
 
+if(EXISTS $<TARGET_FILE:mqas>)
+    add_custom_command(TARGET ${CUR_TARGET_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:mqas> ${CMAKE_CURRENT_BINARY_DIR})
+endif()
+
 if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/cert-def.pem")
 #openssl req -newkey rsa:4096 -nodes -sha256 -keyout key-def.pem -x509 -days 365 -out cert-def.pem
     add_custom_command(TARGET ${CUR_TARGET_NAME}
