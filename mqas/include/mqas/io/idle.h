@@ -10,7 +10,7 @@ namespace mqas::io
 	class IdleOp
 	{
 	public:
-		static void init(uv_idle_t*, std::shared_ptr<uv_loop_t>);
+		static void init(std::shared_ptr<uv_idle_t>, std::shared_ptr<uv_loop_t>);
 	};
 	class MQAS_EXTERN Idle : public Handle<uv_idle_t,IdleOp>
 	{
