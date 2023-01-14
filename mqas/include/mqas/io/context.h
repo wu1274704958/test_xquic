@@ -4,9 +4,11 @@
 #include <mqas/macro.h>
 #include <vector>
 #include <atomic>
+
 namespace mqas::io
 {
 	class Idle;
+	class Timer;
 	class MQAS_EXTERN Context
 	{
 		enum class RunMode{
@@ -38,14 +40,20 @@ namespace mqas::io
 			h.init(*this);
 			if constexpr (std::is_same_v<H,Idle>)
 			{
-				IdleArr.push_back(std::move(h));
-				return &IdleArr.back();
+				idle_arr_.push_back(std::move(h));
+				return &idle_arr_.back();
+			}
+			if constexpr (std::is_same_v<H,Timer>)
+			{
+				timer_arr_.push_back(std::move(h));
+				return &timer_arr_.back();
 			}
 			return nullptr;
 		}
 	protected:
 		std::shared_ptr<uv_loop_t> loop;
-		std::vector<Idle> IdleArr;
+		std::vector<Idle> idle_arr_;
+		std::vector<Timer> timer_arr_;
 	};
 
 

@@ -12,8 +12,8 @@ namespace mqas::io
 
 	void Idle::start(std::function<void(Idle*)> f)
 	{
-		idle_func = f;
 		if(const int ret = uv_idle_start(handle_.get(),idle_cb_static)) throw Exception(ret);
+		idle_func = f;
 	}
 
 	void Idle::stop()
@@ -33,4 +33,5 @@ namespace mqas::io
 		if(idle_func)
 			idle_func(this);
 	}
+	template class Handle<uv_idle_t,IdleOp>;
 }

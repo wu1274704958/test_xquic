@@ -1,6 +1,7 @@
 #include <mqas/io/context.h>
 #include <mqas/io/idle.h>
 #include <memory>
+#include <mqas/io/timer.h>
 namespace mqas::io
 {
 	Context::Context()
@@ -31,11 +32,12 @@ namespace mqas::io
 	{
 		if (loop)
 		{
+			Context& cxt = *this;
 			auto idle = make_handle<io::Idle>();
 			idle->start([&](io::Idle* self)
 			{
 				if (!v)
-					self->stop();
+					cxt.stop();
 			});
 			::uv_run(loop.get(), uv_run_mode::UV_RUN_DEFAULT);
 		}
