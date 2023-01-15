@@ -29,6 +29,8 @@ namespace mqas::io
 		Handle(Handle&& oth) noexcept
 		{
 			handle_.swap(oth.handle_);
+			data = oth.data;
+			oth.data = nullptr;
 			if(handle_)
 				handle_->data=this;
 		}
@@ -36,6 +38,8 @@ namespace mqas::io
 		Handle& operator=(Handle&& oth) noexcept
 		{
 			handle_ = std::move(oth.handle_);
+			data = oth.data;
+			oth.data = nullptr;
 			if (handle_)
 				handle_->data = this;
 			return *this;
@@ -44,6 +48,7 @@ namespace mqas::io
 		{
 			return handle_.get();
 		}
+		void *data = nullptr;
 	protected:
 		std::shared_ptr<H> handle_;
 	};

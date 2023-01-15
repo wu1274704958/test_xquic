@@ -2,8 +2,9 @@
 #include <uv.h>
 #include <memory>
 #include <mqas/macro.h>
-#include <vector>
+#include <list>
 #include <atomic>
+#include <cassert>
 
 namespace mqas::io
 {
@@ -36,25 +37,49 @@ namespace mqas::io
 		}
 		H* make_handle()
 		{
-			H h;
-			h.init(*this);
-			if constexpr (std::is_same_v<H,Idle>)
+			std::list<H>* arr_ptr = get_handle_arr<H>();
+			arr_ptr->emplace_back();
+			H* h = &arr_ptr->back();
+			h->init(*this);
+			return h;
+		}
+		template<typename H>
+		std::list<H>* get_handle_arr()
+		{
+			std::list<H>* arr_ptr = nullptr;
+			if constexpr (std::is_same_v<H, Idle>)
 			{
-				idle_arr_.push_back(std::move(h));
-				return &idle_arr_.back();
+				arr_ptr = &idle_arr_;
 			}
-			if constexpr (std::is_same_v<H,Timer>)
+			if constexpr (std::is_same_v<H, Timer>)
 			{
-				timer_arr_.push_back(std::move(h));
-				return &timer_arr_.back();
+				arr_ptr = &timer_arr_;
 			}
-			return nullptr;
+			assert(arr_ptr != nullptr);
+			return arr_ptr;
+		}
+		template <typename H>
+		void del_handle(H* ptr)
+		{
+			auto arr = get_handle_arr<H>();
+			ptr->data = arr;
+			uv_close(reinterpret_cast<uv_handle_t*>(ptr->get_ptr()), [](uv_handle_t* h)
+			{
+				auto p = static_cast<H*>(h->data);
+				auto arr = static_cast<std::list<H>*>(p->data);
+				for (auto it = arr->begin(); it != arr->end(); )
+				{
+					if (it->get_ptr() == p->get_ptr())
+						it = arr->erase(it);
+					else
+						++it;
+				}
+			});
 		}
 	protected:
 		std::shared_ptr<uv_loop_t> loop;
-		std::vector<Idle> idle_arr_;
-		std::vector<Timer> timer_arr_;
+		std::list<Idle> idle_arr_;
+		std::list<Timer> timer_arr_;
 	};
-
-
+	
 }

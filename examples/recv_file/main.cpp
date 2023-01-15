@@ -14,7 +14,11 @@ int main(int argc,const char** argv)
 	timer->start([&](io::Timer* t)
 	{
 		printf("timer %d\n",++a);
-		if (a == 3) t->stop();
+		if (a == 3)
+		{
+			t->stop();
+			io_cxt.del_handle(t);
+		}
 	},1000,1000);
 
 	io_cxt.run_until(Context::IsRunning);
