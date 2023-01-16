@@ -70,9 +70,11 @@ namespace mqas::io
 				for (auto it = arr->begin(); it != arr->end(); )
 				{
 					if (it->get_ptr() == p->get_ptr())
+					{
 						it = arr->erase(it);
-					else
-						++it;
+						break;
+					}
+					++it;
 				}
 			});
 		}

@@ -33,6 +33,38 @@
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ]
+    },
+    {
+      "name": "Linux-Clang-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "cmakeExecutable": "cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out" ],
+      "cmakeCommandArgs": "-DBUILD_MQAS_EXAMPLES=ON -DBUILD_SHARED_LIBS=ON",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "cmakeToolchain": "$HOME/code/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "inheritEnvironments": [ "linux_clang_x64" ],
+      "remoteMachineName": "-1755593206;129.211.8.222 (username=lighthouse, port=22, authentication=PrivateKey)",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete --delete-excluded",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "remoteCopyUseCompilerDefaults": true
+    },
+    {
+      "name": "x64-Clang-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${projectDir}\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "-DBUILD_MQAS_EXAMPLES=ON -DBUILD_SHARED_LIBS=ON",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "clang_cl_x64_x64" ]
     }
   ]
 }
