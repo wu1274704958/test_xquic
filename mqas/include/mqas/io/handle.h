@@ -21,6 +21,17 @@ namespace mqas::io
 			HandleOp::init(handle_,cxt.get_loop());
 			handle_->data = this;
 		}
+		template<typename ... Args>
+		requires requires() {
+			HandleOp::init(std::declval<std::shared_ptr<H>>(),
+				std::declval<std::shared_ptr<uv_loop_t>>(),
+				std::declval<Args>()...);
+		}
+		void init(const Context& cxt,Args&& ...args)
+		{
+			HandleOp::init(handle_, cxt.get_loop(),std::forward<Args>(args) ...);
+			handle_->data = this;
+		}
 		Handle()
 		{
 			handle_ = std::make_shared<H>();

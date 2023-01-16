@@ -2,6 +2,7 @@
 #include <mqas/io/idle.h>
 #include <memory>
 #include <mqas/io/timer.h>
+#include <mqas/io/udp.h>
 namespace mqas::io
 {
 	Context::Context()

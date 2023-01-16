@@ -10,6 +10,7 @@ namespace mqas::io
 {
 	class Idle;
 	class Timer;
+	class UdpSocket;
 	class MQAS_EXTERN Context
 	{
 		enum class RunMode{
@@ -43,6 +44,20 @@ namespace mqas::io
 			h->init(*this);
 			return h;
 		}
+		template<typename H,typename ...Args>
+		requires requires(H h)
+		{
+			new H();
+			h.init(std::declval<const Context&>(),std::declval<Args>()...);
+		}
+		H* make_handle_ex(Args&& ...args)
+		{
+			std::list<H>* arr_ptr = get_handle_arr<H>();
+			arr_ptr->emplace_back();
+			H* h = &arr_ptr->back();
+			h->init(*this,std::forward<Args>(args)...);
+			return h;
+		}
 		template<typename H>
 		std::list<H>* get_handle_arr()
 		{
@@ -54,6 +69,10 @@ namespace mqas::io
 			if constexpr (std::is_same_v<H, Timer>)
 			{
 				arr_ptr = &timer_arr_;
+			}
+			if constexpr (std::is_same_v<H, UdpSocket>)
+			{
+				arr_ptr = &udp_arr_;
 			}
 			assert(arr_ptr != nullptr);
 			return arr_ptr;
@@ -82,6 +101,7 @@ namespace mqas::io
 		std::shared_ptr<uv_loop_t> loop;
 		std::list<Idle> idle_arr_;
 		std::list<Timer> timer_arr_;
+		std::list<UdpSocket> udp_arr_;
 	};
 	
 }
