@@ -17,6 +17,7 @@ int main(int argc,const char** argv)
 	udp->bind(local, UV_UDP_REUSEADDR);
 	udp->recv_start([](io::UdpSocket* sock,const std::span<char>& data, const sockaddr* peer, unsigned flag)
 	{
+		if(data.empty() || peer == nullptr) return;
 		std::string str(data.data(),data.size());
 		std::string addrstr = io::UdpSocket::addr2str(*peer);
 		printf("recv %s from %s\n",str.c_str(),addrstr.c_str());
