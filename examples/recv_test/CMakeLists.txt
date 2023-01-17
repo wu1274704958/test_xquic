@@ -1,5 +1,5 @@
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} CUR_SRC_FILES)
-set(CUR_TARGET_NAME recv_file)
+set(CUR_TARGET_NAME recv_test)
 add_executable(${CUR_TARGET_NAME} ${CUR_SRC_FILES})
 add_dependencies(${CUR_TARGET_NAME} mqas)
 target_include_directories(${CUR_TARGET_NAME} PRIVATE 
