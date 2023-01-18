@@ -5,6 +5,8 @@
 #include <functional>
 #include <mqas/io/handle.h>
 #include <span>
+#include <vector>
+#include <string>
 
 namespace mqas::io
 {
