@@ -2,8 +2,6 @@
 #include <mqas/io/context.h>
 #include "mqas/io/timer.h"
 #include <mqas/io/udp.h>
-#include <thread>
-#include <mqas/io/exception.h>
 using namespace mqas;
 
 int main(int argc,const char** argv)
