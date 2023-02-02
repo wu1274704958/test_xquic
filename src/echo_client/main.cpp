@@ -1,3 +1,4 @@
+#include <cstring>
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 #include <openssl/ssl.h>

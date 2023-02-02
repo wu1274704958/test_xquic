@@ -1,0 +1,32 @@
+# syntax=docker/dockerfile:1
+
+FROM ubuntu:22.10
+RUN apt-get update
+RUN apt-get install -y --fix-missing openssh-server git clang gdb ninja-build
+RUN apt-get install -y --fix-missing curl zip unzip 
+RUN apt-get install -y --fix-missing pkg-config nasm golang-go build-essential tar
+RUN echo "root:112" | chpasswd
+WORKDIR /root
+RUN mkdir code
+WORKDIR /root/code
+RUN git clone https://github.com/microsoft/vcpkg.git
+RUN ./vcpkg/bootstrap-vcpkg.sh
+RUN ./vcpkg/vcpkg install zlib
+RUN ./vcpkg/vcpkg install boringssl
+RUN ./vcpkg/vcpkg install liblsquic
+RUN ./vcpkg/vcpkg install libuv
+RUN ./vcpkg/vcpkg install toml11
+RUN ./vcpkg/vcpkg integrate install
+RUN /etc/init.d/ssh start
+RUN sed -i '/#PermitRootLogin prohibit-password/cPermitRootLogin yes' /etc/ssh/sshd_config
+RUN sed -i '/#PasswordAuthentication yes/cPasswordAuthentication yes' /etc/ssh/sshd_config
+RUN sed -i '/#Port 22/cPort 27' /etc/ssh/sshd_config
+RUN apt-get install -y --fix-missing rsync cmake
+RUN ln -s /usr/bin/ninja /usr/bin/ninja-build
+#RUN sed -i '$aexport PATH=$PATH:/root/code/vcpkg/downloads/tools/cmake-3.25.1-linux/cmake-3.25.1-linux-x86_64/bin' ~/.bashrc
+CMD ["bash", "-c", "/etc/init.d/ssh start && tail -f /dev/null"]
+
+EXPOSE 27 8083
+
+
+
