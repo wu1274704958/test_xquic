@@ -3,8 +3,15 @@
 #include <mqas/io/context.h>
 #include <toml.hpp>
 #include <memory>
+
 namespace mqas::core
 {
+	struct MQAS_EXTERN engine_config
+	{
+		std::string bind_ip;
+		short port;
+	};
+
 	class MQAS_EXTERN engine_base
 	{
 	public:
@@ -24,6 +31,15 @@ namespace mqas::core
 	protected:
 		io::UdpSocket* socket_;
 		io::Timer* proc_conns_timer_;
-		std::unique_ptr<toml::basic_value<toml::discard_comments>> conf_;
+		std::shared_ptr<engine_config> conf_;
 	}; 
+}
+
+namespace toml
+{
+	template<>
+	struct from<mqas::core::engine_config>
+	{
+		static mqas::core::engine_config from_toml(const value& v);
+	};
 }

@@ -23,14 +23,14 @@ mqas::core::engine_base::engine_base(engine_base&& oth) noexcept : cxt(oth.cxt)
 
 void mqas::core::engine_base::init(const char* conf_file)
 {
-	conf_ = std::make_unique<toml::basic_value<toml::discard_comments>>(toml::parse(conf_file));
-	const auto& conf = *conf_;
-	const auto ip = toml::find_or<std::string>(conf,"bind_ip","0.0.0.0");
-	const auto port = toml::find_or<short>(conf,"port",8083);
+	//parse config 
+	const auto conf_data = toml::parse(conf_file);
+	conf_ = std::make_shared<engine_config>(toml::find<engine_config>(conf_data, "engine_config"));
+	
 	//init socket
 	socket_ = cxt.make_handle<io::UdpSocket>();
 	sockaddr addr{};
-	io::UdpSocket::str2addr_ipv4(ip.c_str(),port, addr);
+	io::UdpSocket::str2addr_ipv4(conf_->bind_ip.c_str(),conf_->port, addr);
 	socket_->bind(addr,UV_UDP_REUSEADDR);
 	// init timer
 	proc_conns_timer_ = cxt.make_handle<io::Timer>();
@@ -73,4 +73,12 @@ std::string mqas::core::engine_base::load_config(const char* conf_file)
 	file.close();
 #endif
 	return ss.str();
+}
+
+mqas::core::engine_config toml::from<mqas::core::engine_config>::from_toml(const value& v)
+{
+	mqas::core::engine_config f;
+	f.bind_ip =		find_or<std::string		>(v,	"bind_ip",	"0.0.0.0");
+	f.port =		find_or<short			>(v,	"port",		8083);
+	return f;
 }
