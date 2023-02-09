@@ -12,7 +12,7 @@ int main(int argc,const char** argv)
 
 	core::engine_base e(io_cxt);
 	try{
-		e.init("conf.txt");
+		e.init("conf.txt",core::EngineFlags::Server);
 	}catch (std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;

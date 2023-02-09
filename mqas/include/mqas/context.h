@@ -28,14 +28,6 @@ namespace mqas
 				throw std::runtime_error("Init lsquic failed!");
 			}
 		}
-		static constexpr bool contain_server()
-		{
-			return (static_cast<uint32_t>(F) & static_cast<uint32_t>(core::InitFlags::GLOBAL_SERVER)) == static_cast<uint32_t>(core::InitFlags::GLOBAL_SERVER);
-		}
-		static constexpr bool contain_client()
-		{
-			return (static_cast<uint32_t>(F) & static_cast<uint32_t>(core::InitFlags::GLOBAL_CLIENT)) == static_cast<uint32_t>(core::InitFlags::GLOBAL_CLIENT);
-		}
 		~Context()
 		{
 			::lsquic_global_cleanup();

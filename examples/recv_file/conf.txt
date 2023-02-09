@@ -1,3 +1,14 @@
 [engine_config]
 bind_ip="0.0.0.0"
 port=8084
+log_level="info"
+log_config="""
+* GLOBAL:
+   FORMAT               =  "%datetime [%logger] [%levshort] %msg"
+   FILENAME             =  "recv_file.log"
+   ENABLED              =  true
+   TO_FILE              =  true
+   TO_STANDARD_OUTPUT   =  false
+   SUBSECOND_PRECISION  =  6
+   PERFORMANCE_TRACKING =  true
+"""

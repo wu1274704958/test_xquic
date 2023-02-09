@@ -29,6 +29,9 @@ target_include_directories(${CUR_TARGET_NAME} PRIVATE
     ${boringssl_INCLUDE_DIR}
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
+
+find_library(easyloggingpp_LIBRARY easyloggingpp REQUIED)
+
 target_link_libraries(${CUR_TARGET_NAME} PRIVATE 
     lsquic::lsquic
     ${OTH_LIBRARY}
@@ -36,4 +39,5 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
     ZLIB::ZLIB
     $<IF:$<TARGET_EXISTS:uv_a>,uv_a,uv>
     toml11::toml11
+    ${easyloggingpp_LIBRARY}
 )
