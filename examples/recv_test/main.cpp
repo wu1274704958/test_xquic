@@ -6,7 +6,7 @@ using namespace mqas;
 
 int main(int argc,const char** argv)
 {
-	Context context;
+	Context<mqas::core::InitFlags::GLOBAL_SERVER> context;
 	io::Context io_cxt;
 	
 	
@@ -22,6 +22,6 @@ int main(int argc,const char** argv)
 		printf("recv %s from %s\n",str.c_str(),addrstr.c_str());
 	});
 
-	io_cxt.run_until(Context::IsRunning);
+	io_cxt.run_until(is_running());
 	return 0;
 }

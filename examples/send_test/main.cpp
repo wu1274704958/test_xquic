@@ -6,7 +6,7 @@ using namespace mqas;
 
 int main(int argc,const char** argv)
 {
-	Context context;
+	Context<mqas::core::InitFlags::GLOBAL_CLIENT> context;
 	io::Context io_cxt;
 
 	auto udp = io_cxt.make_handle<io::UdpSocket>();
@@ -46,6 +46,6 @@ int main(int argc,const char** argv)
 	});
 
 
-	io_cxt.run_until(Context::IsRunning);
+	io_cxt.run_until(is_running());
 	return 0;
 }

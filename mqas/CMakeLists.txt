@@ -28,9 +28,8 @@ set_target_properties(${CUR_TARGET_NAME} PROPERTIES
 target_include_directories(${CUR_TARGET_NAME} PRIVATE 
     ${boringssl_INCLUDE_DIR}
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    ${easyloggingpp_INCLUDE_DIR}
 )
-
-find_library(easyloggingpp_LIBRARY easyloggingpp REQUIED)
 
 target_link_libraries(${CUR_TARGET_NAME} PRIVATE 
     lsquic::lsquic
