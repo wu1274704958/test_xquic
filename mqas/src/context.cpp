@@ -5,33 +5,9 @@
 
 namespace mqas
 {
-	std::atomic_bool Context::IsRunning = false;
-	Context::Context()
+	std::atomic_bool& is_running()
 	{
-		if(Context::IsRunning)
-		{
-			throw std::runtime_error("Context instance must only one!");
-			return;
-		}
-		Context::IsRunning = true;
-		::signal(SIGINT, sig_handler);
-		if (0 != ::lsquic_global_init(LSQUIC_GLOBAL_SERVER))
-		{
-			throw std::runtime_error("Init lsquic failed!");
-			return;
-		}
-	}
-
-	Context::~Context()
-	{
-		::lsquic_global_cleanup();
-	}
-
-	void Context::sig_handler(int sig)
-	{
-		if (sig == SIGINT)
-		{
-			Context::IsRunning = false;
-		}
+		static std::atomic_bool is_running;
+		return is_running;
 	}
 }

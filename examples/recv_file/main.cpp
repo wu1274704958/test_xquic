@@ -7,7 +7,7 @@ using namespace mqas;
 
 int main(int argc,const char** argv)
 {
-	Context context;
+	Context<core::InitFlags::GLOBAL_SERVER> context;
 	io::Context io_cxt;
 
 	core::engine_base e(io_cxt);
@@ -17,6 +17,6 @@ int main(int argc,const char** argv)
 	{
 		std::cerr << e.what() << std::endl;
 	}
-	io_cxt.run_until(Context::IsRunning);
+	io_cxt.run_until(is_running());
 	return 0;
 }
