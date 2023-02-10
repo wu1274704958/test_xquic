@@ -28,7 +28,9 @@ namespace mqas::core
 		engine_base& operator=(engine_base&&) = delete;
 		engine_base& operator=(const engine_base&) = delete;
 		void init(const char* conf_file, core::EngineFlags engine_flags) noexcept(false);
+		void init_logger() const;
 		void init_lsquic(core::EngineFlags engine_flags) noexcept(false);
+
 		void close_socket();
 		void close_timer();
 		~engine_base();

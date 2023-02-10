@@ -38,11 +38,24 @@ void mqas::core::engine_base::init(const char* conf_file,core::EngineFlags engin
 	// init timer
 	proc_conns_timer_ = cxt.make_handle<io::Timer>();
 	//init logger
-	//register lsquic logger
-	el::Loggers::getLogger("lsquic");
-	mqas::log::init(conf_->log_config);
+	init_logger();
 
 	init_lsquic(engine_flags);
+}
+
+void mqas::core::engine_base::init_logger() const
+{
+	mqas::log::init("default",conf_->log_config,std::nullopt);
+	const auto lsquic_log = el::Loggers::getLogger("lsquic");
+	el::Configurations c;
+	c.setFromBase(el::Loggers::getLogger("default")->configurations());
+	auto fmt = c.get(el::Level::Global,el::ConfigurationType::Format)->value();
+	auto p = fmt.find("[%level]");
+	if(p != std::string::npos){
+		fmt.replace(p, sizeof("[%level]"), "");
+		c.set(el::Level::Global,el::ConfigurationType::Format,fmt);
+	}
+	el::Loggers::reconfigureLogger(lsquic_log, c);
 }
 
 void mqas::core::engine_base::init_lsquic(core::EngineFlags flags) noexcept(false)
@@ -135,7 +148,6 @@ mqas::core::engine_config toml::from<mqas::core::engine_config>::from_toml(const
 //lsquic callback function implement
 int mqas::core::engine_base::lsquic_log_func(void* logger_ctx, const char* buf, size_t len)
 {
-	//auto* p = static_cast<engine_base*>(logger_ctx);
 	CLOG(ERROR, "lsquic") << buf;
 	return 0;
 }
