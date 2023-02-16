@@ -33,37 +33,6 @@ void mqas::io::UdpSocket::connect(const sockaddr& addr) const
 	if (const int ret = uv_udp_connect(handle_.get(), &addr); ret != 0)throw Exception(ret);
 }
 
-void mqas::io::UdpSocket::str2addr_ipv4(const char* str, int port, sockaddr& addr)
-{
-	if (const int ret = uv_ip4_addr(str, port,reinterpret_cast<sockaddr_in*>(&addr)); ret != 0)throw Exception(ret);
-}
-
-void mqas::io::UdpSocket::str2addr_ipv6(const char* str, int port, sockaddr& addr)
-{
-	if (const int ret = uv_ip6_addr(str, port, reinterpret_cast<sockaddr_in6*>(&addr)); ret != 0)throw Exception(ret);
-}
-
-std::string mqas::io::UdpSocket::addr2str_ipv4(const sockaddr& addr)
-{
-	char buf[INET_ADDRSTRLEN] = {0};
-	uv_ip4_name(reinterpret_cast<const sockaddr_in*>(&addr), buf, sizeof(buf));
-	return {buf};
-}
-
-std::string mqas::io::UdpSocket::addr2str_ipv6(const sockaddr& addr)
-{
-	char buf[INET6_ADDRSTRLEN] = { 0 };
-	uv_ip6_name(reinterpret_cast<const sockaddr_in6*>(&addr), buf, sizeof(buf));
-	return { buf };
-}
-
-std::string mqas::io::UdpSocket::addr2str(const sockaddr& addr)
-{
-	char buf[INET6_ADDRSTRLEN] = { 0 };
-	uv_ip_name(&addr, buf, sizeof(buf));
-	return { buf };
-}
-
 void mqas::io::UdpSocket::get_peer_addr(sockaddr& name) const
 {
 	int addrlen = sizeof(sockaddr);

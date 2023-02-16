@@ -30,11 +30,6 @@ namespace mqas::io
 		void open(OsSocket sock) const;
 		void bind(const sockaddr& addr,unsigned int flags) const;
 		void connect(const sockaddr& addr) const;
-		static void str2addr_ipv4(const char* str,int port, sockaddr& addr);
-		static void str2addr_ipv6(const char* str, int port, sockaddr& addr);
-		static std::string addr2str_ipv4(const sockaddr& addr);
-		static std::string addr2str_ipv6(const sockaddr& addr);
-		static std::string addr2str(const sockaddr& addr);
 		void get_peer_addr(sockaddr& name) const;
 		void get_sock_addr(sockaddr& name) const;
 		void set_broadcast(int on) const;

@@ -2,6 +2,7 @@
 #include <mqas/io/context.h>
 #include "mqas/io/timer.h"
 #include <mqas/io/udp.h>
+#include <mqas/io/ip.h>
 using namespace mqas;
 
 int main(int argc,const char** argv)
@@ -11,8 +12,8 @@ int main(int argc,const char** argv)
 
 	auto udp = io_cxt.make_handle<io::UdpSocket>();
 	sockaddr local,peer;
-	io::UdpSocket::str2addr_ipv4("0.0.0.0",8084,local);
-	io::UdpSocket::str2addr_ipv4("127.0.0.1", 8083, peer);
+	io::Ip::str2addr_ipv4("0.0.0.0",8084,local);
+	io::Ip::str2addr_ipv4("127.0.0.1", 8083, peer);
 	udp->bind(local, UV_UDP_REUSEADDR);
 
 	std::string str = "hello!!!";

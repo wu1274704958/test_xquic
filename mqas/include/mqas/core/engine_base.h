@@ -6,6 +6,7 @@
 #include <toml.hpp>
 #include <memory>
 #include <mqas/core/def.h>
+#include <openssl/ssl.h>
 
 namespace mqas::core
 {
@@ -17,6 +18,9 @@ namespace mqas::core
 		std::string log_path;
 		std::string log_config;
 		std::string alpn;
+		std::string ssl_cert_path;
+		std::string ssl_key_path;
+		::lsquic_engine_settings lsquic_settings;
 	};
 
 	class MQAS_EXTERN engine_base
@@ -29,13 +33,18 @@ namespace mqas::core
 		engine_base& operator=(const engine_base&) = delete;
 		void init(const char* conf_file, core::EngineFlags engine_flags) noexcept(false);
 		void init_logger() const;
+		int ssl_select_alpn(SSL* ssl, const unsigned char** out, unsigned char* outlen,
+			const unsigned char* in, unsigned int inlen) const;
+		int init_ssl(const char* cert_file, const char* key_file);
 		void init_lsquic(core::EngineFlags engine_flags) noexcept(false);
 
 		void close_socket();
 		void close_timer();
+		void close_ssl_ctx();
 		~engine_base();
 	protected:
 		static std::string load_config(const char* conf_file);
+		static void settings_from_toml(::lsquic_engine_settings&,const toml::value& v);
 		//lsquic callback function
 		static int lsquic_log_func(void* logger_ctx, const char* buf, size_t len);
 
@@ -54,6 +63,7 @@ namespace mqas::core
 		io::Timer* proc_conns_timer_;
 		std::shared_ptr<engine_config> conf_;
 		::lsquic_engine* engine_ = nullptr;
+		::SSL_CTX* ssl_ctx_ = nullptr;
 	};
 
 }
@@ -62,5 +72,4 @@ template<>
 struct toml::from<mqas::core::engine_config>
 {
 	static mqas::core::engine_config from_toml(const value& v);
-}
-;
+};
