@@ -55,20 +55,20 @@ void mqas::io::UdpSocket::set_ttl(int ttl) const
 	if (const int ret = uv_udp_set_ttl(handle_.get(), ttl); ret != 0)throw Exception(ret);
 }
 
-void mqas::io::UdpSocket::send(const std::vector<std::span<char>>& data, const sockaddr& addr,
+void mqas::io::UdpSocket::send(const std::vector<std::span<char>>& d, const sockaddr& addr,
 	std::function<void(UdpSocket*, int)> send_cb)
 {
 	send_cxts_.emplace_back(std::move(send_cb));
 	UdpSendReqCxt& cxt = send_cxts_.back();
 	cxt.req.data = &cxt;
-	std::vector<uv_buf_t> buf(data.size());
-	for (size_t i = 0; i < data.size(); ++i)
+	std::vector<uv_buf_t> buf(d.size());
+	for (size_t i = 0; i < d.size(); ++i)
 	{
-		buf[i].base = data[i].data();
-		buf[i].len = data[i].size();
+		buf[i].base = d[i].data();
+		buf[i].len = static_cast<ULONG>(d[i].size());
 	}
 	const int ret = uv_udp_send(&cxt.req, handle_.get(), buf.data(),
-		buf.size(), &addr, on_send_callback);
+		static_cast<unsigned>(buf.size()), &addr, on_send_callback);
 	if (ret != 0)
 	{
 		send_cxts_.pop_back();
@@ -77,29 +77,29 @@ void mqas::io::UdpSocket::send(const std::vector<std::span<char>>& data, const s
 }
 
 
-int mqas::io::UdpSocket::try_send(const std::vector<std::span<char>>& data, const sockaddr& addr) const
+int mqas::io::UdpSocket::try_send(const std::vector<std::span<char>>& d, const sockaddr& addr) const
 {
-	std::vector<uv_buf_t> buf(data.size());
-	for (size_t i = 0; i < data.size(); ++i)
+	std::vector<uv_buf_t> buf(d.size());
+	for (size_t i = 0; i < d.size(); ++i)
 	{
-		buf[i].base = data[i].data();
-		buf[i].len = data[i].size();
+		buf[i].base = d[i].data();
+		buf[i].len = static_cast<ULONG>(d[i].size());
 	}
-	const int ret = uv_udp_try_send(handle_.get(), buf.data(), buf.size(),&addr);
+	const int ret = uv_udp_try_send(handle_.get(), buf.data(), static_cast<unsigned>(buf.size()),&addr);
 	if (ret < 0)
 		throw Exception(ret);
 	return ret;
 }
 
-void mqas::io::UdpSocket::send(const std::span<char>& data, const sockaddr& addr,
+void mqas::io::UdpSocket::send(const std::span<char>& d, const sockaddr& addr,
 	std::function<void(UdpSocket*, int)> send_cb)
 {
 	send_cxts_.emplace_back(std::move(send_cb));
 	UdpSendReqCxt& cxt = send_cxts_.back();
 	cxt.req.data = &cxt;
-	uv_buf_t buf = {0};
-	buf.base = data.data();
-	buf.len = data.size();
+	uv_buf_t buf = {};
+	buf.base = d.data();
+	buf.len = static_cast<ULONG>(d.size());
 	const int ret = uv_udp_send(&cxt.req, handle_.get(), &buf,1,&addr,on_send_callback);
 	if (ret != 0)
 	{
@@ -108,11 +108,11 @@ void mqas::io::UdpSocket::send(const std::span<char>& data, const sockaddr& addr
 	}
 }
 
-int mqas::io::UdpSocket::try_send(const std::span<char>& data, const sockaddr& addr) const
+int mqas::io::UdpSocket::try_send(const std::span<char>& d, const sockaddr& addr) const
 {
-	uv_buf_t buf = {0};
-	buf.base = data.data();
-	buf.len = data.size();
+	uv_buf_t buf = {};
+	buf.base = d.data();
+	buf.len = static_cast<ULONG>(d.size());
 	const int ret = uv_udp_try_send(handle_.get(), &buf, 1, &addr);
 	if (ret < 0)
 		throw Exception(ret);
@@ -120,7 +120,7 @@ int mqas::io::UdpSocket::try_send(const std::span<char>& data, const sockaddr& a
 }
 
 void mqas::io::UdpSocket::recv_start(
-	std::function<void(UdpSocket*,const std::span<char>&, const sockaddr*, unsigned)> recv_cb)
+	std::function<void(UdpSocket*,const std::optional<std::span<char>>&,ssize_t nread,const sockaddr*, unsigned)> recv_cb)
 {
 	const int ret = uv_udp_recv_start(handle_.get(), buf_alloc_cb,[](uv_udp_t* handle,
 		ssize_t nread,
@@ -130,8 +130,10 @@ void mqas::io::UdpSocket::recv_start(
 	{
 		if (const auto sock = static_cast<UdpSocket*>(handle->data))
 		{
-			const std::span<char> span(buf->base,nread);
-			sock->recv_cb_(sock,span,addr,flags);
+			std::optional<std::span<char>> span = std::nullopt;
+			if(nread > 0)
+				span = std::make_optional(std::span(buf->base,nread));
+			sock->recv_cb_(sock,span,nread,addr,flags);
 		}
 	});
 	if(ret != 0)throw Exception(ret);
@@ -166,7 +168,7 @@ void mqas::io::UdpSocket::buf_alloc_cb(uv_handle_t* handle, size_t suggested_siz
 		if(sock->buffer_.size() < suggested_size)
 			sock->buffer_.resize(suggested_size);
 		buf->base = sock->buffer_.data();
-		buf->len = sock->buffer_.size();
+		buf->len = static_cast<ULONG>(sock->buffer_.size());
 	}
 }
 

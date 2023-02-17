@@ -3,6 +3,7 @@
 #include <uv.h>
 #include <memory>
 #include <functional>
+#include <optional>
 #include <mqas/io/handle.h>
 #include <span>
 #include <vector>
@@ -34,12 +35,12 @@ namespace mqas::io
 		void get_sock_addr(sockaddr& name) const;
 		void set_broadcast(int on) const;
 		void set_ttl(int ttl) const;
-		void send(const std::vector<std::span<char>>& data,const sockaddr& addr,
+		void send(const std::vector<std::span<char>>& d,const sockaddr& addr,
 			std::function<void(UdpSocket*,int)> send_cb);
-		int try_send(const std::vector<std::span<char>>& data, const sockaddr& addr) const;
-		void send(const std::span<char>& data, const sockaddr& addr, std::function<void(UdpSocket*, int)> send_cb);
-		int try_send(const std::span<char>& data, const sockaddr& addr) const;
-		void recv_start(std::function<void(UdpSocket*,const std::span<char>&, const sockaddr*, unsigned)> recv_cb);
+		int try_send(const std::vector<std::span<char>>& d, const sockaddr& addr) const;
+		void send(const std::span<char>& d, const sockaddr& addr, std::function<void(UdpSocket*, int)> send_cb);
+		int try_send(const std::span<char>& d, const sockaddr& addr) const;
+		void recv_start(std::function<void(UdpSocket*,const std::optional<std::span<char>>&,ssize_t nread,const sockaddr*, unsigned)> recv_cb);
 		int using_recvmmsg() const;
 		void recv_stop();
 		size_t get_send_queue_size() const;
@@ -49,7 +50,7 @@ namespace mqas::io
 		static void on_send_callback(uv_udp_send_t* send, int status);
 	protected:
 		std::list<UdpSendReqCxt> send_cxts_;
-		std::function<void(UdpSocket*,const std::span<char>&,const sockaddr*,unsigned)> recv_cb_;
+		std::function<void(UdpSocket*, const std::optional<std::span<char>>&, ssize_t nread, const sockaddr*, unsigned)> recv_cb_;
 		std::vector<char> buffer_;
 	};
 	struct MQAS_EXTERN UdpSendReqCxt

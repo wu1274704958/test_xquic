@@ -45,8 +45,13 @@ namespace mqas::core
 		void init(const char* conf_file, core::EngineFlags engine_flags) noexcept(false);
 		void init_logger() const;
 		int init_ssl(const char* cert_file, const char* key_file);
-		void init_lsquic(core::EngineFlags engine_flags) noexcept(false);
-
+		void init_lsquic() noexcept(false);
+		void process_conns() const;
+		void start_recv() const;
+		void connect(const ::sockaddr& addr,::lsquic_version ver, const char* hostname = nullptr, unsigned short base_plpmtu = 0,
+			const unsigned char* sess_resume = nullptr, size_t sess_resume_len = 0,
+			/** Resumption token: optional */
+			const unsigned char* token = nullptr, size_t token_sz = 0) const;
 		void close_socket();
 		void close_timer();
 		void close_ssl_ctx();
@@ -67,6 +72,7 @@ namespace mqas::core
 		static void on_read_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx);
 		static void on_write_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx);
 		static void on_close_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx);
+
 		static int on_packets_out(void* packets_out_ctx, const lsquic_out_spec* out_spec, unsigned n_packets_out);
 		static ssl_ctx_st* on_get_ssl_ctx(void* peer_ctx, const sockaddr* local);
 	public:
@@ -77,6 +83,8 @@ namespace mqas::core
 		std::shared_ptr<engine_config> conf_;
 		::lsquic_engine* engine_ = nullptr;
 		::SSL_CTX* ssl_ctx_ = nullptr;
+		EngineFlags engine_flags_;
+		::sockaddr local_addr_;
 	};
 
 }
