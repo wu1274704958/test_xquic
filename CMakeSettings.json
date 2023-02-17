@@ -45,7 +45,7 @@
       "ctestCommandArgs": "",
       "cmakeToolchain": "$HOME/code/vcpkg/scripts/buildsystems/vcpkg.cmake",
       "inheritEnvironments": [ "linux_clang_x64" ],
-      "remoteMachineName": "-1755593206;129.211.8.222 (username=lighthouse, port=22, authentication=PrivateKey)",
+      "remoteMachineName": "-1437351559;127.0.0.1 (username=root, port=27, authentication=Password)",
       "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}",
       "remoteBuildRoot": "$HOME/.vs/${projectDirName}/build/${name}",
       "remoteInstallRoot": "$HOME/.vs/${projectDirName}/install/${name}",
@@ -61,7 +61,7 @@
       "configurationType": "Debug",
       "buildRoot": "${projectDir}\\build\\${name}",
       "installRoot": "${projectDir}\\out\\install\\${name}",
-      "cmakeCommandArgs": "-DBUILD_MQAS_EXAMPLES=ON -DBUILD_SHARED_LIBS=ON",
+      "cmakeCommandArgs": "-DBUILD_MQAS_EXAMPLES=ON -DBUILD_SHARED_LIBS=OFF",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "clang_cl_x64_x64" ]

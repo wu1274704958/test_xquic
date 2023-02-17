@@ -13,17 +13,28 @@ namespace mqas::core
 	struct MQAS_EXTERN engine_config
 	{
 		std::string bind_ip;
-		short port;
 		std::string log_level;
 		std::string log_path;
 		std::string log_config;
 		std::string alpn;
 		std::string ssl_cert_path;
 		std::string ssl_key_path;
-		::lsquic_engine_settings lsquic_settings;
+		short port = 0;
+		::lsquic_engine_settings lsquic_settings = {};
 	};
 
-	class MQAS_EXTERN engine_base
+	class MQAS_EXTERN IEngine
+	{
+		
+	};
+
+	template<typename E>
+	requires requires
+	{
+		E();
+		requires std::is_base_of_v<IEngine, E>;
+	}
+	class engine_base
 	{
 	public:
 		engine_base(io::Context&);
@@ -33,18 +44,20 @@ namespace mqas::core
 		engine_base& operator=(const engine_base&) = delete;
 		void init(const char* conf_file, core::EngineFlags engine_flags) noexcept(false);
 		void init_logger() const;
-		int ssl_select_alpn(SSL* ssl, const unsigned char** out, unsigned char* outlen,
-			const unsigned char* in, unsigned int inlen) const;
 		int init_ssl(const char* cert_file, const char* key_file);
 		void init_lsquic(core::EngineFlags engine_flags) noexcept(false);
 
 		void close_socket();
 		void close_timer();
 		void close_ssl_ctx();
-		~engine_base();
+		~engine_base()
+		{
+			close_socket();
+			close_timer();
+			close_ssl_ctx();
+		}
 	protected:
 		static std::string load_config(const char* conf_file);
-		static void settings_from_toml(::lsquic_engine_settings&,const toml::value& v);
 		//lsquic callback function
 		static int lsquic_log_func(void* logger_ctx, const char* buf, size_t len);
 
@@ -69,7 +82,9 @@ namespace mqas::core
 }
 
 template<>
-struct toml::from<mqas::core::engine_config>
+struct MQAS_EXTERN toml::from<mqas::core::engine_config>
 {
 	static mqas::core::engine_config from_toml(const value& v);
 };
+
+#include "engine_base.impl.hpp"

@@ -1,6 +1,12 @@
 #include <mqas/log.h>
 #include <easylogging++.h>
 
+//namespace el {
+//	namespace base {
+//		 ELPP_EXPORT el::base::type::StoragePointer elStorage(new el::base::Storage(el::LogBuilderPtr(new el::base::DefaultLogBuilder())));
+//	}
+//	el::base::debug::CrashHandler elCrashHandler(ELPP_USE_DEF_CRASH_HANDLER);
+//}
 INITIALIZE_EASYLOGGINGPP
 
 void mqas::log::init(const std::string& conf)

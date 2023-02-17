@@ -3,14 +3,19 @@
 #include "mqas/core/engine_base.h"
 #include <iostream>
 
+
 using namespace mqas;
+
+class Engine : mqas::core::IEngine
+{
+	
+};
 
 int main(int argc,const char** argv)
 {
 	Context<core::InitFlags::GLOBAL_SERVER> context;
 	io::Context io_cxt;
-
-	core::engine_base e(io_cxt);
+	core::engine_base<Engine> e(io_cxt);
 	try{
 		e.init("conf.txt",core::EngineFlags::Server);
 	}catch (std::exception& e)
