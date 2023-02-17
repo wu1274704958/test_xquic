@@ -65,7 +65,7 @@ void mqas::io::UdpSocket::send(const std::vector<std::span<char>>& d, const sock
 	for (size_t i = 0; i < d.size(); ++i)
 	{
 		buf[i].base = d[i].data();
-		buf[i].len = static_cast<ULONG>(d[i].size());
+		buf[i].len = static_cast<size_t>(d[i].size());
 	}
 	const int ret = uv_udp_send(&cxt.req, handle_.get(), buf.data(),
 		static_cast<unsigned>(buf.size()), &addr, on_send_callback);
@@ -83,7 +83,7 @@ int mqas::io::UdpSocket::try_send(const std::vector<std::span<char>>& d, const s
 	for (size_t i = 0; i < d.size(); ++i)
 	{
 		buf[i].base = d[i].data();
-		buf[i].len = static_cast<ULONG>(d[i].size());
+		buf[i].len = static_cast<size_t>(d[i].size());
 	}
 	const int ret = uv_udp_try_send(handle_.get(), buf.data(), static_cast<unsigned>(buf.size()),&addr);
 	if (ret < 0)
@@ -99,7 +99,7 @@ void mqas::io::UdpSocket::send(const std::span<char>& d, const sockaddr& addr,
 	cxt.req.data = &cxt;
 	uv_buf_t buf = {};
 	buf.base = d.data();
-	buf.len = static_cast<ULONG>(d.size());
+	buf.len = static_cast<size_t>(d.size());
 	const int ret = uv_udp_send(&cxt.req, handle_.get(), &buf,1,&addr,on_send_callback);
 	if (ret != 0)
 	{
@@ -112,7 +112,7 @@ int mqas::io::UdpSocket::try_send(const std::span<char>& d, const sockaddr& addr
 {
 	uv_buf_t buf = {};
 	buf.base = d.data();
-	buf.len = static_cast<ULONG>(d.size());
+	buf.len = static_cast<size_t>(d.size());
 	const int ret = uv_udp_try_send(handle_.get(), &buf, 1, &addr);
 	if (ret < 0)
 		throw Exception(ret);
@@ -168,7 +168,7 @@ void mqas::io::UdpSocket::buf_alloc_cb(uv_handle_t* handle, size_t suggested_siz
 		if(sock->buffer_.size() < suggested_size)
 			sock->buffer_.resize(suggested_size);
 		buf->base = sock->buffer_.data();
-		buf->len = static_cast<ULONG>(sock->buffer_.size());
+		buf->len = static_cast<size_t>(sock->buffer_.size());
 	}
 }
 
