@@ -11,6 +11,7 @@
 #include <mqas/comm/macro.h>
 #include <mqas/io/ip.h>
 #include <mqas/io/exception.h>
+#include <mqas/comm/string.h>
 
 #ifdef PF_ANDROID
 #endif
@@ -28,13 +29,15 @@ requires requires															\
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-mqas::core::engine_base<E>::engine_base(io::Context& c):cxt(c),socket_(nullptr)
-,proc_conns_timer_(nullptr),engine_flags_(EngineFlags::None),local_addr_({})
+mqas::core::engine_base<E>::engine_base(io::Context& c):cxt(c),socket_(nullptr),
+proc_conns_timer_(nullptr),engine_flags_(EngineFlags::None),local_addr_({}),lsquic_logger_if_({}),
+lsquic_engine_api_({}),lsquic_stream_if_({})
 {}
 
 ENGINE_BASE_TEMPLATE_DECL
 mqas::core::engine_base<E>::engine_base(engine_base&& oth) noexcept : cxt(oth.cxt),
-engine_flags_(oth.engine_flags_),local_addr_(oth.local_addr_)
+engine_flags_(oth.engine_flags_),local_addr_(oth.local_addr_),lsquic_logger_if_(oth.lsquic_logger_if_),
+lsquic_engine_api_(oth.lsquic_engine_api_),lsquic_stream_if_(oth.lsquic_stream_if_)
 {
 	socket_ = oth.socket_;
 	oth.socket_ = nullptr;
@@ -87,46 +90,43 @@ void mqas::core::engine_base<E>::init_logger() const
 	el::Configurations c;
 	c.setFromBase(el::Loggers::getLogger("default")->configurations());
 	auto fmt = c.get(el::Level::Global,el::ConfigurationType::Format)->value();
-	auto p = fmt.find("[%level]");
-	if(p != std::string::npos){
-		fmt.replace(p, sizeof("[%level]"), "");
+	bool erase_succ = mqas::comm::erase_substr(fmt,"[%level]");
+	if(!erase_succ) erase_succ = mqas::comm::erase_substr(fmt, "[%levshort]");
+	if(erase_succ)
 		c.set(el::Level::Global,el::ConfigurationType::Format,fmt);
-	}
 	el::Loggers::reconfigureLogger(lsquic_log, c);
 	engine_extern_->on_init_logger();
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::init_lsquic() noexcept(false)
 {
-	const ::lsquic_logger_if logger_if = { lsquic_log_func, };
+	lsquic_logger_if_ = { lsquic_log_func, };
 
-	lsquic_logger_init(&logger_if, this, LLTS_NONE);
+	lsquic_logger_init(&lsquic_logger_if_, this, LLTS_NONE);
 	lsquic_set_log_level(conf_->log_level.c_str());
-
-	::lsquic_stream_if stream_if = {};
-	stream_if.on_new_conn = on_new_conn_s;
-	stream_if.on_conn_closed = on_conn_closed_s;
-	stream_if.on_new_stream = on_new_stream_s;
-	stream_if.on_read = on_read_s;
-	stream_if.on_write = on_write_s;
-	stream_if.on_close = on_close_s;
-
-	::lsquic_engine_api engine_api = {};
-	engine_api.ea_settings = &conf_->lsquic_settings;
-	engine_api.ea_packets_out = on_packets_out;
-	engine_api.ea_packets_out_ctx = socket_;
-	engine_api.ea_stream_if = &stream_if;
-	engine_api.ea_stream_if_ctx = engine_extern_.get();
+	
+	lsquic_stream_if_.on_new_conn = on_new_conn_s;
+	lsquic_stream_if_.on_conn_closed = on_conn_closed_s;
+	lsquic_stream_if_.on_new_stream = on_new_stream_s;
+	lsquic_stream_if_.on_read = on_read_s;
+	lsquic_stream_if_.on_write = on_write_s;
+	lsquic_stream_if_.on_close = on_close_s;
+	
+	lsquic_engine_api_.ea_settings = &conf_->lsquic_settings;
+	lsquic_engine_api_.ea_packets_out = on_packets_out;
+	lsquic_engine_api_.ea_packets_out_ctx = socket_;
+	lsquic_engine_api_.ea_stream_if = &lsquic_stream_if_;
+	lsquic_engine_api_.ea_stream_if_ctx = engine_extern_.get();
 	if(contain<uint32_t>(engine_flags_,EngineFlags::Server))
-		engine_api.ea_get_ssl_ctx = on_get_ssl_ctx;
+		lsquic_engine_api_.ea_get_ssl_ctx = on_get_ssl_ctx;
 	if(engine_flags_ == EngineFlags::None)
 	{
-		engine_api.ea_alpn = conf_->alpn.c_str();
+		lsquic_engine_api_.ea_alpn = conf_->alpn.c_str();
 		if(conf_->alpn.empty())
 			LOG(WARNING) << "Client alpn is empty!";
 	}
-	engine_extern_->on_new_lsquic_engine(engine_api, engine_flags_);
-	engine_ = lsquic_engine_new(static_cast<unsigned>(engine_flags_), &engine_api);
+	engine_extern_->on_new_lsquic_engine(lsquic_engine_api_, engine_flags_);
+	engine_ = lsquic_engine_new(static_cast<unsigned>(engine_flags_), &lsquic_engine_api_);
 	if(engine_ == nullptr)
 	{
 		LOG(ERROR) << "Create engine failed!";
@@ -150,7 +150,7 @@ void mqas::core::engine_base<E>::start_recv() const
 		if(engine_extern_->on_recv(buf,nread,addr,flags))
 		{
 			const int ret = ::lsquic_engine_packet_in(engine_, reinterpret_cast<const unsigned char*>(buf->data()), nread,
-				&this->local_addr_, addr, this, 0);
+				&this->local_addr_, addr, static_cast<void*>(const_cast<engine_base*>(this)), 0);
 			LOG(INFO) << "lsquic_engine_packet_in ret = " << ret;
 			this->process_conns();
 		}

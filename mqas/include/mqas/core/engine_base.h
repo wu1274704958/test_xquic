@@ -105,6 +105,9 @@ namespace mqas::core
 		EngineFlags engine_flags_;
 		::sockaddr local_addr_;
 		std::shared_ptr<E> engine_extern_;
+		::lsquic_logger_if lsquic_logger_if_;
+		::lsquic_engine_api lsquic_engine_api_;
+		::lsquic_stream_if lsquic_stream_if_;
 	};
 }
 

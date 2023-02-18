@@ -28,26 +28,41 @@ void mqas::core::IEngine::on_init_logger(){}
 
 bool mqas::core::IEngine::on_recv(const std::optional<std::span<char>>& buf, ssize_t nread, const sockaddr* addr,unsigned flags)
 {
+	LOG(INFO) << "on_recv " << nread << " bytes";
 	return true;
 }
 
 lsquic_conn_ctx_t* mqas::core::IEngine::on_new_conn(void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
 {
+	LOG(INFO) << "on_new_conn " << reinterpret_cast<size_t>(lsquic_conn);
 	return nullptr;
 }
 
-void mqas::core::IEngine::on_conn_closed(lsquic_conn_t* lsquic_conn){}
+void mqas::core::IEngine::on_conn_closed(lsquic_conn_t* lsquic_conn)
+{
+	LOG(INFO) << "on_conn_closed " << reinterpret_cast<size_t>(lsquic_conn);
+}
 
 lsquic_stream_ctx_t* mqas::core::IEngine::on_new_stream(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
 {
+	LOG(INFO) << "on_new_stream " << reinterpret_cast<size_t>(lsquic_stream);
 	return nullptr;
 }
 
-void mqas::core::IEngine::on_read(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx){}
+void mqas::core::IEngine::on_read(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+{
+	LOG(INFO) << "on_read " << reinterpret_cast<size_t>(lsquic_stream);
+}
 
-void mqas::core::IEngine::on_write(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx){}
+void mqas::core::IEngine::on_write(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+{
+	LOG(INFO) << "on_write " << reinterpret_cast<size_t>(lsquic_stream);
+}
 
-void mqas::core::IEngine::on_close(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx){}
+void mqas::core::IEngine::on_close(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+{
+	LOG(INFO) << "on_close " << reinterpret_cast<size_t>(lsquic_stream);
+}
 
 
 //engine config deserialize
