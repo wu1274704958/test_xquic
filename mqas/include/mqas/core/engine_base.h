@@ -7,6 +7,9 @@
 #include <memory>
 #include <mqas/core/def.h>
 #include <openssl/ssl.h>
+#include <concepts>
+#include <span>
+#include <optional>
 
 namespace mqas::core
 {
@@ -22,20 +25,35 @@ namespace mqas::core
 		short port = 0;
 		::lsquic_engine_settings lsquic_settings = {};
 	};
-
+	
 	class MQAS_EXTERN IEngine
 	{
-		
+		public:
+			void init(void* engine_base_ptr);
+			void on_new_lsquic_engine(::lsquic_engine_api&, EngineFlags);
+			void on_init_socket(io::UdpSocket*);
+			void on_init_logger();
+			bool on_recv(const std::optional<std::span<char>>& buf, ssize_t nread, const sockaddr* addr, unsigned flags);
+
+			lsquic_conn_ctx_t* on_new_conn(void* stream_if_ctx, lsquic_conn_t* lsquic_conn);
+			void on_conn_closed(lsquic_conn_t* lsquic_conn);
+			lsquic_stream_ctx_t* on_new_stream(void* stream_if_ctx, lsquic_stream_t* lsquic_stream);
+			void on_read(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx);
+			void on_write(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx);
+			void on_close(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx);
+		protected:
+			void* engine_base_ptr_ = nullptr;
 	};
 
 	template<typename E>
 	requires requires
 	{
-		E();
+		requires std::default_initializable<E>;
 		requires std::is_base_of_v<IEngine, E>;
 	}
 	class engine_base
 	{
+		friend E;
 	public:
 		engine_base(io::Context&);
 		engine_base(engine_base&&) noexcept;
@@ -43,6 +61,7 @@ namespace mqas::core
 		engine_base& operator=(engine_base&&) = delete;
 		engine_base& operator=(const engine_base&) = delete;
 		void init(const char* conf_file, core::EngineFlags engine_flags) noexcept(false);
+		void init_extern_engine();
 		void init_logger() const;
 		int init_ssl(const char* cert_file, const char* key_file);
 		void init_lsquic() noexcept(false);
@@ -85,8 +104,8 @@ namespace mqas::core
 		::SSL_CTX* ssl_ctx_ = nullptr;
 		EngineFlags engine_flags_;
 		::sockaddr local_addr_;
+		std::shared_ptr<E> engine_extern_;
 	};
-
 }
 
 template<>

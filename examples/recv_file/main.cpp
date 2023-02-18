@@ -6,10 +6,17 @@
 
 using namespace mqas;
 
-class Engine : mqas::core::IEngine
+class Engine : public mqas::core::IEngine
 {
-	
+public:
+	io::UdpSocket* get_udp() const;
 };
+
+io::UdpSocket* Engine::get_udp() const
+{
+	const auto p = static_cast<core::engine_base<Engine>*>(engine_base_ptr_);
+	return p->socket_;
+}
 
 int main(int argc,const char** argv)
 {

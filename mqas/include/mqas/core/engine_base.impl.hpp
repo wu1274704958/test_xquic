@@ -23,18 +23,18 @@ int MQAS_EXTERN ssl_select_alpn_s(SSL* ssl, const unsigned char** out, unsigned 
 template<typename E>														\
 requires requires															\
 {																			\
-	E();																	\
+	requires std::default_initializable<E>;									\
 	requires std::is_base_of_v<mqas::core::IEngine, E>;						\
 }
 
 ENGINE_BASE_TEMPLATE_DECL
 mqas::core::engine_base<E>::engine_base(io::Context& c):cxt(c),socket_(nullptr)
-,proc_conns_timer_(nullptr),local_addr_({}),engine_flags_(EngineFlags::None)
+,proc_conns_timer_(nullptr),engine_flags_(EngineFlags::None),local_addr_({})
 {}
 
 ENGINE_BASE_TEMPLATE_DECL
 mqas::core::engine_base<E>::engine_base(engine_base&& oth) noexcept : cxt(oth.cxt),
-local_addr_(oth.local_addr_),engine_flags_(oth.engine_flags_)
+engine_flags_(oth.engine_flags_),local_addr_(oth.local_addr_)
 {
 	socket_ = oth.socket_;
 	oth.socket_ = nullptr;
@@ -49,7 +49,9 @@ void mqas::core::engine_base<E>::init(const char* conf_file,core::EngineFlags en
 	//parse config 
 	const auto conf_data = toml::parse(conf_file);
 	conf_ = std::make_shared<engine_config>(toml::find<engine_config>(conf_data, "engine_config"));
-	
+
+	init_extern_engine();
+
 	::lsquic_engine_init_settings(&conf_->lsquic_settings, static_cast<unsigned>(engine_flags));
 	if(conf_data.contains("lsquic_settings"))
 		settings_from_toml(conf_->lsquic_settings,conf_data.at("lsquic_settings"));
@@ -59,6 +61,7 @@ void mqas::core::engine_base<E>::init(const char* conf_file,core::EngineFlags en
 	io::Ip::str2addr_ipv4(conf_->bind_ip.c_str(),conf_->port, addr);
 	socket_->bind(addr,UV_UDP_REUSEADDR);
 	socket_->get_sock_addr(this->local_addr_);
+	engine_extern_->on_init_socket(socket_);
 	// init timer
 	proc_conns_timer_ = cxt.make_handle<io::Timer>();
 	//init logger
@@ -68,6 +71,14 @@ void mqas::core::engine_base<E>::init(const char* conf_file,core::EngineFlags en
 		init_ssl(conf_->ssl_cert_path.c_str(),conf_->ssl_key_path.c_str());
 	init_lsquic();
 }
+
+ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::init_extern_engine()
+{
+	engine_extern_ = std::make_shared<E>();
+	engine_extern_->init(static_cast<void*>(this));
+}
+
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::init_logger() const
 {
@@ -82,6 +93,7 @@ void mqas::core::engine_base<E>::init_logger() const
 		c.set(el::Level::Global,el::ConfigurationType::Format,fmt);
 	}
 	el::Loggers::reconfigureLogger(lsquic_log, c);
+	engine_extern_->on_init_logger();
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::init_lsquic() noexcept(false)
@@ -104,7 +116,7 @@ void mqas::core::engine_base<E>::init_lsquic() noexcept(false)
 	engine_api.ea_packets_out = on_packets_out;
 	engine_api.ea_packets_out_ctx = socket_;
 	engine_api.ea_stream_if = &stream_if;
-	engine_api.ea_stream_if_ctx = this;
+	engine_api.ea_stream_if_ctx = engine_extern_.get();
 	if(contain<uint32_t>(engine_flags_,EngineFlags::Server))
 		engine_api.ea_get_ssl_ctx = on_get_ssl_ctx;
 	if(engine_flags_ == EngineFlags::None)
@@ -113,6 +125,7 @@ void mqas::core::engine_base<E>::init_lsquic() noexcept(false)
 		if(conf_->alpn.empty())
 			LOG(WARNING) << "Client alpn is empty!";
 	}
+	engine_extern_->on_new_lsquic_engine(engine_api, engine_flags_);
 	engine_ = lsquic_engine_new(static_cast<unsigned>(engine_flags_), &engine_api);
 	if(engine_ == nullptr)
 	{
@@ -134,10 +147,13 @@ void mqas::core::engine_base<E>::start_recv() const
 			LOG(ERROR) << "udp recv error unexpected nread = " << nread;
 			return;
 		}
-		const int ret = ::lsquic_engine_packet_in(engine_, reinterpret_cast<const unsigned char*>(buf->data()), nread,
-			&this->local_addr_, addr, this, 0);
-		LOG(INFO) << "lsquic_engine_packet_in ret = " << ret;
-		this->process_conns();
+		if(engine_extern_->on_recv(buf,nread,addr,flags))
+		{
+			const int ret = ::lsquic_engine_packet_in(engine_, reinterpret_cast<const unsigned char*>(buf->data()), nread,
+				&this->local_addr_, addr, this, 0);
+			LOG(INFO) << "lsquic_engine_packet_in ret = " << ret;
+			this->process_conns();
+		}
 	});
 }
 
@@ -146,7 +162,7 @@ void mqas::core::engine_base<E>::connect(const ::sockaddr& addr, ::lsquic_versio
 	const unsigned char* sess_resume, size_t sess_resume_len,
 	const unsigned char* token, size_t token_sz) const
 {
-	const auto conn = ::lsquic_engine_connect(engine_, ver,&local_addr_, &addr, nullptr, nullptr, hostname, base_plpmtu, sess_resume, sess_resume_len, token, token_sz);
+	const auto conn = ::lsquic_engine_connect(engine_, ver,&local_addr_, &addr, nullptr, engine_extern_.get(), hostname, base_plpmtu, sess_resume, sess_resume_len, token, token_sz);
 	LOG(INFO) << "connect conn = " <<  reinterpret_cast<size_t>(conn);
 }
 ENGINE_BASE_TEMPLATE_DECL
@@ -204,28 +220,40 @@ int mqas::core::engine_base<E>::lsquic_log_func(void* logger_ctx, const char* bu
 ENGINE_BASE_TEMPLATE_DECL
 lsquic_conn_ctx_t* mqas::core::engine_base<E>::on_new_conn_s(void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
 {
-	return nullptr;
+	const auto engine = static_cast<E*>(stream_if_ctx);
+	engine->on_new_conn(stream_if_ctx,lsquic_conn);
+	return reinterpret_cast<lsquic_conn_ctx_t*>(engine);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::on_conn_closed_s(lsquic_conn_t* lsquic_conn)
 {
+	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(lsquic_conn));
+	engine->on_conn_closed(lsquic_conn);
 }
 ENGINE_BASE_TEMPLATE_DECL
 lsquic_stream_ctx_t* mqas::core::engine_base<E>::on_new_stream_s(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
 {
-	return nullptr;
+	const auto engine = static_cast<E*>(stream_if_ctx);
+	engine->on_new_stream(stream_if_ctx, lsquic_stream);
+	return reinterpret_cast<lsquic_stream_ctx_t*>(engine);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::on_read_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 {
+	const auto engine = reinterpret_cast<E*>(lsquic_stream_ctx);
+	engine->on_read(lsquic_stream,lsquic_stream_ctx);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::on_write_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 {
+	const auto engine = reinterpret_cast<E*>(lsquic_stream_ctx);
+	engine->on_write(lsquic_stream, lsquic_stream_ctx);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::on_close_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 {
+	const auto engine = reinterpret_cast<E*>(lsquic_stream_ctx);
+	engine->on_close(lsquic_stream, lsquic_stream_ctx);
 }
 
 ENGINE_BASE_TEMPLATE_DECL

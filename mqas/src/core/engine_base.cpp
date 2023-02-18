@@ -15,6 +15,41 @@
 #ifdef PF_ANDROID
 #endif
 
+void mqas::core::IEngine::init(void* engine_base_ptr)
+{
+	engine_base_ptr_ = engine_base_ptr;
+}
+
+void mqas::core::IEngine::on_new_lsquic_engine(lsquic_engine_api&, EngineFlags){}
+
+void mqas::core::IEngine::on_init_socket(io::UdpSocket*){}
+
+void mqas::core::IEngine::on_init_logger(){}
+
+bool mqas::core::IEngine::on_recv(const std::optional<std::span<char>>& buf, ssize_t nread, const sockaddr* addr,unsigned flags)
+{
+	return true;
+}
+
+lsquic_conn_ctx_t* mqas::core::IEngine::on_new_conn(void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
+{
+	return nullptr;
+}
+
+void mqas::core::IEngine::on_conn_closed(lsquic_conn_t* lsquic_conn){}
+
+lsquic_stream_ctx_t* mqas::core::IEngine::on_new_stream(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
+{
+	return nullptr;
+}
+
+void mqas::core::IEngine::on_read(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx){}
+
+void mqas::core::IEngine::on_write(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx){}
+
+void mqas::core::IEngine::on_close(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx){}
+
+
 //engine config deserialize
 mqas::core::engine_config toml::from<mqas::core::engine_config>::from_toml(const value& v)
 {
