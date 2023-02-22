@@ -32,10 +32,9 @@ bool mqas::core::IEngine::on_recv(const std::optional<std::span<char>>& buf, ssi
 	return true;
 }
 
-lsquic_conn_ctx_t* mqas::core::IEngine::on_new_conn(void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
+void mqas::core::IEngine::on_new_conn(void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
 {
 	LOG(INFO) << "on_new_conn " << reinterpret_cast<size_t>(lsquic_conn);
-	return nullptr;
 }
 
 void mqas::core::IEngine::on_conn_closed(lsquic_conn_t* lsquic_conn)
@@ -43,10 +42,9 @@ void mqas::core::IEngine::on_conn_closed(lsquic_conn_t* lsquic_conn)
 	LOG(INFO) << "on_conn_closed " << reinterpret_cast<size_t>(lsquic_conn);
 }
 
-lsquic_stream_ctx_t* mqas::core::IEngine::on_new_stream(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
+void mqas::core::IEngine::on_new_stream(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
 {
 	LOG(INFO) << "on_new_stream " << reinterpret_cast<size_t>(lsquic_stream);
-	return nullptr;
 }
 
 void mqas::core::IEngine::on_read(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
@@ -63,8 +61,37 @@ void mqas::core::IEngine::on_close(lsquic_stream_t* lsquic_stream, lsquic_stream
 {
 	LOG(INFO) << "on_close " << reinterpret_cast<size_t>(lsquic_stream);
 }
-
-
+//Optional callback
+void mqas::core::IEngine::on_goaway_received(lsquic_conn_t* c)
+{
+	LOG(INFO) << "on_close " << reinterpret_cast<size_t>(c);
+}
+ssize_t mqas::core::IEngine::on_dg_write(lsquic_conn_t* c, void* buf, size_t size)
+{
+	LOG(INFO) << "on_dg_write " << reinterpret_cast<size_t>(c) <<  " size = " << size;
+	buf = const_cast<char*>("dg");
+	return 2;
+}
+void mqas::core::IEngine::on_datagram(lsquic_conn_t* c, const void* buf, size_t size)
+{
+	LOG(INFO) << "on_datagram " << reinterpret_cast<size_t>(c) << " size = " << size;
+}
+void mqas::core::IEngine::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s)
+{
+	LOG(INFO) << "on_hsk_done " << reinterpret_cast<size_t>(c) << " status = " << s;
+}
+void mqas::core::IEngine::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
+{
+	LOG(INFO) << "on_new_token " << reinterpret_cast<size_t>(c) << " token = " << token;
+}
+void mqas::core::IEngine::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)
+{
+	LOG(INFO) << "on_reset " << reinterpret_cast<size_t>(s) << " how = " << how;
+}
+void mqas::core::IEngine::on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len)
+{
+	LOG(INFO) << "on_conncloseframe_received " << reinterpret_cast<size_t>(c) << "err_code = " << error_code << " " << reason;
+}
 //engine config deserialize
 mqas::core::engine_config toml::from<mqas::core::engine_config>::from_toml(const value& v)
 {

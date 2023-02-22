@@ -54,10 +54,10 @@ void mqas::core::engine_base<E>::init(const char* conf_file,core::EngineFlags en
 	conf_ = std::make_shared<engine_config>(toml::find<engine_config>(conf_data, "engine_config"));
 
 	init_extern_engine();
-
-	::lsquic_engine_init_settings(&conf_->lsquic_settings, static_cast<unsigned>(engine_flags));
-	if(conf_data.contains("lsquic_settings"))
-		settings_from_toml(conf_->lsquic_settings,conf_data.at("lsquic_settings"));
+	//init logger
+	init_logger();
+	
+	init_setting(conf_data);
 	//init socket
 	socket_ = cxt.make_handle<io::UdpSocket>();
 	sockaddr addr{};
@@ -67,12 +67,26 @@ void mqas::core::engine_base<E>::init(const char* conf_file,core::EngineFlags en
 	engine_extern_->on_init_socket(socket_);
 	// init timer
 	proc_conns_timer_ = cxt.make_handle<io::Timer>();
-	//init logger
-	init_logger();
+	
 	//init ssl
 	if (contain<uint32_t>(engine_flags, EngineFlags::Server) && !conf_->ssl_cert_path.empty() && !conf_->ssl_key_path.empty())
 		init_ssl(conf_->ssl_cert_path.c_str(),conf_->ssl_key_path.c_str());
 	init_lsquic();
+}
+
+ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::init_setting(const toml::value& conf_data)
+{
+	::lsquic_engine_init_settings(&conf_->lsquic_settings, static_cast<unsigned>(engine_flags_));
+	if (conf_data.contains("lsquic_settings"))
+		settings_from_toml(conf_->lsquic_settings, conf_data.at("lsquic_settings"));
+
+	char errbuf[512] = {0};
+	if (0 != ::lsquic_engine_check_settings(&conf_->lsquic_settings, static_cast<unsigned>(engine_flags_),errbuf, sizeof(errbuf)))
+	{
+		LOG(ERROR) << "invalid settings: " << errbuf;
+		throw std::runtime_error("Invalid settings look log file!");
+	}
 }
 
 ENGINE_BASE_TEMPLATE_DECL
@@ -111,6 +125,13 @@ void mqas::core::engine_base<E>::init_lsquic() noexcept(false)
 	lsquic_stream_if_.on_read = on_read_s;
 	lsquic_stream_if_.on_write = on_write_s;
 	lsquic_stream_if_.on_close = on_close_s;
+	lsquic_stream_if_.on_goaway_received = on_goaway_received;
+	lsquic_stream_if_.on_dg_write = on_dg_write;
+	lsquic_stream_if_.on_datagram = on_datagram;
+	lsquic_stream_if_.on_hsk_done = on_hsk_done;
+	lsquic_stream_if_.on_new_token = on_new_token;
+	lsquic_stream_if_.on_reset = on_reset;
+	lsquic_stream_if_.on_conncloseframe_received = on_conncloseframe_received;
 	
 	lsquic_engine_api_.ea_settings = &conf_->lsquic_settings;
 	lsquic_engine_api_.ea_packets_out = on_packets_out;
@@ -341,6 +362,50 @@ int mqas::core::engine_base<E>::init_ssl(const char* cert_file, const char* key_
 		throw std::runtime_error("SSL_CTX_use_PrivateKey_file failed");
 	}
 	return 0;
+}
+
+//lsquic optional stream callback
+ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::on_goaway_received(lsquic_conn_t* c)
+{
+	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
+	engine->on_goaway_received(c);
+}
+ENGINE_BASE_TEMPLATE_DECL
+ssize_t mqas::core::engine_base<E>::on_dg_write(lsquic_conn_t* c, void* buf, size_t buf_sz)
+{
+	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
+	return engine->on_dg_write(c,buf,buf_sz);
+}
+ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::on_datagram(lsquic_conn_t* c, const void* buf, size_t buf_sz)
+{
+	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
+	engine->on_datagram(c, buf, buf_sz);
+}
+ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s)
+{
+	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
+	engine->on_hsk_done(c, s);
+}
+ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
+{
+	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
+	engine->on_new_token(c,token, token_size);
+}
+ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)
+{
+	const auto engine = reinterpret_cast<E*>(h);
+	engine->on_reset(s,h,how);
+}
+ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len)
+{
+	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
+	engine->on_conncloseframe_received(c,app_error,error_code,reason, reason_len);
 }
 
 #undef ENGINE_BASE_TEMPLATE_DECL

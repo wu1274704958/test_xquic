@@ -4,7 +4,7 @@ port=8084
 log_level="info"
 log_config="""
 * GLOBAL:
-   FORMAT               =  "%datetime [%logger] [%levshort] %msg"
+   FORMAT               =  "%datetime [%logger] [%level] %msg"
    FILENAME             =  "recv_file.log"
    ENABLED              =  true
    TO_FILE              =  true
@@ -12,3 +12,6 @@ log_config="""
    SUBSECOND_PRECISION  =  6
    PERFORMANCE_TRACKING =  true
 """
+alpn="echo"
+ssl_cert_path="cert-def.pem"
+ssl_key_path="key-def.pem"
