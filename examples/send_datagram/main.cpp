@@ -33,7 +33,7 @@ int main(int argc,const char** argv)
 	}
 	::sockaddr addr;
 	io::Ip::str2addr_ipv4("127.0.0.1",8084,addr);
-	auto conn_w = e.engine_extern_->connect(addr,::lsquic_version::N_LSQVER);
+	auto conn_w = e.get_engine()->connect(addr,::lsquic_version::N_LSQVER);
 	auto timer = io_cxt.make_handle<io::Timer>();
 	timer->start([conn_w](io::Timer* t) {
 		static int send_times = 0;

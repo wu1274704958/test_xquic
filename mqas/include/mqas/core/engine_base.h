@@ -81,6 +81,7 @@ namespace mqas::core
 			const unsigned char* sess_resume = nullptr, size_t sess_resume_len = 0,
 			/** Resumption token: optional */
 			const unsigned char* token = nullptr, size_t token_sz = 0);
+		std::shared_ptr<E> get_engine() const; 
 		void close_socket();
 		void close_timer();
 		void close_ssl_ctx();

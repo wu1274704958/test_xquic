@@ -306,6 +306,11 @@ void mqas::core::engine_base<E>::process_conns() const
 	}
 }
 ENGINE_BASE_TEMPLATE_DECL
+std::shared_ptr<E> mqas::core::engine_base<E>::get_engine() const
+{
+	return engine_extern_;
+}
+ENGINE_BASE_TEMPLATE_DECL
 int mqas::core::engine_base<E>::on_packets_out(void* packets_out_ctx, const lsquic_out_spec* out_spec,
 	unsigned n_packets_out)
 {
