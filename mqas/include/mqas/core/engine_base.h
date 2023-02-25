@@ -28,7 +28,7 @@ namespace mqas::core
 	
 	class MQAS_EXTERN IEngine
 	{
-		public:
+	public:
 			void init(void* engine_base_ptr);
 			void on_new_lsquic_engine(::lsquic_engine_api&, EngineFlags);
 			void on_init_socket(io::UdpSocket*);
@@ -50,7 +50,7 @@ namespace mqas::core
 			void on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size);
 			void on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how);
 			void on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len);
-		protected:
+	protected:
 			void* engine_base_ptr_ = nullptr;
 	};
 
@@ -77,10 +77,10 @@ namespace mqas::core
 		void init_lsquic() noexcept(false);
 		void process_conns() const;
 		void start_recv() const;
-		void connect(const ::sockaddr& addr,::lsquic_version ver, const char* hostname = nullptr, unsigned short base_plpmtu = 0,
+		::lsquic_conn_t* connect(const ::sockaddr& addr,::lsquic_version ver, const char* hostname = nullptr, unsigned short base_plpmtu = 0,
 			const unsigned char* sess_resume = nullptr, size_t sess_resume_len = 0,
 			/** Resumption token: optional */
-			const unsigned char* token = nullptr, size_t token_sz = 0) const;
+			const unsigned char* token = nullptr, size_t token_sz = 0);
 		void close_socket();
 		void close_timer();
 		void close_ssl_ctx();

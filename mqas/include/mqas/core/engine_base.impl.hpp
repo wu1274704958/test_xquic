@@ -179,12 +179,14 @@ void mqas::core::engine_base<E>::start_recv() const
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E>::connect(const ::sockaddr& addr, ::lsquic_version ver, const char* hostname, unsigned short base_plpmtu,
+::lsquic_conn_t* mqas::core::engine_base<E>::connect(const ::sockaddr& addr, ::lsquic_version ver, const char* hostname, unsigned short base_plpmtu,
 	const unsigned char* sess_resume, size_t sess_resume_len,
-	const unsigned char* token, size_t token_sz) const
+	const unsigned char* token, size_t token_sz)
 {
-	const auto conn = ::lsquic_engine_connect(engine_, ver,&local_addr_, &addr, nullptr, engine_extern_.get(), hostname, base_plpmtu, sess_resume, sess_resume_len, token, token_sz);
+	auto conn = ::lsquic_engine_connect(engine_, ver,&local_addr_, &addr, nullptr, reinterpret_cast<::lsquic_conn_ctx*>(engine_extern_.get()), hostname, base_plpmtu, sess_resume, sess_resume_len, token, token_sz);
 	LOG(INFO) << "connect conn = " <<  reinterpret_cast<size_t>(conn);
+	process_conns();
+	return conn;
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::close_socket()
