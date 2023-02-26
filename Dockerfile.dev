@@ -1,8 +1,11 @@
 # syntax=docker/dockerfile:1
 
-FROM ubuntu:22.10
+FROM ubuntu:23.04
+#RUN sed -i "s@http://.*archive.ubuntu.com@https://mirrors.tuna.tsinghua.edu.cn@g" /etc/apt/sources.list
+#RUN sed -i "s@http://.*security.ubuntu.com@https://mirrors.tuna.tsinghua.edu.cn@g" /etc/apt/sources.list
 RUN apt-get update
-RUN apt-get install -y --fix-missing openssh-server git clang gdb ninja-build
+RUN apt-get install -y --fix-missing libc++-14-dev
+RUN apt-get install -y --fix-missing openssh-server git clang gdb ninja-build libstdc++-13-dev
 RUN apt-get install -y --fix-missing curl zip unzip 
 RUN apt-get install -y --fix-missing pkg-config nasm golang-go build-essential tar
 RUN echo "root:112" | chpasswd
