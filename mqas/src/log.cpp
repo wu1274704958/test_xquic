@@ -20,7 +20,7 @@ void mqas::log::init(const std::string& conf)
 	}
 }
 
-void mqas::log::init(const char* log_name, const std::string& conf, const std::optional<std::string> base)
+void mqas::log::init(const char* log_name, const std::string& conf, const std::optional<std::string>& base)
 {
 	el::Configurations c;
 	if(base)

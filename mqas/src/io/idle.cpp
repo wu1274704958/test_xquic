@@ -5,7 +5,7 @@
 
 namespace mqas::io
 {
-	void IdleOp::init(std::shared_ptr<uv_idle_t> h, std::shared_ptr<uv_loop_t> loop)
+	void IdleOp::init(const std::shared_ptr<uv_idle_t>& h, const std::shared_ptr<uv_loop_t>& loop)
 	{
 		if(const int ret = uv_idle_init(loop.get(), h.get())) throw Exception(ret);
 	}
@@ -13,7 +13,7 @@ namespace mqas::io
 	void Idle::start(std::function<void(Idle*)> f)
 	{
 		if(const int ret = uv_idle_start(handle_.get(),idle_cb_static)) throw Exception(ret);
-		idle_func = f;
+		idle_func = std::move(f);
 	}
 
 	void Idle::stop()

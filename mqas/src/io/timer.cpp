@@ -2,7 +2,8 @@
 #include <mqas/io/exception.h>
 
 
-void mqas::io::TimerOp::init(std::shared_ptr<uv_timer_t> h, std::shared_ptr<uv_loop_t> l)
+
+void mqas::io::TimerOp::init(const std::shared_ptr<uv_timer_t>& h, const std::shared_ptr<uv_loop_t>& l)
 {
 	if(const int ret = uv_timer_init(l.get(),h.get()); ret != 0)
 		throw Exception(ret);
@@ -11,7 +12,7 @@ void mqas::io::TimerOp::init(std::shared_ptr<uv_timer_t> h, std::shared_ptr<uv_l
 void mqas::io::Timer::start(std::function<void(Timer*)> f, uint64_t timeout, uint64_t repeat)
 {
 	if(const int ret = uv_timer_start(handle_.get(),timer_cb_static,timeout,repeat); ret!=0)throw Exception(ret);
-	cb_func_ = f;
+	cb_func_ = std::move(f);
 }
 
 void mqas::io::Timer::stop()
@@ -44,7 +45,7 @@ void mqas::io::Timer::again() const
 
 void mqas::io::Timer::timer_cb_static(uv_timer_t* handle)
 {
-	Timer* ptr = static_cast<Timer*>(handle->data);
+	auto* ptr = static_cast<Timer*>(handle->data);
 	if(ptr && ptr->cb_func_)
 		ptr->cb_func_(ptr);
 }

@@ -23,15 +23,14 @@
   </component>
   <component name="CMakeSettings">
     <configurations>
-      <configuration PROFILE_NAME="Debug-Visual Studio" ENABLED="false" CONFIG_NAME="Debug" TOOLCHAIN_NAME="Visual Studio" GENERATION_OPTIONS="-DCMAKE_TOOLCHAIN_FILE=D:\code\vcpkg\scripts\buildsystems\vcpkg.cmake -DBUILD_MQAS_EXAMPLES=ON" />
+      <configuration PROFILE_NAME="Debug-Visual Studio" ENABLED="true" CONFIG_NAME="Debug" TOOLCHAIN_NAME="Visual Studio" GENERATION_OPTIONS="-DCMAKE_TOOLCHAIN_FILE=D:\code\vcpkg\scripts\buildsystems\vcpkg.cmake -DBUILD_MQAS_EXAMPLES=ON" />
       <configuration PROFILE_NAME="Debug-remote" ENABLED="true" CONFIG_NAME="Debug" TOOLCHAIN_NAME="Remote Host" GENERATION_OPTIONS="-G Ninja -DCMAKE_TOOLCHAIN_FILE=/root/code/vcpkg/scripts/buildsystems/vcpkg.cmake -DBUILD_MQAS_EXAMPLES=ON" />
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d3de733c-aa68-4ce6-a8ba-6acb02b69fdc" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile.dev" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile.dev" afterDir="false" />
+    <list default="true" id="d3de733c-aa68-4ce6-a8ba-6acb02b69fdc" name="Changes" comment="add clion support">
+      <change beforePath="$PROJECT_DIR$/mqas/include/mqas/io/timer.h" beforeDir="false" afterPath="$PROJECT_DIR$/mqas/include/mqas/io/timer.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mqas/src/io/timer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/mqas/src/io/timer.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,7 +70,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "CPPToolchains",
+    "settings.editor.selected.configurable": "CMakeSettings",
     "settings.editor.splitter.proportion": "0.30448064",
     "vue.rearranger.settings.migration": "true"
   }
@@ -149,12 +148,35 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1677492879270</updated>
-      <workItem from="1677492880491" duration="7193000" />
+      <workItem from="1677492880491" duration="7729000" />
     </task>
+    <task id="LOCAL-00001" summary="add clion support">
+      <created>1677508883943</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1677508883943</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="add clion support" />
+    <option name="LAST_COMMIT_MESSAGE" value="add clion support" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

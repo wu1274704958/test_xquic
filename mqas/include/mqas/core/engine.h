@@ -29,12 +29,12 @@ namespace mqas::core {
 		void on_conncloseframe_received(int app_error, uint64_t error_code, const char* reason, int reason_len);
 		//interface
 		void set_cxt(void*);
-		void* get_cxt() const;
-		size_t datagram_buf_size() const;
+		[[nodiscard]] void* get_cxt() const;
+		[[nodiscard]] size_t datagram_buf_size() const;
 		bool write_datagram(const std::span<char>&);
-		bool flush_datagram() const;
+		[[nodiscard]] bool flush_datagram() const;
 		bool write_stream(::lsquic_stream_t*,const std::span<char>&);
-		::lsquic_hsk_status get_hsk_status() const;
+		[[nodiscard]] ::lsquic_hsk_status get_hsk_status() const;
 	protected:
 		::lsquic_conn_t* conn_ = nullptr;
 		void* cxt_;

@@ -11,7 +11,7 @@ namespace mqas::io
 	class MQAS_EXTERN TimerOp
 	{
 	public:
-		static void init(std::shared_ptr<uv_timer_t>, std::shared_ptr<uv_loop_t>);
+		static void init(const std::shared_ptr<uv_timer_t>&, const std::shared_ptr<uv_loop_t>&);
 	};
 	class MQAS_EXTERN Timer : public Handle<uv_timer_t, TimerOp>
 	{
