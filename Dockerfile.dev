@@ -28,6 +28,7 @@ RUN sed -i '/#Port 22/cPort 27' /etc/ssh/sshd_config
 RUN apt-get install -y --fix-missing rsync cmake
 RUN ln -s /usr/bin/ninja /usr/bin/ninja-build
 #RUN sed -i '$aexport PATH=$PATH:/root/code/vcpkg/downloads/tools/cmake-3.25.1-linux/cmake-3.25.1-linux-x86_64/bin' ~/.bashrc
+RUN apt remove -y gcc g++
 CMD ["bash", "-c", "/etc/init.d/ssh start && tail -f /dev/null"]
 
 EXPOSE 27 8083
