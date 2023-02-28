@@ -9,4 +9,3 @@
 /build_x86_android/**
 /cmake-build-*/**
 /.idea/**
-!/.idea/workspace.xml
