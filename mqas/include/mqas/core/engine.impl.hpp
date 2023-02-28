@@ -10,7 +10,10 @@ ENGINE_TEMPLATE_DECL
 void mqas::core::engine<C>::init(void* engine_base_ptr) //override
 {
 	IEngine::init(engine_base_ptr);
-	engine_cxt_.process_conns = std::bind(&mqas::core::engine<C>::process_conns,this);
+	engine_cxt_.process_conns = std::bind(&engine<C>::process_conns,this);
+    engine_cxt_.write_datagram = std::bind_front(&engine<C>::write_datagram,this);
+    engine_cxt_.write_stream = std::bind_front(&engine<C>::write_stream,this);
+    engine_cxt_.has_stream = std::bind_front(&engine<C>::has_stream,this);
 }
 
 ENGINE_TEMPLATE_DECL
@@ -40,7 +43,7 @@ std::weak_ptr<C> mqas::core::engine<C>::add(::lsquic_conn_t* conn)
 	return conn_map_[reinterpret_cast<size_t>(conn)];
 }
 ENGINE_TEMPLATE_DECL
-void mqas::core::engine<C>::on_new_conn(void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
+void mqas::core::engine<C>::on_new_conn([[maybe_unused]] void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
 {
 	add(lsquic_conn);
 }
@@ -55,7 +58,7 @@ void mqas::core::engine<C>::on_conn_closed(lsquic_conn_t* lsquic_conn)
 	}
 }
 ENGINE_TEMPLATE_DECL
-void mqas::core::engine<C>::on_new_stream(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
+void mqas::core::engine<C>::on_new_stream([[maybe_unused]] void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
 {
 	const auto key = reinterpret_cast<size_t>(::lsquic_stream_conn(lsquic_stream));
 	if (conn_map_.contains(key))
@@ -64,7 +67,7 @@ void mqas::core::engine<C>::on_new_stream(void* stream_if_ctx, lsquic_stream_t* 
 	}
 }
 ENGINE_TEMPLATE_DECL
-void mqas::core::engine<C>::on_read(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+void mqas::core::engine<C>::on_read(lsquic_stream_t* lsquic_stream, [[maybe_unused]] lsquic_stream_ctx_t* lsquic_stream_ctx)
 {
 	const auto key = reinterpret_cast<size_t>(::lsquic_stream_conn(lsquic_stream));
 	if (conn_map_.contains(key))
@@ -73,7 +76,7 @@ void mqas::core::engine<C>::on_read(lsquic_stream_t* lsquic_stream, lsquic_strea
 	}
 }
 ENGINE_TEMPLATE_DECL
-void mqas::core::engine<C>::on_write(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+void mqas::core::engine<C>::on_write(lsquic_stream_t* lsquic_stream, [[maybe_unused]] lsquic_stream_ctx_t* lsquic_stream_ctx)
 {
 	const auto key = reinterpret_cast<size_t>(::lsquic_stream_conn(lsquic_stream));
 	if (conn_map_.contains(key))
@@ -82,7 +85,7 @@ void mqas::core::engine<C>::on_write(lsquic_stream_t* lsquic_stream, lsquic_stre
 	}
 }
 ENGINE_TEMPLATE_DECL
-void mqas::core::engine<C>::on_close(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+void mqas::core::engine<C>::on_close(lsquic_stream_t* lsquic_stream, [[maybe_unused]] lsquic_stream_ctx_t* lsquic_stream_ctx)
 {
 	const auto key = reinterpret_cast<size_t>(::lsquic_stream_conn(lsquic_stream));
 	if (conn_map_.contains(key))
@@ -139,7 +142,7 @@ void mqas::core::engine<C>::on_new_token(lsquic_conn_t* c, const unsigned char* 
 	}
 }
 ENGINE_TEMPLATE_DECL
-void mqas::core::engine<C>::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)
+void mqas::core::engine<C>::on_reset(lsquic_stream_t* s, [[maybe_unused]] lsquic_stream_ctx_t* h, int how)
 {
 	const auto key = reinterpret_cast<size_t>(::lsquic_stream_conn(s));
 	if (conn_map_.contains(key))
@@ -161,6 +164,39 @@ void mqas::core::engine<C>::process_conns() const
 {
 	const auto p = static_cast<engine_base<engine<C>>*>(engine_base_ptr_);
 	p->process_conns();
+}
+
+ENGINE_TEMPLATE_DECL
+bool mqas::core::engine<C>::write_datagram(::lsquic_conn_t* conn, const std::span<char> &d) {
+    const auto key = reinterpret_cast<size_t >(conn);
+    if(conn_map_.contains(key))
+    {
+        conn_map_[key]->write_datagram(d);
+        return true;
+    }
+    return false;
+}
+
+ENGINE_TEMPLATE_DECL
+bool mqas::core::engine<C>::write_stream(::lsquic_conn_t* conn,lsquic_stream_t* stream,const std::span<char>&d)
+{
+    const auto key = reinterpret_cast<size_t >(conn);
+    if(conn_map_.contains(key))
+    {
+        conn_map_[key]->write_stream(stream,d);
+        return true;
+    }
+    return false;
+}
+
+ENGINE_TEMPLATE_DECL
+bool mqas::core::engine<C>::has_stream(lsquic_conn_t *conn, lsquic_stream_t *stream) const {
+    const auto key = reinterpret_cast<size_t >(conn);
+    if(conn_map_.contains(key))
+    {
+        return conn_map_.at(key) -> has_stream(stream);
+    }
+    return false;
 }
 
 #undef ENGINE_TEMPLATE_DECL

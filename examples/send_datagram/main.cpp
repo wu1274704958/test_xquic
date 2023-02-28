@@ -39,7 +39,7 @@ int main(int argc,const char** argv)
 		static int send_times = 0;
 		printf("try %d\n",send_times);
 		auto c = conn_w.lock();
-		if (!c || c->get_hsk_status() != lsquic_hsk_status::LSQ_HSK_OK) {
+		if (!c || c->status() != LSQUIC_CONN_STATUS::LSCONN_ST_CONNECTED) {
 			t->stop();
 			return;
 		}

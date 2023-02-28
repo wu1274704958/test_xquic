@@ -1,4 +1,5 @@
 #include <mqas/core/engine.h>
+#include <mqas/io/exception.h>
 namespace mqas::core{
 	void IConnect::init(::lsquic_conn_t* conn, engine_cxt* engine_cxt)
 	{
@@ -42,7 +43,7 @@ namespace mqas::core{
 			datagram_buf_.clear();
 			::lsquic_conn_want_datagram_write(conn_,0);
 		}
-		return dg_sz;
+		return static_cast<ssize_t>(dg_sz);
 	}
 	void IConnect::on_datagram(const void* buf, size_t){}
 	void IConnect::on_hsk_done(enum lsquic_hsk_status s)
@@ -50,41 +51,96 @@ namespace mqas::core{
 		hsk_status_ = s;
 	}
 	void IConnect::on_new_token(const unsigned char* token, size_t token_size){}
-void IConnect::on_stream_reset(lsquic_stream_t* s, int how){}
-void IConnect::on_conncloseframe_received(int app_error, uint64_t error_code, const char* reason, int reason_len){}
-//interface
-void IConnect::set_cxt(void* d)
-{
-	cxt_ = d;
-}
-void* IConnect::get_cxt() const
-{
-	return cxt_;
-}
-bool IConnect::write_datagram(const std::span<char>& data)
-{
-	if(data.empty()) return false;
-	if (::lsquic_conn_want_datagram_write(conn_, 1) == -1)
-		return false;
-	const auto old_len = datagram_buf_.size();
-	datagram_buf_.resize(old_len + data.size());
-	std::memcpy(&datagram_buf_[old_len],data.data(),data.size());
-	datagram_queue_.push(static_cast<short>(data.size()));
-	engine_cxt_->process_conns();
-	return true;
-}
-bool IConnect::flush_datagram() const
-{
-	if (!datagram_queue_.empty()) {
-		if (::lsquic_conn_want_datagram_write(conn_, 1) != -1)
-			return true;
-	}
-	return false;
-}
-bool IConnect::write_stream(::lsquic_stream_t*, const std::span<char>& data){ return false;}
+    void IConnect::on_stream_reset(lsquic_stream_t* s, int how){}
+    void IConnect::on_conncloseframe_received(int app_error, uint64_t error_code, const char* reason, int reason_len){}
+    //interface
+    void IConnect::set_cxt(void* d)
+    {
+        cxt_ = d;
+    }
+    void* IConnect::get_cxt() const
+    {
+        return cxt_;
+    }
+    bool IConnect::write_datagram(const std::span<char>& data)
+    {
+        if(data.empty()) return false;
+        if (::lsquic_conn_want_datagram_write(conn_, 1) == -1)
+            return false;
+        const auto old_len = datagram_buf_.size();
+        datagram_buf_.resize(old_len + data.size());
+        std::memcpy(&datagram_buf_[old_len],data.data(),data.size());
+        datagram_queue_.push(static_cast<short>(data.size()));
+        engine_cxt_->process_conns();
+        return true;
+    }
+    bool IConnect::flush_datagram() const
+    {
+        if (!datagram_queue_.empty()) {
+            if (::lsquic_conn_want_datagram_write(conn_, 1) != -1)
+                return true;
+        }
+        return false;
+    }
+    bool IConnect::write_stream(::lsquic_stream_t*, const std::span<char>& data){ return false;}
 
-::lsquic_hsk_status IConnect::get_hsk_status() const
-{
-	return hsk_status_;
-}
+    ::lsquic_hsk_status IConnect::get_hsk_status() const
+    {
+        return hsk_status_;
+    }
+
+    void IConnect::close() const {
+        lsquic_conn_close(conn_);
+    }
+
+    void IConnect::abort() const {
+        lsquic_conn_abort(conn_);
+    }
+
+    void IConnect::going_away() const {
+        lsquic_conn_going_away(conn_);
+    }
+
+    const char *IConnect::get_sni() const {
+        return lsquic_conn_get_sni(conn_);
+    }
+
+    void IConnect::get_sockaddr(sockaddr &local, sockaddr &peer) const {
+        const sockaddr* loc = &local;
+        const sockaddr* peer_ = &peer;
+        if(const int ret = lsquic_conn_get_sockaddr(conn_,&loc,&peer_);ret)
+            throw io::Exception(ret);
+    }
+
+    size_t IConnect::get_min_datagram_size() const {
+        return lsquic_conn_get_min_datagram_size(conn_);
+    }
+
+    void IConnect::set_min_datagram_size(size_t sz) const {
+        if(const int ret = lsquic_conn_set_min_datagram_size(conn_,sz);ret)
+            throw io::Exception(ret);
+    }
+
+    unsigned int IConnect::cancel_pending_streams(unsigned int n) const {
+        return lsquic_conn_cancel_pending_streams(conn_,n);
+    }
+
+    unsigned int IConnect::avail_streams() const {
+        return lsquic_conn_n_avail_streams(conn_);
+    }
+
+    unsigned int IConnect::pending_streams() const {
+        return lsquic_conn_n_pending_streams(conn_);
+    }
+
+    LSQUIC_CONN_STATUS IConnect::status(const std::optional<std::span<char>>& err) const {
+        char* buf = err ? err->data() : nullptr;
+        size_t buf_len = err ? err->size() : 0;
+        return lsquic_conn_status(conn_,buf,buf_len);
+    }
+
+    bool IConnect::has_stream(lsquic_stream_t *) const {
+        return false;
+    }
+
 }
