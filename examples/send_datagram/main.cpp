@@ -1,28 +1,22 @@
 #include <mqas/context.h>
 #include <mqas/io/context.h>
-#include "mqas/core/engine_base.h"
 #include <iostream>
-#include <mqas/core/engine.h>
+#include <mqas/core/connect.h>
 #include <format>
 
 
 using namespace mqas;
 
 
-class Conn : public core::IConnect
+class Stream : public core::IStream
 {
-public:
-	void on_close()
-	{
-		printf("conn closed!!!\n");
-	}
 };
 
 int main(int argc,const char** argv)
 {
 	Context<core::InitFlags::GLOBAL_CLIENT> context;
 	io::Context io_cxt;
-	core::engine_base<core::engine<Conn>> e(io_cxt);
+	core::engine_base<core::engine<core::Connect<Stream>>> e(io_cxt);
 	try{
 		e.init("conf.txt",core::EngineFlags::None);
 		e.start_recv();

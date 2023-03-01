@@ -3,15 +3,16 @@
 //
 #include <mqas/core/connect.h>
 
-void mqas::core::IStream::on_init(::lsquic_stream_t *lsquic_stream) {
+void mqas::core::IStream::on_init(::lsquic_stream_t *lsquic_stream,connect_cxt* connect_cxt) {
     stream_ = lsquic_stream;
+    connect_cxt_ = connect_cxt;
     reader_.lsqr_ctx = this;
     reader_.lsqr_read = reader_read;
     reader_.lsqr_size = reader_size;
     if(want_read_on_init_) want_read();
 }
 
-void mqas::core::IStream::on_read() {
+void mqas::core::IStream::do_read() {
     const size_t old_len = read_buf_.size();
     const auto ret = lsquic_stream_readf(stream_,read_func,this);
     if(ret == -1)
@@ -29,7 +30,7 @@ void mqas::core::IStream::on_read() {
 
 }
 
-void mqas::core::IStream::on_write() {
+void mqas::core::IStream::do_write() {
     const auto ret = lsquic_stream_writef(stream_,&reader_);
     if(ret == -1)
         LOG(ERROR) << "Stream "<< stream_ <<" write get error " << errno;
@@ -75,7 +76,7 @@ size_t mqas::core::IStream::reader_size(void *lsqr_ctx) {
     return self->buf_.size() - self->buf_write_pos;
 }
 
-size_t mqas::core::IStream::read_func(void *ctx, const unsigned char *buf, size_t len, int fin) {
+size_t mqas::core::IStream::read_func(void *ctx, const unsigned char *buf, size_t len, [[maybe_unused]] int fin) {
     const auto self = static_cast<IStream*>(ctx);
     if(len == 0) return len;
     const size_t old_len = self->read_buf_.size();
@@ -157,3 +158,13 @@ void mqas::core::IStream::move_read_pos_uncheck(size_t sz) {
         read_buf_.clear();
     }
 }
+
+void *mqas::core::IStream::get_cxt() const {
+    return cxt_;
+}
+
+void mqas::core::IStream::set_cxt(void *c) {
+    cxt_ = c;
+}
+
+
