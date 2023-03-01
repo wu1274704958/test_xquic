@@ -26,6 +26,6 @@ int main(int argc,const char** argv)
 	{
 		std::cerr << e.what() << std::endl;
 	}
-	io_cxt.run_until(is_running());
+	io_cxt.run_until(IsRunning());
 	return 0;
 }

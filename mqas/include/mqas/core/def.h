@@ -16,4 +16,10 @@ namespace mqas::core
 		HTTP = (1 << 1),
 		HTTP_Server = HTTP | Server
 	};
+    enum class StreamAspect:unsigned char{
+        Read = 0,
+        Write = 1,
+        Both = 2,
+        None = 255
+    };
 }

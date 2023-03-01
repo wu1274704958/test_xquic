@@ -9,7 +9,7 @@
 
 namespace mqas
 {
-	MQAS_EXTERN std::atomic_bool& is_running();
+	MQAS_EXTERN std::atomic_bool& IsRunning();
 
 	template<core::InitFlags F>
 	class Context
@@ -17,11 +17,11 @@ namespace mqas
 	public:
 		Context()
 		{
-			if (is_running())
+			if (IsRunning())
 			{
 				throw std::runtime_error("Context instance must only one!");
 			}
-			is_running() = true;
+            IsRunning() = true;
 			::signal(SIGINT, sig_handler);
 			if (0 != ::lsquic_global_init(static_cast<int>(F)))
 			{
@@ -40,7 +40,7 @@ namespace mqas
 		static void sig_handler(int sig)
 		{
 			if (sig == SIGINT)
-				is_running() = false;
+                IsRunning() = false;
 		}
 	public:
 	};

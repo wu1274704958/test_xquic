@@ -10,6 +10,7 @@ ENGINE_TEMPLATE_DECL
 void mqas::core::engine<C>::init(void* engine_base_ptr) //override
 {
 	IEngine::init(engine_base_ptr);
+    engine_cxt_.engine_flags = get_engine_flags();
 	engine_cxt_.process_conns = std::bind(&engine<C>::process_conns,this);
     engine_cxt_.write_datagram = std::bind_front(&engine<C>::write_datagram,this);
     engine_cxt_.write_stream = std::bind_front(&engine<C>::write_stream,this);
@@ -197,6 +198,12 @@ bool mqas::core::engine<C>::has_stream(lsquic_conn_t *conn, lsquic_stream_t *str
         return conn_map_.at(key) -> has_stream(stream);
     }
     return false;
+}
+
+ENGINE_TEMPLATE_DECL
+mqas::core::EngineFlags mqas::core::engine<C>::get_engine_flags() const {
+    const auto p = static_cast<engine_base<engine<C>>*>(engine_base_ptr_);
+    return p->engine_flags_;
 }
 
 #undef ENGINE_TEMPLATE_DECL

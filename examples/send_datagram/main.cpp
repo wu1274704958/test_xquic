@@ -31,7 +31,7 @@ int main(int argc,const char** argv)
 	{
 		std::cerr << e.what() << std::endl;
 	}
-	::sockaddr addr;
+	::sockaddr addr{};
 	io::Ip::str2addr_ipv4("127.0.0.1",8084,addr);
 	auto conn_w = e.get_engine()->connect(addr,::lsquic_version::N_LSQVER);
 	auto timer = io_cxt.make_handle<io::Timer>();
@@ -52,6 +52,6 @@ int main(int argc,const char** argv)
 				t->stop();
 		}
 	},1000,1000);
-	io_cxt.run_until(is_running());
+	io_cxt.run_until(IsRunning());
 	return 0;
 }

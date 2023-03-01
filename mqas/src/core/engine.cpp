@@ -1,5 +1,4 @@
 #include <mqas/core/engine.h>
-#include <mqas/io/exception.h>
 namespace mqas::core{
 	void IConnect::init(::lsquic_conn_t* conn, engine_cxt* engine_cxt)
 	{
@@ -105,20 +104,22 @@ namespace mqas::core{
         return lsquic_conn_get_sni(conn_);
     }
 
-    void IConnect::get_sockaddr(sockaddr &local, sockaddr &peer) const {
+    bool IConnect::get_sockaddr(sockaddr &local, sockaddr &peer) const {
         const sockaddr* loc = &local;
         const sockaddr* peer_ = &peer;
-        if(const int ret = lsquic_conn_get_sockaddr(conn_,&loc,&peer_);ret)
-            throw io::Exception(ret);
+        const int ret = lsquic_conn_get_sockaddr(conn_,&loc,&peer_);
+        if(ret == -1) LOG(ERROR) << "Connect "<< conn_ <<" get socket address got error " << errno;
+        return ret != -1;
     }
 
     size_t IConnect::get_min_datagram_size() const {
         return lsquic_conn_get_min_datagram_size(conn_);
     }
 
-    void IConnect::set_min_datagram_size(size_t sz) const {
-        if(const int ret = lsquic_conn_set_min_datagram_size(conn_,sz);ret)
-            throw io::Exception(ret);
+    bool IConnect::set_min_datagram_size(size_t sz) const {
+        const int ret = lsquic_conn_set_min_datagram_size(conn_,sz);
+        if(ret == -1) LOG(ERROR) << "Connect "<< conn_ <<" set min datagram size " << sz << " get error " << errno;
+        return ret != -1;
     }
 
     unsigned int IConnect::cancel_pending_streams(unsigned int n) const {
@@ -141,6 +142,10 @@ namespace mqas::core{
 
     bool IConnect::has_stream(lsquic_stream_t *) const {
         return false;
+    }
+
+    void IConnect::make_stream() {
+        lsquic_conn_make_stream(conn_);
     }
 
 }

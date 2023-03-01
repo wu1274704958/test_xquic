@@ -34,13 +34,14 @@ namespace mqas::core {
         void abort() const;
         void going_away() const;
         [[nodiscard]] const char*get_sni() const;
-        void get_sockaddr(sockaddr& local,sockaddr& peer) const;
+        bool get_sockaddr(sockaddr& local,sockaddr& peer) const;
         [[nodiscard]] size_t get_min_datagram_size() const;
-        void set_min_datagram_size(size_t sz) const;
+        bool set_min_datagram_size(size_t sz) const;
         unsigned int cancel_pending_streams(unsigned int n) const;
         [[nodiscard]] unsigned int pending_streams() const;
         [[nodiscard]] unsigned int avail_streams() const;
         [[nodiscard]] LSQUIC_CONN_STATUS status(const std::optional<std::span<char>>& err = std::nullopt) const;
+        void make_stream();
 
 		//interface
 		void set_cxt(void*);
@@ -64,6 +65,7 @@ namespace mqas::core {
 
 	struct engine_cxt
 	{
+        EngineFlags engine_flags;
 		std::function<void()> process_conns;
         std::function<bool(::lsquic_conn_t*,const std::span<char>&)> write_datagram;
         std::function<bool(::lsquic_conn_t*,lsquic_stream_t*,const std::span<char>&)> write_stream;
@@ -105,6 +107,7 @@ namespace mqas::core {
         bool write_datagram(::lsquic_conn_t* conn,const std::span<char>&);
         bool write_stream(::lsquic_conn_t* conn,lsquic_stream_t* stream,const std::span<char>&);
         bool has_stream(lsquic_conn_t* conn,lsquic_stream_t* stream) const;
+        [[nodiscard]] EngineFlags get_engine_flags() const;
 	public:
 		engine_cxt engine_cxt_;
 	protected:

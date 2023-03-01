@@ -24,6 +24,6 @@ int main(int argc,const char** argv)
 		printf("recv %s from %s\n",str.c_str(),addrstr.c_str());
 	});
 
-	io_cxt.run_until(is_running());
+	io_cxt.run_until(IsRunning());
 	return 0;
 }
