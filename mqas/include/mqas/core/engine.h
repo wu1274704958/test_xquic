@@ -40,23 +40,23 @@ namespace mqas::core {
         unsigned int cancel_pending_streams(unsigned int n) const;
         [[nodiscard]] unsigned int pending_streams() const;
         [[nodiscard]] unsigned int avail_streams() const;
-        [[nodiscard]] LSQUIC_CONN_STATUS status(const std::optional<std::span<char>>& err = std::nullopt) const;
+        [[nodiscard]] LSQUIC_CONN_STATUS status(char* buf = nullptr,size_t buf_len = 0) const;
         void make_stream();
 
 		//interface
 		void set_cxt(void*);
 		[[nodiscard]] void* get_cxt() const;
 		[[nodiscard]] size_t datagram_buf_size() const;
-		bool write_datagram(const std::span<char>&);
+		bool write_datagram(const std::span<uint8_t>&);
 		[[nodiscard]] bool flush_datagram() const;
-		bool write_stream(::lsquic_stream_t*,const std::span<char>&);
+		bool write_stream(::lsquic_stream_t*,const std::span<uint8_t>&);
 		[[nodiscard]] ::lsquic_hsk_status get_hsk_status() const;
         bool has_stream(lsquic_stream_t*) const;
 	protected:
 		::lsquic_conn_t* conn_ = nullptr;
 		void* cxt_;
 		engine_cxt* engine_cxt_;
-		std::vector<char> datagram_buf_;
+		std::vector<uint8_t> datagram_buf_;
 		std::queue<short> datagram_queue_;
 		size_t datagram_buf_write_p_ = 0;
 		::lsquic_hsk_status hsk_status_ = ::lsquic_hsk_status::LSQ_HSK_FAIL;
@@ -67,8 +67,8 @@ namespace mqas::core {
 	{
         EngineFlags engine_flags;
 		std::function<void()> process_conns;
-        std::function<bool(::lsquic_conn_t*,const std::span<char>&)> write_datagram;
-        std::function<bool(::lsquic_conn_t*,lsquic_stream_t*,const std::span<char>&)> write_stream;
+        std::function<bool(::lsquic_conn_t*,const std::span<uint8_t>&)> write_datagram;
+        std::function<bool(::lsquic_conn_t*,lsquic_stream_t*,const std::span<uint8_t>&)> write_stream;
         std::function<bool(::lsquic_conn_t*,lsquic_stream_t*)> has_stream;
 	};
 	template<typename C>
@@ -104,8 +104,8 @@ namespace mqas::core {
 		bool contain(::lsquic_conn_t* conn) const;
 		std::weak_ptr<C> add(::lsquic_conn_t* conn);
 		void process_conns() const;
-        bool write_datagram(::lsquic_conn_t* conn,const std::span<char>&);
-        bool write_stream(::lsquic_conn_t* conn,lsquic_stream_t* stream,const std::span<char>&);
+        bool write_datagram(::lsquic_conn_t* conn,const std::span<uint8_t>&);
+        bool write_stream(::lsquic_conn_t* conn,lsquic_stream_t* stream,const std::span<uint8_t>&);
         bool has_stream(lsquic_conn_t* conn,lsquic_stream_t* stream) const;
         [[nodiscard]] EngineFlags get_engine_flags() const;
 	public:

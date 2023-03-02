@@ -38,7 +38,7 @@ int main(int argc,const char** argv)
 			return;
 		}
 		std::string msg = std::format("lalalala!!! {}\0",send_times);
-		if (c->write_datagram(std::span(msg.begin(),msg.end())))
+		if (c->write_datagram(std::span(reinterpret_cast<uint8_t*>(msg.data()),msg.size())))
 		{
 			std::cout << "send success\n";
 			send_times++;

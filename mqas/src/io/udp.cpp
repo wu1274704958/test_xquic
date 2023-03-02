@@ -55,7 +55,7 @@ void mqas::io::UdpSocket::set_ttl(int ttl) const
 	if (const int ret = uv_udp_set_ttl(handle_.get(), ttl); ret != 0)throw Exception(ret);
 }
 
-void mqas::io::UdpSocket::send(const std::vector<std::span<char>>& d, const sockaddr& addr,
+void mqas::io::UdpSocket::send(const std::vector<std::span<uint8_t>>& d, const sockaddr& addr,
 	std::function<void(UdpSocket*, int)> send_cb)
 {
 	send_cxts_.emplace_back(std::move(send_cb));
@@ -64,7 +64,7 @@ void mqas::io::UdpSocket::send(const std::vector<std::span<char>>& d, const sock
 	std::vector<uv_buf_t> buf(d.size());
 	for (size_t i = 0; i < d.size(); ++i)
 	{
-		buf[i].base = d[i].data();
+		buf[i].base = reinterpret_cast<char*>(d[i].data());
 		buf[i].len = static_cast<size_t>(d[i].size());
 	}
 	const int ret = uv_udp_send(&cxt.req, handle_.get(), buf.data(),
@@ -77,12 +77,12 @@ void mqas::io::UdpSocket::send(const std::vector<std::span<char>>& d, const sock
 }
 
 
-int mqas::io::UdpSocket::try_send(const std::vector<std::span<char>>& d, const sockaddr& addr) const
+int mqas::io::UdpSocket::try_send(const std::vector<std::span<uint8_t>>& d, const sockaddr& addr) const
 {
 	std::vector<uv_buf_t> buf(d.size());
 	for (size_t i = 0; i < d.size(); ++i)
 	{
-		buf[i].base = d[i].data();
+		buf[i].base = reinterpret_cast<char*>(d[i].data());
 		buf[i].len = static_cast<size_t>(d[i].size());
 	}
 	const int ret = uv_udp_try_send(handle_.get(), buf.data(), static_cast<unsigned>(buf.size()),&addr);
@@ -91,14 +91,14 @@ int mqas::io::UdpSocket::try_send(const std::vector<std::span<char>>& d, const s
 	return ret;
 }
 
-void mqas::io::UdpSocket::send(const std::span<char>& d, const sockaddr& addr,
+void mqas::io::UdpSocket::send(const std::span<uint8_t>& d, const sockaddr& addr,
 	std::function<void(UdpSocket*, int)> send_cb)
 {
 	send_cxts_.emplace_back(std::move(send_cb));
 	UdpSendReqCxt& cxt = send_cxts_.back();
 	cxt.req.data = &cxt;
 	uv_buf_t buf = {};
-	buf.base = d.data();
+	buf.base = reinterpret_cast<char*>(d.data());
 	buf.len = static_cast<size_t>(d.size());
 	const int ret = uv_udp_send(&cxt.req, handle_.get(), &buf,1,&addr,on_send_callback);
 	if (ret != 0)
@@ -108,10 +108,10 @@ void mqas::io::UdpSocket::send(const std::span<char>& d, const sockaddr& addr,
 	}
 }
 
-int mqas::io::UdpSocket::try_send(const std::span<char>& d, const sockaddr& addr) const
+int mqas::io::UdpSocket::try_send(const std::span<uint8_t>& d, const sockaddr& addr) const
 {
 	uv_buf_t buf = {};
-	buf.base = d.data();
+	buf.base = reinterpret_cast<char*>(d.data());
 	buf.len = static_cast<size_t>(d.size());
 	const int ret = uv_udp_try_send(handle_.get(), &buf, 1, &addr);
 	if (ret < 0)
@@ -120,7 +120,7 @@ int mqas::io::UdpSocket::try_send(const std::span<char>& d, const sockaddr& addr
 }
 
 void mqas::io::UdpSocket::recv_start(
-	std::function<void(UdpSocket*,const std::optional<std::span<char>>&,ssize_t nread,const sockaddr*, unsigned)> recv_cb)
+	std::function<void(UdpSocket*,const std::optional<std::span<uint8_t>>&,ssize_t nread,const sockaddr*, unsigned)> recv_cb)
 {
 	const int ret = uv_udp_recv_start(handle_.get(), buf_alloc_cb,[](uv_udp_t* handle,
 		ssize_t nread,
@@ -130,9 +130,9 @@ void mqas::io::UdpSocket::recv_start(
 	{
 		if (const auto sock = static_cast<UdpSocket*>(handle->data))
 		{
-			std::optional<std::span<char>> span = std::nullopt;
+			std::optional<std::span<uint8_t>> span = std::nullopt;
 			if(nread > 0)
-				span = std::make_optional(std::span(buf->base,nread));
+				span = std::make_optional(std::span(reinterpret_cast<uint8_t*>(buf->base),nread));
 			sock->recv_cb_(sock,span,nread,addr,flags);
 		}
 	});
@@ -167,7 +167,7 @@ void mqas::io::UdpSocket::buf_alloc_cb(uv_handle_t* handle, size_t suggested_siz
 	{
 		if(sock->buffer_.size() < suggested_size)
 			sock->buffer_.resize(suggested_size);
-		buf->base = sock->buffer_.data();
+		buf->base = reinterpret_cast<char*>(sock->buffer_.data());
 		buf->len = static_cast<size_t>(sock->buffer_.size());
 	}
 }

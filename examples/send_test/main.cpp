@@ -17,17 +17,17 @@ int main(int argc,const char** argv)
 	udp->bind(local, UV_UDP_REUSEADDR);
 
 	std::string str = "hello!!!";
-	std::span<char> d(str.data(),str.size());
+	std::span<uint8_t> d(reinterpret_cast<uint8_t*>(str.data()),str.size());
 	int r = udp->try_send(d, peer);
 	printf("try send %d\n",r);
 
 	std::string strb1 = "hello!!!  bufs 1\n";
 	std::string strb2 = "hello!!!  bufs 2\n";
 	std::string strb3 = "hello!!!  bufs 3\n";
-	std::vector<std::span<char>> bufs={
-		{strb1.data(),strb1.size()},
-		{strb2.data(),strb2.size()},
-		{strb3.data(),strb3.size()}
+	std::vector<std::span<uint8_t>> bufs={
+		{reinterpret_cast<uint8_t*>(strb1.data()),strb1.size()},
+		{reinterpret_cast<uint8_t*>(strb2.data()),strb2.size()},
+		{reinterpret_cast<uint8_t*>(strb3.data()),strb3.size()}
 	};
 
 	r = udp->try_send(bufs,peer);
@@ -35,7 +35,7 @@ int main(int argc,const char** argv)
 	
 
 	std::string str2 = "hello!!! async";
-	std::span<char> d2(str2.data(), str2.size());
+	std::span<uint8_t> d2(reinterpret_cast<uint8_t*>(str2.data()), str2.size());
 	udp->send(d2, peer, [](io::UdpSocket* sock, int st)
 	{
 		printf("send state = %d\n", st);

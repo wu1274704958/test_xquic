@@ -16,10 +16,10 @@ int main(int argc,const char** argv)
 	sockaddr local;
 	io::Ip::str2addr_ipv4("0.0.0.0",8083,local);
 	udp->bind(local, UV_UDP_REUSEADDR);
-	udp->recv_start([](io::UdpSocket* sock,const std::optional<std::span<char>>& data,ssize_t nread, const sockaddr* peer, unsigned flag)
+	udp->recv_start([](io::UdpSocket* sock,const std::optional<std::span<uint8_t>>& data,ssize_t nread, const sockaddr* peer, unsigned flag)
 	{
 		if(!data || peer == nullptr) return;
-		std::string str(data->data(),data->size());
+		std::string str(reinterpret_cast<char*>(data->data()),data->size());
 		std::string addrstr = io::Ip::addr2str(*peer);
 		printf("recv %s from %s\n",str.c_str(),addrstr.c_str());
 	});

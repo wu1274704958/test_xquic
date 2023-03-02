@@ -23,7 +23,7 @@ void mqas::core::IStream::do_read() {
         shutdown(StreamAspect::Read);
     }else{
         LOG(INFO) << "Stream "<< stream_ <<" read " << ret << "bytes";
-        std::span<char> span(&read_buf_[old_len],ret);
+        std::span<uint8_t> span(&read_buf_[old_len],ret);
         if(on_read(span))
             move_read_pos_uncheck(ret);
     }
@@ -52,7 +52,7 @@ void mqas::core::IStream::on_reset(StreamAspect how) {
     reset_val_ = how;
 }
 
-bool mqas::core::IStream::write(const std::span<char> &data) {
+bool mqas::core::IStream::write(const std::span<uint8_t> &data) {
     if(data.empty()) return false;
     if(!want_write())
         return false;
@@ -122,13 +122,13 @@ void mqas::core::IStream::clear_read_buf() {
     buf_read_pos = 0;
 }
 
-bool mqas::core::IStream::on_read(const std::span<char>& current) {return false;}
+bool mqas::core::IStream::on_read(const std::span<uint8_t>& current) {return false;}
 
 bool mqas::core::IStream::has_unread_data() const {
     return !read_buf_.empty() && buf_read_pos < read_buf_.size();
 }
 
-std::span<char> mqas::core::IStream::read(size_t sz) {
+std::span<const uint8_t> mqas::core::IStream::read(size_t sz) {
     size_t rsz = sz > unread_size() ? unread_size() : sz;
     if(rsz == 0) return {};
     return read_uncheck(rsz);
@@ -138,14 +138,14 @@ size_t mqas::core::IStream::unread_size() const {
     return read_buf_.size() - buf_read_pos;
 }
 
-std::span<char> mqas::core::IStream::read_all() {
+std::span<const uint8_t> mqas::core::IStream::read_all() {
     size_t rsz = unread_size();
     if(rsz == 0) return {};
     return read_uncheck(rsz);
 }
 
-std::span<char> mqas::core::IStream::read_uncheck(size_t sz) {
-    std::span<char> span(&read_buf_[buf_read_pos],sz);
+std::span<const uint8_t> mqas::core::IStream::read_uncheck(size_t sz) {
+    std::span<const uint8_t> span(&read_buf_[buf_read_pos],sz);
     move_read_pos_uncheck(sz);
     return span;
 }
@@ -165,6 +165,13 @@ void *mqas::core::IStream::get_cxt() const {
 
 void mqas::core::IStream::set_cxt(void *c) {
     cxt_ = c;
+}
+
+std::span<const uint8_t> mqas::core::IStream::read_all_not_move() const {
+    size_t rsz = unread_size();
+    if(rsz == 0) return {};
+    std::span<const uint8_t> span(&read_buf_[buf_read_pos],rsz);
+    return span;
 }
 
 

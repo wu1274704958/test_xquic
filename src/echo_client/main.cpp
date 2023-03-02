@@ -55,7 +55,7 @@ public:
 	lsquic_conn_t* conn = nullptr;
 	lsquic_stream_t* stream = nullptr;
 	lsquic_stream_t* stream2 = nullptr;
-	std::vector<char> recv_buf;
+	std::vector<uint8_t> recv_buf;
 	struct sockaddr local_addr;
 };
 
@@ -93,7 +93,7 @@ void alloc_cb(uv_handle_t* handle, size_t size, uv_buf_t* buf) {
 	if (!cxt)return;
 	if(size > cxt->recv_buf.size())
 		cxt->recv_buf.resize(size);
-	buf->base = cxt->recv_buf.data();
+	buf->base = reinterpret_cast<char*>(cxt->recv_buf.data());
 	buf->len = cxt->recv_buf.size();
 }
 void recv_cb(uv_udp_t* req, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr, unsigned int flags) {

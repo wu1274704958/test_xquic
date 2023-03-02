@@ -52,7 +52,7 @@ public:
 	std::shared_ptr<uv_udp_t> socket;
 	std::shared_ptr<uv_timer_t> proc_conns_timer;
 	lsquic_engine_t* engine;
-	std::vector<char> recv_buf;
+	std::vector<uint8_t> recv_buf;
 	struct sockaddr local_addr;
 };
 
@@ -95,7 +95,7 @@ void alloc_cb(uv_handle_t* handle, size_t size, uv_buf_t* buf) {
 	if (!cxt)return;
 	if(size > cxt->recv_buf.size())
 		cxt->recv_buf.resize(size);
-	buf->base = cxt->recv_buf.data();
+	buf->base = reinterpret_cast<char*>(cxt->recv_buf.data());
 	buf->len = cxt->recv_buf.size();
 }
 void recv_cb(uv_udp_t* req, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr, unsigned int flags) {

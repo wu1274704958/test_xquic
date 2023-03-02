@@ -21,7 +21,7 @@ namespace mqas::core{
         void on_close();
         void on_reset(StreamAspect how);
         //operator functions
-        bool write(const std::span<char>&);
+        bool write(const std::span<uint8_t>&);
         bool want_read() const;
         bool want_write() const;
         /**
@@ -34,21 +34,22 @@ namespace mqas::core{
         bool shutdown(StreamAspect how);
         bool close() const;
         void clear_read_buf();
-        bool on_read(const std::span<char>& current);
+        bool on_read(const std::span<uint8_t>& current);
         [[nodiscard]] bool has_unread_data() const;
-        std::span<char> read(size_t sz);
-        std::span<char> read_all();
+        std::span<const uint8_t> read(size_t sz);
+        std::span<const uint8_t> read_all();
+        [[nodiscard]] std::span<const uint8_t> read_all_not_move() const;
         [[nodiscard]] size_t  unread_size() const;
     protected:
-        std::span<char> read_uncheck(size_t sz);
+        std::span<const uint8_t> read_uncheck(size_t sz);
         void move_read_pos_uncheck(size_t sz);
         static size_t reader_read(void *lsqr_ctx, void *buf, size_t count);
         static size_t reader_size(void *lsqr_ctx);
         static size_t read_func(void *ctx, const unsigned char *buf, size_t len, [[maybe_unused]] int fin);
 
     protected:
-        std::vector<char> buf_;
-        std::vector<char> read_buf_;
+        std::vector<uint8_t> buf_;
+        std::vector<uint8_t> read_buf_;
         size_t buf_write_pos = 0;
         size_t buf_read_pos = 0;
         ::lsquic_stream_t* stream_ = nullptr;
@@ -62,7 +63,7 @@ namespace mqas::core{
     struct connect_cxt{
         engine_cxt* engine_cxt_;
         std::function<bool(lsquic_stream_t*)> has_stream;
-        std::function<bool(lsquic_stream_t*,const std::span<char>&)> write_stream;
+        std::function<bool(lsquic_stream_t*,const std::span<uint8_t>&)> write_stream;
     };
     template<typename S>
     requires requires{
@@ -79,7 +80,7 @@ namespace mqas::core{
         void on_stream_close(::lsquic_stream_t* lsquic_stream);
         void on_stream_reset(lsquic_stream_t* s, int how);
         bool has_stream(lsquic_stream_t*) const;
-        bool write_stream(::lsquic_stream_t*,const std::span<char>&);
+        bool write_stream(::lsquic_stream_t*,const std::span<uint8_t>&);
     protected:
         std::unordered_map<size_t ,std::shared_ptr<S>> stream_map_;
         connect_cxt connect_cxt_;

@@ -72,7 +72,7 @@ namespace mqas::core{
         return stream_map_.contains(reinterpret_cast<size_t>(s));
     }
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
-    bool Connect<S>::write_stream(::lsquic_stream_t* s,const std::span<char>& data)
+    bool Connect<S>::write_stream(::lsquic_stream_t* s,const std::span<uint8_t>& data)
     {
         const auto key = reinterpret_cast<size_t>(s);
         if(stream_map_.contains(key))
@@ -80,7 +80,7 @@ namespace mqas::core{
         return false;
     }
 }
-
+#undef  MQAS_CONNECT_IMPL_TEMPLATE_DECL
 #endif //MQAS_CONNECT_IMPL_HPP
 
 #pragma clang diagnostic pop

@@ -159,7 +159,7 @@ void mqas::core::engine_base<E>::init_lsquic() noexcept(false)
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::start_recv() const
 {
-	socket_->recv_start([this](io::UdpSocket* sock,const std::optional<std::span<char>>& buf,ssize_t nread,const sockaddr* addr,unsigned flags)
+	socket_->recv_start([this](io::UdpSocket* sock,const std::optional<std::span<uint8_t>>& buf,ssize_t nread,const sockaddr* addr,unsigned flags)
 	{
 		if (nread == 0 || addr == nullptr)
 			return;
@@ -316,7 +316,7 @@ int mqas::core::engine_base<E>::on_packets_out(void* packets_out_ctx, const lsqu
 {
 	const auto sock = static_cast<io::UdpSocket*>(packets_out_ctx);
 
-	std::vector<std::span<char>> bufs;
+	std::vector<std::span<uint8_t>> bufs;
 	unsigned succ_num = n_packets_out;
 	for (unsigned n = 0; n < n_packets_out; ++n)
 	{
@@ -324,7 +324,7 @@ int mqas::core::engine_base<E>::on_packets_out(void* packets_out_ctx, const lsqu
 			bufs.resize(out_spec[n].iovlen);
 		for (unsigned i = 0; i < out_spec[n].iovlen; ++i)
 		{
-			bufs[i] = std::span<char>(static_cast<char*>(out_spec[n].iov[i].iov_base),out_spec[n].iov[i].iov_len);
+			bufs[i] = std::span<uint8_t>(static_cast<uint8_t *>(out_spec[n].iov[i].iov_base),out_spec[n].iov[i].iov_len);
 		}
 		try{
 			sock->try_send(bufs, *out_spec[n].dest_sa);

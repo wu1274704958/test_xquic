@@ -33,7 +33,7 @@ namespace mqas::core
 			void on_new_lsquic_engine(::lsquic_engine_api&, EngineFlags);
 			void on_init_socket(io::UdpSocket*);
 			void on_init_logger();
-			bool on_recv(const std::optional<std::span<char>>& buf, ssize_t nread, const sockaddr* addr, unsigned flags);
+			bool on_recv(const std::optional<std::span<uint8_t>>& buf, ssize_t nread, const sockaddr* addr, unsigned flags);
 
 			void on_new_conn(void* stream_if_ctx, lsquic_conn_t* lsquic_conn);
 			void on_conn_closed(lsquic_conn_t* lsquic_conn);

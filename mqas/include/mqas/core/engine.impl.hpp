@@ -168,7 +168,7 @@ void mqas::core::engine<C>::process_conns() const
 }
 
 ENGINE_TEMPLATE_DECL
-bool mqas::core::engine<C>::write_datagram(::lsquic_conn_t* conn, const std::span<char> &d) {
+bool mqas::core::engine<C>::write_datagram(::lsquic_conn_t* conn, const std::span<uint8_t> &d) {
     const auto key = reinterpret_cast<size_t >(conn);
     if(conn_map_.contains(key))
     {
@@ -179,7 +179,7 @@ bool mqas::core::engine<C>::write_datagram(::lsquic_conn_t* conn, const std::spa
 }
 
 ENGINE_TEMPLATE_DECL
-bool mqas::core::engine<C>::write_stream(::lsquic_conn_t* conn,lsquic_stream_t* stream,const std::span<char>&d)
+bool mqas::core::engine<C>::write_stream(::lsquic_conn_t* conn,lsquic_stream_t* stream,const std::span<uint8_t>&d)
 {
     const auto key = reinterpret_cast<size_t >(conn);
     if(conn_map_.contains(key))

@@ -21,7 +21,7 @@ void mqas::core::IEngine::on_init_socket(io::UdpSocket*){}
 
 void mqas::core::IEngine::on_init_logger(){}
 
-bool mqas::core::IEngine::on_recv(const std::optional<std::span<char>>& buf, ssize_t nread, const sockaddr* addr,unsigned flags)
+bool mqas::core::IEngine::on_recv(const std::optional<std::span<uint8_t>>& buf, ssize_t nread, const sockaddr* addr,unsigned flags)
 {
 	LOG(INFO) << "on_recv " << nread << " bytes";
 	return true;
@@ -110,7 +110,7 @@ int ssl_select_alpn_s(SSL* ssl, const unsigned char** out, unsigned char* outlen
 {
 	const auto alpn = static_cast<const char*>(arg);
 	LOG(INFO) << "select alpn";
-	std::vector<char> buf;
+	std::vector<uint8_t> buf;
 	const auto ss = mqas::comm::split(alpn, ';');
 	for (auto& a : ss)
 	{

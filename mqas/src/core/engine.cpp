@@ -61,7 +61,7 @@ namespace mqas::core{
     {
         return cxt_;
     }
-    bool IConnect::write_datagram(const std::span<char>& data)
+    bool IConnect::write_datagram(const std::span<uint8_t>& data)
     {
         if(data.empty()) return false;
         if (::lsquic_conn_want_datagram_write(conn_, 1) == -1)
@@ -81,7 +81,7 @@ namespace mqas::core{
         }
         return false;
     }
-    bool IConnect::write_stream(::lsquic_stream_t*, const std::span<char>& data){ return false;}
+    bool IConnect::write_stream(::lsquic_stream_t*, const std::span<uint8_t>& data){ return false;}
 
     ::lsquic_hsk_status IConnect::get_hsk_status() const
     {
@@ -134,9 +134,7 @@ namespace mqas::core{
         return lsquic_conn_n_pending_streams(conn_);
     }
 
-    LSQUIC_CONN_STATUS IConnect::status(const std::optional<std::span<char>>& err) const {
-        char* buf = err ? err->data() : nullptr;
-        size_t buf_len = err ? err->size() : 0;
+    LSQUIC_CONN_STATUS IConnect::status(char* buf,size_t buf_len) const {
         return lsquic_conn_status(conn_,buf,buf_len);
     }
 
