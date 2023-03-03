@@ -41,7 +41,7 @@ namespace mqas::core
 			void on_read(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx);
 			void on_write(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx);
 			void on_close(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx);
-
+            void close();
 			//optional callback
 			void on_goaway_received(lsquic_conn_t* c);
 			ssize_t on_dg_write(lsquic_conn_t* c, void*, size_t);
@@ -87,6 +87,7 @@ namespace mqas::core
 		void close_ssl_ctx();
 		~engine_base()
 		{
+            engine_extern_->close();
 			close_socket();
 			close_timer();
 			close_ssl_ctx();

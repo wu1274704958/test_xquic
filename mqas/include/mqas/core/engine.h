@@ -30,7 +30,7 @@ namespace mqas::core {
 		void on_stream_reset(lsquic_stream_t* s, int how);
 		void on_conncloseframe_received(int app_error, uint64_t error_code, const char* reason, int reason_len);
         //operator
-        void close() const;
+        void close();
         void abort() const;
         void going_away() const;
         [[nodiscard]] const char*get_sni() const;
@@ -89,6 +89,7 @@ namespace mqas::core {
 		void on_read(lsquic_stream_t* lsquic_stream, [[maybe_unused]] lsquic_stream_ctx_t* lsquic_stream_ctx);
 		void on_write(lsquic_stream_t* lsquic_stream, [[maybe_unused]] lsquic_stream_ctx_t* lsquic_stream_ctx);
 		void on_close(lsquic_stream_t* lsquic_stream, [[maybe_unused]] lsquic_stream_ctx_t* lsquic_stream_ctx);
+        void close();
 
 		//optional callback
 		void on_goaway_received(lsquic_conn_t* c);

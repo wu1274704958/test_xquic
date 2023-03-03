@@ -87,6 +87,9 @@ void mqas::core::IEngine::on_conncloseframe_received(lsquic_conn_t* c, int app_e
 {
 	LOG(INFO) << "on_conncloseframe_received " << reinterpret_cast<size_t>(c) << "err_code = " << error_code << " " << reason;
 }
+
+void mqas::core::IEngine::close() {}
+
 //engine config deserialize
 mqas::core::engine_config toml::from<mqas::core::engine_config>::from_toml(const value& v)
 {

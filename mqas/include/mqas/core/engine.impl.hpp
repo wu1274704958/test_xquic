@@ -206,4 +206,14 @@ mqas::core::EngineFlags mqas::core::engine<C>::get_engine_flags() const {
     return p->engine_flags_;
 }
 
+ENGINE_TEMPLATE_DECL
+void mqas::core::engine<C>::close()
+{
+    for(auto& c : conn_map_)
+    {
+        c.second->close();
+    }
+    process_conns();
+}
+
 #undef ENGINE_TEMPLATE_DECL

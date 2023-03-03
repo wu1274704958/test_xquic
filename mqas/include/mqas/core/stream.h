@@ -25,10 +25,10 @@ namespace mqas::core {
     };
     struct MQAS_EXTERN stream_variant_msg{
         stream_variant_cmd cmd;
-        uint32_t param1;
-        uint16_t param2;
-        uint8_t param3;
-        stream_variant_errcode errcode;
+        uint32_t param1 = 0;
+        uint16_t param2 = 0;
+        uint8_t param3 = 0;
+        stream_variant_errcode errcode = stream_variant_errcode::ok;
         [[nodiscard]] std::vector<uint8_t> generate() const;
         static std::tuple<std::optional<stream_variant_msg>,size_t> parse_command(const std::span<const uint8_t>& buffer);
     };
@@ -46,8 +46,8 @@ namespace mqas::core {
         void on_reset(StreamAspect how);
         //operator functions
         bool write(const std::span<uint8_t>&);
-        bool want_read() const;
-        bool want_write() const;
+        bool want_read(bool) const;
+        bool want_write(bool) const;
 
         [[nodiscard]] void* get_cxt() const;
         void set_cxt(void*);
@@ -61,6 +61,17 @@ namespace mqas::core {
         size_t on_read(const std::span<const uint8_t>& current);
         bool change_to(size_t tag);
         void clear_curr_stream();
+
+        template<typename CS>
+        requires requires{
+            requires std::default_initializable<CS>;
+            requires std::is_base_of_v<IStream,CS>;
+            requires HasStreamTag<CS>;
+        }
+        bool req_change()
+        {
+            return req_change_to<CS,S...>();
+        }
 
     protected:
         template<typename CS>
@@ -83,12 +94,8 @@ namespace mqas::core {
         {
             if constexpr(std::is_same_v<F,CS>)
             {
-                clear_curr_stream();
-                stream_tag_ = CS::STREAM_TAG;
-                stream_var_ = CS{};
-                auto stream = std::get<CS>(stream_var_);
-                stream.set_cxt(cxt_);
-                stream.on_init(stream_,connect_cxt_);
+                change_to_uncheck<CS>();
+                return true;
             }else{
                 return change_to<CS,Ss...>();
             }
@@ -103,8 +110,53 @@ namespace mqas::core {
         {
             return false;
         }
+        template<typename CS>
+        requires requires{
+            requires std::default_initializable<CS>;
+            requires std::is_base_of_v<IStream,CS>;
+            requires HasStreamTag<CS>;
+        }
+        void change_to_uncheck()
+        {
+            clear_curr_stream();
+            stream_tag_ = CS::STREAM_TAG;
+            stream_var_ = CS{};
+            auto& stream = std::get<CS>(stream_var_);
+            stream.set_cxt(cxt_);
+            stream.on_init(stream_,connect_cxt_);
+        }
+        template<typename CS, typename F,typename ... Ss>
+        requires requires{
+            requires std::default_initializable<CS>;
+            requires std::is_base_of_v<IStream,CS>;
+            requires HasStreamTag<CS>;
+        }
+        bool req_change_to()
+        {
+            if constexpr(std::is_same_v<F,CS>)
+            {
+                stream_variant_msg msg{};
+                msg.cmd = stream_variant_cmd::req_use_stream_tag;
+                msg.param1 = static_cast<uint32_t >(CS::STREAM_TAG);
+                auto data = msg.generate();
+                write({data});
+                return true;
+            }else{
+                return change_to<CS,Ss...>();
+            }
+        }
+        template<typename CS>
+        requires requires{
+            requires std::default_initializable<CS>;
+            requires std::is_base_of_v<IStream,CS>;
+            requires HasStreamTag<CS>;
+        }
+        bool req_change_to()
+        {
+            return false;
+        }
     protected:
-            std::variant<S...> stream_var_;
+            std::variant<std::monostate,S...> stream_var_;
             size_t stream_tag_ = 0;
     };
 }

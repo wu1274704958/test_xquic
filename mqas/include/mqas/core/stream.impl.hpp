@@ -78,26 +78,26 @@ namespace mqas::core{
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    bool StreamVariant<S...>::want_read() const
+    bool StreamVariant<S...>::want_read(bool f) const
     {
         if(stream_tag_ == 0)
         {
             return IStream::want_read();
         }else{
             bool ret = false;
-            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).want_read()),...);
+            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).want_read(f)),...);
             return ret;
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    bool StreamVariant<S...>::want_write() const
+    bool StreamVariant<S...>::want_write(bool f) const
     {
         if(stream_tag_ == 0)
         {
             return IStream::want_write();
         }else{
             bool ret = false;
-            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).want_write()),...);
+            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).want_write(f)),...);
             return ret;
         }
     }
@@ -208,7 +208,7 @@ namespace mqas::core{
                         if(!change_to(static_cast<size_t>(msg->param1)))
                             LOG(ERROR) << "StreamVariant handle ack change to " << msg->param1 << " failed";
                     }else
-                        LOG(ERROR) << "StreamVariant change to " << msg->param1 << " failed error = " << (uint8_t)msg->errcode;
+                        LOG(ERROR) << "StreamVariant change to " << msg->param1 << " failed error = " << (int)msg->errcode;
                 }else // is req
                 {
                     msg->errcode = stream_variant_errcode::ok;
@@ -228,7 +228,7 @@ namespace mqas::core{
     bool StreamVariant<S...>::change_to(size_t tag)
     {
         bool find = false;
-        ((S::STREAM_TAG == tag && (find = change_to<S>())),...);
+        ((S::STREAM_TAG == tag && (find = (change_to_uncheck<S>(),true))),...);
         return find;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL

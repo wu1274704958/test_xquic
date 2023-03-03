@@ -88,7 +88,7 @@ namespace mqas::core{
         return hsk_status_;
     }
 
-    void IConnect::close() const {
+    void IConnect::close() {
         lsquic_conn_close(conn_);
     }
 

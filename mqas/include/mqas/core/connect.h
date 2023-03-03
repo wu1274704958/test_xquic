@@ -22,8 +22,9 @@ namespace mqas::core{
         void on_reset(StreamAspect how);
         //operator functions
         bool write(const std::span<uint8_t>&);
-        bool want_read() const;
-        bool want_write() const;
+        bool want_read(bool) const;
+        bool want_write(bool) const;
+        bool flush() const;
         /**
         * 0: Stop reading.
         * 1: Stop writing.
@@ -32,7 +33,7 @@ namespace mqas::core{
         [[nodiscard]] void* get_cxt() const;
         void set_cxt(void*);
         bool shutdown(StreamAspect how);
-        bool close() const;
+        bool close();
         void clear_read_buf();
         size_t on_read(const std::span<const uint8_t>& current);
         [[nodiscard]] bool has_unread_data() const;
@@ -82,6 +83,7 @@ namespace mqas::core{
         bool has_stream(lsquic_stream_t*) const;
         bool write_stream(::lsquic_stream_t*,const std::span<uint8_t>&);
         void make_stream(std::function<void(std::weak_ptr<S>)>);
+        void close();
     protected:
         std::unordered_map<size_t ,std::shared_ptr<S>> stream_map_;
         connect_cxt connect_cxt_;

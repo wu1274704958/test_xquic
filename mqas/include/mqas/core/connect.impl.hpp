@@ -90,6 +90,15 @@ namespace mqas::core{
         this->on_new_stream_cb_ = std::move(cb);
         IConnect::make_stream();
     }
+    MQAS_CONNECT_IMPL_TEMPLATE_DECL
+    void Connect<S>::close()
+    {
+        for(auto& s : stream_map_)
+        {
+            s.second->close();
+        }
+        IConnect::close();
+    }
 }
 #undef  MQAS_CONNECT_IMPL_TEMPLATE_DECL
 #endif //MQAS_CONNECT_IMPL_HPP

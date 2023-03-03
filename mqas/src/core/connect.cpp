@@ -9,14 +9,27 @@ void mqas::core::IStream::on_init(::lsquic_stream_t *lsquic_stream,connect_cxt* 
     reader_.lsqr_ctx = this;
     reader_.lsqr_read = reader_read;
     reader_.lsqr_size = reader_size;
-    if(want_read_on_init_) want_read();
+    if(want_read_on_init_) want_read(true);
 }
 
 size_t mqas::core::IStream::do_read() {
     const size_t old_len = read_buf_.size();
     const auto ret = lsquic_stream_readf(stream_,read_func,this);
     if(ret == -1)
+    {
         LOG(ERROR) << "Stream "<< stream_ <<" read get error " << errno;
+        switch(errno)
+        {
+            case EBADF:
+                LOG(ERROR) << "do_read() Stream "<< stream_ <<" is closed";
+                want_read(false);
+                break;
+            case ECONNRESET:
+                LOG(ERROR) << "do_read() Stream "<< stream_ <<" is reset";
+                want_read(false);
+                break;
+        }
+    }
     else if(ret == 0)
     {
         LOG(INFO) << "Stream "<< stream_ <<" EOS has been reached will be closed";
@@ -29,15 +42,17 @@ size_t mqas::core::IStream::do_read() {
 
 void mqas::core::IStream::do_write() {
     const auto ret = lsquic_stream_writef(stream_,&reader_);
-    if(ret == -1)
-        LOG(ERROR) << "Stream "<< stream_ <<" write get error " << errno;
-    else
+    if(ret == -1) {
+        LOG(ERROR) << "Stream " << stream_ << " write get error " << errno;
+        want_write(false);
+    }else
         LOG(INFO) << "Stream "<< stream_ <<" write " << ret << "bytes";
     if(buf_write_pos == buf_.size())
     {
         buf_.clear();
         buf_write_pos = 0;
         lsquic_stream_wantwrite(stream_,0);
+        flush();
     }
 }
 
@@ -51,7 +66,7 @@ void mqas::core::IStream::on_reset(StreamAspect how) {
 
 bool mqas::core::IStream::write(const std::span<uint8_t> &data) {
     if(data.empty()) return false;
-    if(!want_write())
+    if(!want_write(true))
         return false;
     const size_t old_len = buf_.size();
     buf_.resize(old_len + data.size());
@@ -82,15 +97,15 @@ size_t mqas::core::IStream::read_func(void *ctx, const unsigned char *buf, size_
     return len;
 }
 
-bool mqas::core::IStream::want_read() const {
-    if(lsquic_stream_wantread(stream_,1) == -1) {
+bool mqas::core::IStream::want_read(bool f) const {
+    if(lsquic_stream_wantread(stream_,f ? 1 : 0) == -1) {
         LOG(ERROR) << "Stream "<< stream_ <<" want read get error " << errno;
         return false;
     }
     return true;
 }
 
-bool mqas::core::IStream::close() const {
+bool mqas::core::IStream::close() {
     if(lsquic_stream_close(stream_) == -1) {
         LOG(ERROR) << "Stream "<< stream_ <<" close get error " << errno;
         return false;
@@ -98,8 +113,8 @@ bool mqas::core::IStream::close() const {
     return true;
 }
 
-bool mqas::core::IStream::want_write() const {
-    if(lsquic_stream_wantwrite(stream_,1) == -1) {
+bool mqas::core::IStream::want_write(bool f) const {
+    if(lsquic_stream_wantwrite(stream_,f ? 1 : 0) == -1) {
         LOG(ERROR) << "Stream "<< stream_ <<" want read get error " << errno;
         return false;
     }
@@ -169,6 +184,14 @@ std::span<const uint8_t> mqas::core::IStream::read_all_not_move() const {
     if(rsz == 0) return {};
     std::span<const uint8_t> span(&read_buf_[buf_read_pos],rsz);
     return span;
+}
+
+bool mqas::core::IStream::flush() const {
+    if(lsquic_stream_flush(stream_) == -1) {
+        LOG(ERROR) << "Stream "<< stream_ <<" flush get error " << errno;
+        return false;
+    }
+    return true;
 }
 
 
