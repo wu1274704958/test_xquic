@@ -12,7 +12,7 @@ void mqas::core::IStream::on_init(::lsquic_stream_t *lsquic_stream,connect_cxt* 
     if(want_read_on_init_) want_read();
 }
 
-void mqas::core::IStream::do_read() {
+size_t mqas::core::IStream::do_read() {
     const size_t old_len = read_buf_.size();
     const auto ret = lsquic_stream_readf(stream_,read_func,this);
     if(ret == -1)
@@ -23,11 +23,8 @@ void mqas::core::IStream::do_read() {
         shutdown(StreamAspect::Read);
     }else{
         LOG(INFO) << "Stream "<< stream_ <<" read " << ret << "bytes";
-        std::span<uint8_t> span(&read_buf_[old_len],ret);
-        if(on_read(span))
-            move_read_pos_uncheck(ret);
     }
-
+    return ret;
 }
 
 void mqas::core::IStream::do_write() {
@@ -122,7 +119,7 @@ void mqas::core::IStream::clear_read_buf() {
     buf_read_pos = 0;
 }
 
-bool mqas::core::IStream::on_read(const std::span<uint8_t>& current) {return false;}
+size_t mqas::core::IStream::on_read(const std::span<const uint8_t>& current) {return 0;}
 
 bool mqas::core::IStream::has_unread_data() const {
     return !read_buf_.empty() && buf_read_pos < read_buf_.size();

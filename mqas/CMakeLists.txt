@@ -2,6 +2,7 @@ aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/src" CUR_SRC_FILES)
 aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/src/io" CUR_SRC_FILES)
 aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/src/core" CUR_SRC_FILES)
 aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/src/comm" CUR_SRC_FILES)
+aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/src/core/proto" CUR_SRC_FILES)
 
 set(CUR_TARGET_NAME mqas)
 if(BUILD_MQAS_LIB_OBJ)

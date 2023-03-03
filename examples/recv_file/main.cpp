@@ -3,21 +3,26 @@
 #include "mqas/core/engine_base.h"
 #include <iostream>
 #include <mqas/core/engine.h>
-
-
+#include <mqas/core/connect.h>
+#include <mqas/core/stream.h>
 using namespace mqas;
 
-
-class Conn : public core::IConnect
+class UserStream:public core::IStream
 {
-
+public:
+    static constexpr size_t STREAM_TAG = 1;
+};
+class FileStream:public core::IStream
+{
+public:
+    static constexpr size_t STREAM_TAG = 2;
 };
 
 int main(int argc,const char** argv)
 {
 	Context<core::InitFlags::GLOBAL_SERVER> context;
 	io::Context io_cxt;
-	core::engine_base<core::engine<Conn>> e(io_cxt);
+	core::engine_base<core::engine<core::Connect<core::StreamVariant<UserStream,FileStream>>>> e(io_cxt);
 	try{
 		e.init("conf.txt",core::EngineFlags::Server);
 		e.start_recv();
