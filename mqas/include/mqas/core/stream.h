@@ -79,9 +79,11 @@ namespace mqas::core {
         size_t do_read_curr(CS& cs) const
         {
             const auto ret = cs.do_read();
-            const auto span = cs.read_all_not_move();
-            if(const size_t read_len = cs.on_read(span);read_len > 0)
-                cs.move_read_pos_uncheck(read_len);
+            if(ret > 0) {
+                const auto span = cs.read_all_not_move();
+                if (const size_t read_len = cs.on_read(span);read_len > 0)
+                    cs.move_read_pos_uncheck(read_len);
+            }
             return ret;
         }
         template<typename CS, typename F,typename ... Ss>
