@@ -24,7 +24,7 @@ int MQAS_EXTERN ssl_select_alpn_s(SSL* ssl, const unsigned char** out, unsigned 
 template<typename E>														\
 requires requires															\
 {																			\
-	requires std::default_initializable<E>;									\
+	requires std::is_default_constructible_v<E>;									\
 	requires std::is_base_of_v<mqas::core::IEngine, E>;						\
 }
 

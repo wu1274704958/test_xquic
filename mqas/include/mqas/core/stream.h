@@ -34,7 +34,7 @@ namespace mqas::core {
     };
     template<typename ... S>
     requires requires{
-        requires (std::default_initializable<S> && ...);
+        requires (std::is_default_constructible_v<S> && ...);
         requires (std::is_base_of_v<IStream,S> && ...);
         requires (HasStreamTag<S> && ...);
     }
@@ -64,7 +64,7 @@ namespace mqas::core {
 
         template<typename CS>
         requires requires{
-            requires std::default_initializable<CS>;
+            requires std::is_default_constructible_v<CS>;
             requires std::is_base_of_v<IStream,CS>;
             requires HasStreamTag<CS>;
         }
@@ -88,7 +88,7 @@ namespace mqas::core {
         }
         template<typename CS, typename F,typename ... Ss>
         requires requires{
-            requires std::default_initializable<CS>;
+            requires std::is_default_constructible_v<CS>;
             requires std::is_base_of_v<IStream,CS>;
             requires HasStreamTag<CS>;
         }
@@ -104,7 +104,7 @@ namespace mqas::core {
         }
         template<typename CS>
         requires requires{
-            requires std::default_initializable<CS>;
+            requires std::is_default_constructible_v<CS>;
             requires std::is_base_of_v<IStream,CS>;
             requires HasStreamTag<CS>;
         }
@@ -114,7 +114,7 @@ namespace mqas::core {
         }
         template<typename CS>
         requires requires{
-            requires std::default_initializable<CS>;
+            requires std::is_default_constructible_v<CS>;
             requires std::is_base_of_v<IStream,CS>;
             requires HasStreamTag<CS>;
         }
@@ -129,7 +129,7 @@ namespace mqas::core {
         }
         template<typename CS, typename F,typename ... Ss>
         requires requires{
-            requires std::default_initializable<CS>;
+            requires std::is_default_constructible_v<CS>;
             requires std::is_base_of_v<IStream,CS>;
             requires HasStreamTag<CS>;
         }
@@ -149,7 +149,7 @@ namespace mqas::core {
         }
         template<typename CS>
         requires requires{
-            requires std::default_initializable<CS>;
+            requires std::is_default_constructible_v<CS>;
             requires std::is_base_of_v<IStream,CS>;
             requires HasStreamTag<CS>;
         }

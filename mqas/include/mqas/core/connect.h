@@ -68,7 +68,7 @@ namespace mqas::core{
     };
     template<typename S>
     requires requires{
-        requires std::default_initializable<S>;
+        requires std::is_default_constructible_v<S>;
         requires std::is_base_of_v<IStream, S>;
     }
     class Connect : public IConnect{

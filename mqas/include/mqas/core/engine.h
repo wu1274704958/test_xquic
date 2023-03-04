@@ -73,7 +73,7 @@ namespace mqas::core {
 	};
 	template<typename C>
 	requires requires{
-		requires std::default_initializable<C>;
+		requires std::is_default_constructible_v<C>;
 		requires std::is_base_of_v<IConnect, C>;
 	}
 	class engine : public mqas::core::IEngine

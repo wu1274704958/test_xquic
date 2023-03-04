@@ -3,7 +3,7 @@
 #define ENGINE_TEMPLATE_DECL						 \
 template<typename C>								 \
 requires requires{									 \
-	requires std::default_initializable<C>;			 \
+	requires std::is_default_constructible_v<C>;			 \
 	requires std::is_base_of_v<mqas::core::IConnect, C>;		 \
 }
 ENGINE_TEMPLATE_DECL
