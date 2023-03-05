@@ -99,6 +99,14 @@ namespace mqas::core{
         }
         IConnect::close();
     }
+    MQAS_CONNECT_IMPL_TEMPLATE_DECL
+    std::weak_ptr<S> Connect<S>::get_stream(::lsquic_stream_t* s) const
+    {
+        const auto key = reinterpret_cast<size_t>(s);
+        if(stream_map_.contains(key))
+            return stream_map_.at(key);
+        return {};
+    }
 }
 #undef  MQAS_CONNECT_IMPL_TEMPLATE_DECL
 #endif //MQAS_CONNECT_IMPL_HPP

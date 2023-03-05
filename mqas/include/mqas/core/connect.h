@@ -84,6 +84,7 @@ namespace mqas::core{
         bool write_stream(::lsquic_stream_t*,const std::span<uint8_t>&);
         void make_stream(std::function<void(std::weak_ptr<S>)>);
         void close();
+        std::weak_ptr<S> get_stream(::lsquic_stream_t*) const;
     protected:
         std::unordered_map<size_t ,std::shared_ptr<S>> stream_map_;
         connect_cxt connect_cxt_;

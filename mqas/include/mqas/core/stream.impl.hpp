@@ -12,9 +12,7 @@
 #define MQAS_STREAM_IMPL_TEMPLATE_DECL                                  \
 template<typename ... S>                                                \
 requires requires{                                                      \
-    requires (std::is_default_constructible_v<S> && ...);                    \
-    requires (std::is_base_of_v<IStream,S> && ...);                     \
-    requires (HasStreamTag<S> && ...);                                  \
+    requires (variability_stream_require<S> && ...);                    \
 }
 
 namespace mqas::core{

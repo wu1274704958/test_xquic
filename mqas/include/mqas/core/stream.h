@@ -32,11 +32,15 @@ namespace mqas::core {
         [[nodiscard]] std::vector<uint8_t> generate() const;
         static std::tuple<std::optional<stream_variant_msg>,size_t> parse_command(const std::span<const uint8_t>& buffer);
     };
+    template<typename T>
+    concept variability_stream_require = requires {
+        requires std::is_default_constructible_v<T>;
+        requires std::is_base_of_v<IStream,T>;
+        requires HasStreamTag<T>;
+    };
     template<typename ... S>
     requires requires{
-        requires (std::is_default_constructible_v<S> && ...);
-        requires (std::is_base_of_v<IStream,S> && ...);
-        requires (HasStreamTag<S> && ...);
+        requires (variability_stream_require<S> && ...);
     }
     class StreamVariant : public IStream{
     public:
@@ -63,14 +67,21 @@ namespace mqas::core {
         void clear_curr_stream();
 
         template<typename CS>
-        requires requires{
-            requires std::is_default_constructible_v<CS>;
-            requires std::is_base_of_v<IStream,CS>;
-            requires HasStreamTag<CS>;
-        }
+        requires variability_stream_require<CS>
         bool req_change()
         {
             return req_change_to<CS,S...>();
+        }
+
+        template<class CS>
+        requires variability_stream_require<CS>
+        CS* get_holds_stream()
+        {
+            if(std::holds_alternative<CS>(stream_var_))
+            {
+                return &(std::get<CS>(stream_var_));
+            }
+            return nullptr;
         }
 
     protected:
@@ -88,9 +99,8 @@ namespace mqas::core {
         }
         template<typename CS, typename F,typename ... Ss>
         requires requires{
-            requires std::is_default_constructible_v<CS>;
-            requires std::is_base_of_v<IStream,CS>;
-            requires HasStreamTag<CS>;
+            requires variability_stream_require<CS> && variability_stream_require<F>;
+            requires (variability_stream_require<Ss> && ...);
         }
         bool change_to()
         {
@@ -103,21 +113,13 @@ namespace mqas::core {
             }
         }
         template<typename CS>
-        requires requires{
-            requires std::is_default_constructible_v<CS>;
-            requires std::is_base_of_v<IStream,CS>;
-            requires HasStreamTag<CS>;
-        }
+        requires variability_stream_require<CS>
         bool change_to()
         {
             return false;
         }
         template<typename CS>
-        requires requires{
-            requires std::is_default_constructible_v<CS>;
-            requires std::is_base_of_v<IStream,CS>;
-            requires HasStreamTag<CS>;
-        }
+        requires variability_stream_require<CS>
         void change_to_uncheck()
         {
             clear_curr_stream();
@@ -129,9 +131,8 @@ namespace mqas::core {
         }
         template<typename CS, typename F,typename ... Ss>
         requires requires{
-            requires std::is_default_constructible_v<CS>;
-            requires std::is_base_of_v<IStream,CS>;
-            requires HasStreamTag<CS>;
+            requires variability_stream_require<CS> && variability_stream_require<F>;
+            requires (variability_stream_require<Ss> && ...);
         }
         bool req_change_to()
         {
@@ -148,11 +149,7 @@ namespace mqas::core {
             }
         }
         template<typename CS>
-        requires requires{
-            requires std::is_default_constructible_v<CS>;
-            requires std::is_base_of_v<IStream,CS>;
-            requires HasStreamTag<CS>;
-        }
+        requires variability_stream_require<CS>
         bool req_change_to()
         {
             return false;
