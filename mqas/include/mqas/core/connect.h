@@ -16,6 +16,8 @@ namespace mqas::core{
     public:
         //interface
         void on_init(::lsquic_stream_t* lsquic_stream,connect_cxt* connect_cxt);
+        StreamVariantErrcode on_change();
+        StreamVariantErrcode on_change_with_params(const std::span<uint8_t>& params);
         size_t do_read();
         void do_write();
         void on_close();

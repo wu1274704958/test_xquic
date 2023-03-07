@@ -201,19 +201,19 @@ namespace mqas::core{
             case stream_variant_cmd::req_use_stream_tag:
                 if(msg->param3 == 1) // is ack
                 {
-                    if(msg->errcode == stream_variant_errcode::ok)
+                    if(msg->errcode == StreamVariantErrcode::ok)
                     {
-                        if(!change_to(static_cast<size_t>(msg->param1)))
-                            LOG(ERROR) << "StreamVariant handle ack change to " << msg->param1 << " failed";
+                        if(auto ret = change_to(static_cast<size_t>(msg->param1),msg->extra_params);ret != StreamVariantErrcode::ok)
+                            LOG(ERROR) << "StreamVariant handle ack change to " << msg->param1 << " failed error = " << (int)ret;
                     }else
                         LOG(ERROR) << "StreamVariant change to " << msg->param1 << " failed error = " << (int)msg->errcode;
                 }else // is req
                 {
-                    msg->errcode = stream_variant_errcode::ok;
+                    msg->errcode = StreamVariantErrcode::ok;
                     msg->param3 = 1;
-                    if(!change_to(static_cast<size_t>(msg->param1))) {
-                        LOG(ERROR) << "StreamVariant handle req change to " << msg->param1 << " failed";
-                        msg->errcode = stream_variant_errcode::failed;
+                    if(auto ret = change_to(static_cast<size_t>(msg->param1),msg->extra_params); ret != StreamVariantErrcode::ok) {
+                        LOG(ERROR) << "StreamVariant handle req change to " << msg->param1 << " failed error = " << (int)ret;
+                        msg->errcode = ret;
                     }
                     auto data = msg->generate();
                     write({data.begin(),data.end()});
@@ -223,11 +223,11 @@ namespace mqas::core{
         return use_len;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    bool StreamVariant<S...>::change_to(size_t tag)
+    StreamVariantErrcode StreamVariant<S...>::change_to(size_t tag,const std::span<uint8_t>& change_params)
     {
-        bool find = false;
-        ((S::STREAM_TAG == tag && (find = (change_to_uncheck<S>(),true))),...);
-        return find;
+        StreamVariantErrcode ret = StreamVariantErrcode::failed_not_find;
+        ((S::STREAM_TAG == tag && ((ret = change_to_uncheck<S>(change_params)), false)),...);
+        return ret;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     void StreamVariant<S...>::clear_curr_stream()

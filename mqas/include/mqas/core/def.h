@@ -22,4 +22,8 @@ namespace mqas::core
         Both = 2,
         None = 255
     };
+    enum class StreamVariantErrcode : uint8_t {
+        ok = 0,
+        failed_not_find = 1,
+    };
 }

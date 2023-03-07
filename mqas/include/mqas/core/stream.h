@@ -19,16 +19,14 @@ namespace mqas::core {
         req_use_stream_tag = 1,
 
     };
-    enum class stream_variant_errcode : uint8_t {
-        ok = 0,
-        failed = 1,
-    };
+
     struct MQAS_EXTERN stream_variant_msg{
         stream_variant_cmd cmd;
         uint32_t param1 = 0;
         uint16_t param2 = 0;
         uint8_t param3 = 0;
-        stream_variant_errcode errcode = stream_variant_errcode::ok;
+        StreamVariantErrcode errcode = StreamVariantErrcode::ok;
+        std::span<uint8_t> extra_params;
         [[nodiscard]] std::vector<uint8_t> generate() const;
         static std::tuple<std::optional<stream_variant_msg>,size_t> parse_command(const std::span<const uint8_t>& buffer);
     };
@@ -63,14 +61,20 @@ namespace mqas::core {
         [[nodiscard]] size_t  unread_size() const;
 
         size_t on_read(const std::span<const uint8_t>& current);
-        bool change_to(size_t tag);
+        StreamVariantErrcode change_to(size_t tag,const std::span<uint8_t>& change_params);
         void clear_curr_stream();
 
         template<typename CS>
         requires variability_stream_require<CS>
-        bool req_change()
+        bool req_change(const std::span<uint8_t>& change_params = {})
         {
-            return req_change_to<CS,S...>();
+            return req_change_to<CS,S...>(change_params);
+        }
+        template<typename CS>
+        requires variability_stream_require<CS>
+        StreamVariantErrcode change_self(const std::span<uint8_t>& change_params = {})
+        {
+            return change_self_inside<CS,S...>(change_params);
         }
 
         template<class CS>
@@ -102,55 +106,62 @@ namespace mqas::core {
             requires variability_stream_require<CS> && variability_stream_require<F>;
             requires (variability_stream_require<Ss> && ...);
         }
-        bool change_to()
+        StreamVariantErrcode change_self_inside(const std::span<uint8_t>& change_params)
         {
             if constexpr(std::is_same_v<F,CS>)
             {
-                change_to_uncheck<CS>();
-                return true;
+                return change_to_uncheck<CS>(change_params);
             }else{
-                return change_to<CS,Ss...>();
+                return change_self_inside<CS,Ss...>(change_params);
             }
         }
         template<typename CS>
         requires variability_stream_require<CS>
-        bool change_to()
+        StreamVariantErrcode change_self_inside(const std::span<uint8_t>& change_params)
         {
-            return false;
+            return StreamVariantErrcode::failed_not_find;
         }
         template<typename CS>
         requires variability_stream_require<CS>
-        void change_to_uncheck()
+        StreamVariantErrcode change_to_uncheck(const std::span<uint8_t>& change_params)
         {
             clear_curr_stream();
             stream_tag_ = CS::STREAM_TAG;
             stream_var_ = CS{};
             auto& stream = std::get<CS>(stream_var_);
+            StreamVariantErrcode res = change_params.empty() ? stream.on_change() : stream.on_change_with_params(change_params);
+            if(res != StreamVariantErrcode::ok) {
+                clear_curr_stream();
+                return res;
+            }
             stream.set_cxt(cxt_);
             stream.on_init(stream_,connect_cxt_);
+            return StreamVariantErrcode::ok;
         }
         template<typename CS, typename F,typename ... Ss>
         requires requires{
             requires variability_stream_require<CS> && variability_stream_require<F>;
             requires (variability_stream_require<Ss> && ...);
         }
-        bool req_change_to()
+        bool req_change_to(const std::span<uint8_t>& change_params)
         {
             if constexpr(std::is_same_v<F,CS>)
             {
                 stream_variant_msg msg{};
                 msg.cmd = stream_variant_cmd::req_use_stream_tag;
                 msg.param1 = static_cast<uint32_t >(CS::STREAM_TAG);
+                if(!change_params.empty())
+                    msg.extra_params = change_params;
                 auto data = msg.generate();
                 write({data});
                 return true;
             }else{
-                return change_to<CS,Ss...>();
+                return req_change_to<CS,Ss...>(change_params);
             }
         }
         template<typename CS>
         requires variability_stream_require<CS>
-        bool req_change_to()
+        bool req_change_to(const std::span<uint8_t>& change_params)
         {
             return false;
         }

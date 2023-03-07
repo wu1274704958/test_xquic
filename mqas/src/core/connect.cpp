@@ -194,4 +194,12 @@ bool mqas::core::IStream::flush() const {
     return true;
 }
 
+mqas::core::StreamVariantErrcode mqas::core::IStream::on_change() {
+    return StreamVariantErrcode::ok;
+}
+
+mqas::core::StreamVariantErrcode mqas::core::IStream::on_change_with_params(const std::span<uint8_t> &params) {
+    return StreamVariantErrcode::ok;
+}
+
 
