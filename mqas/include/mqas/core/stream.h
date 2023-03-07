@@ -27,7 +27,7 @@ namespace mqas::core {
         uint8_t param3 = 0;
         StreamVariantErrcode errcode = StreamVariantErrcode::ok;
         std::span<uint8_t> extra_params;
-        [[nodiscard]] std::vector<uint8_t> generate() const;
+        [[nodiscard]] std::optional<std::vector<uint8_t>> generate() const;
         static std::tuple<std::optional<stream_variant_msg>,size_t> parse_command(const std::span<const uint8_t>& buffer);
     };
     template<typename T>
@@ -153,7 +153,9 @@ namespace mqas::core {
                 if(!change_params.empty())
                     msg.extra_params = change_params;
                 auto data = msg.generate();
-                write({data});
+                if(!data)
+                    return false;
+                write({*data});
                 return true;
             }else{
                 return req_change_to<CS,Ss...>(change_params);

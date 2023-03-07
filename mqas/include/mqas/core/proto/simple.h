@@ -19,7 +19,7 @@ namespace mqas::core::proto {
         uint8_t checksum;
 
         uint8_t calculate_checksum();
-        std::vector<uint8_t> generate();
+        std::optional<std::vector<uint8_t>> generate();
         static constexpr size_t SIZE_WITHOUT_PARAMS = 3;
         static std::tuple<std::optional<simple_pkg>,size_t> parse_command(const std::span<const uint8_t>& buffer);
         static uint8_t calculate_checksum(const std::span<const uint8_t>&);

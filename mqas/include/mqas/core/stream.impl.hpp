@@ -216,7 +216,7 @@ namespace mqas::core{
                         msg->errcode = ret;
                     }
                     auto data = msg->generate();
-                    write({data.begin(),data.end()});
+                    write({data->begin(),data->end()});
                 }
                 break;
         }

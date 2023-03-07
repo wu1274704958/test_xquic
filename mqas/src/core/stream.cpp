@@ -5,7 +5,7 @@
 #include <mqas/core/proto/simple.h>
 #include <mqas/comm/binary.hpp>
 
-std::vector<uint8_t> mqas::core::stream_variant_msg::generate() const {
+std::optional<std::vector<uint8_t>> mqas::core::stream_variant_msg::generate() const {
     proto::simple_pkg pkg;
     pkg.type = static_cast<uint8_t>(cmd);
     std::vector<uint8_t> params;
