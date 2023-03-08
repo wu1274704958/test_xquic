@@ -10,6 +10,11 @@
 #include <optional>
 #include <span>
 #include <tuple>
+#include <limits>
+
+#ifdef max
+#undef max
+#endif
 
 namespace mqas::core::proto {
     // 命令格式定义
@@ -21,6 +26,7 @@ namespace mqas::core::proto {
         uint8_t calculate_checksum();
         std::optional<std::vector<uint8_t>> generate();
         static constexpr size_t SIZE_WITHOUT_PARAMS = 3;
+        static constexpr size_t PARAMS_MAX_SIZE = std::numeric_limits<uint8_t>::max();
         static std::tuple<std::optional<simple_pkg>,size_t> parse_command(const std::span<const uint8_t>& buffer);
         static uint8_t calculate_checksum(const std::span<const uint8_t>&);
     };

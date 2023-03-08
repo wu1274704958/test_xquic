@@ -20,18 +20,28 @@ namespace mqas::core{
     size_t StreamVariant<S...>::do_read() {
         if(stream_tag_ == 0)
         {
-            auto ret = IStream::do_read();
-            if(ret > 0) {
-                const auto span = IStream::read_all_not_move();
-                if (const auto read_len = on_read(span); read_len > 0)
-                    IStream::move_read_pos_uncheck(read_len);
-            }
-            return ret;
+            return do_read_shell();
         }else{
-            size_t ret = 0;
-            ((std::holds_alternative<S>(stream_var_) && (ret = do_read_curr(std::get<S>(stream_var_)))),...);
-            return ret;
+            return do_read_hold();
         }
+    }
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    size_t StreamVariant<S...>::do_read_shell()
+    {
+        auto ret = IStream::do_read();
+        if(ret > 0) {
+            const auto span = IStream::read_all_not_move();
+            if (const auto read_len = on_read(span); read_len > 0)
+                IStream::move_read_pos_uncheck(read_len);
+        }
+        return ret;
+    }
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    size_t StreamVariant<S...>::do_read_hold()
+    {
+        size_t ret = 0;
+        ((std::holds_alternative<S>(stream_var_) && (ret = do_read_curr(std::get<S>(stream_var_)))),...);
+        return ret;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     void StreamVariant<S...>::do_write()
@@ -193,6 +203,16 @@ namespace mqas::core{
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
+    void StreamVariant<S...>::on_peer_change_ret(StreamVariantErrcode code,const std::span<uint8_t>& params)
+    {
+        if(stream_tag_ == 0)
+        {
+            return IStream::on_peer_change_ret(code,params);
+        }else{
+            ((std::holds_alternative<S>(stream_var_) && (std::get<S>(stream_var_).on_peer_change_ret(code,params),false)),...);
+        }
+    }
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
     size_t StreamVariant<S...>::on_read(const std::span<const uint8_t>& current)
     {
         auto [msg,use_len] = stream_variant_msg::parse_command(current);
@@ -201,20 +221,21 @@ namespace mqas::core{
             case stream_variant_cmd::req_use_stream_tag:
                 if(msg->param3 == 1) // is ack
                 {
-                    if(msg->errcode == StreamVariantErrcode::ok)
-                    {
-                        if(auto ret = change_to(static_cast<size_t>(msg->param1),msg->extra_params);ret != StreamVariantErrcode::ok)
-                            LOG(ERROR) << "StreamVariant handle ack change to " << msg->param1 << " failed error = " << (int)ret;
-                    }else
-                        LOG(ERROR) << "StreamVariant change to " << msg->param1 << " failed error = " << (int)msg->errcode;
+                    if(msg->errcode != StreamVariantErrcode::ok)
+                        LOG(ERROR) << "StreamVariant peer change to " << msg->param1 << " failed error = " << (int)msg->errcode;
+                    on_peer_change_ret(msg->errcode,msg->extra_params);
                 }else // is req
                 {
+                    std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> ret_buf{};
+                    size_t buf_len = 0;
                     msg->errcode = StreamVariantErrcode::ok;
                     msg->param3 = 1;
-                    if(auto ret = change_to(static_cast<size_t>(msg->param1),msg->extra_params); ret != StreamVariantErrcode::ok) {
+                    if(auto ret = change_to(static_cast<size_t>(msg->param1),msg->extra_params,ret_buf,buf_len); ret != StreamVariantErrcode::ok) {
                         LOG(ERROR) << "StreamVariant handle req change to " << msg->param1 << " failed error = " << (int)ret;
                         msg->errcode = ret;
                     }
+                    if(buf_len > 0)
+                        msg->extra_params = std::span<uint8_t >({&ret_buf[0],buf_len});
                     auto data = msg->generate();
                     write({data->begin(),data->end()});
                 }
@@ -223,10 +244,12 @@ namespace mqas::core{
         return use_len;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    StreamVariantErrcode StreamVariant<S...>::change_to(size_t tag,const std::span<uint8_t>& change_params)
+    StreamVariantErrcode StreamVariant<S...>::change_to(size_t tag,const std::span<uint8_t>& change_params,
+                                                        std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
+                                                        size_t& buf_len)
     {
         StreamVariantErrcode ret = StreamVariantErrcode::failed_not_find;
-        ((S::STREAM_TAG == tag && ((ret = change_to_uncheck<S>(change_params)), false)),...);
+        ((S::STREAM_TAG == tag && ((ret = change_to_uncheck<S>(change_params,ret_buf,buf_len)), false)),...);
         return ret;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL

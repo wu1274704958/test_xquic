@@ -2,10 +2,10 @@
 // Created by Administrator on 2023/3/1.
 //
 #include <mqas/core/stream.h>
-#include <mqas/core/proto/simple.h>
 #include <mqas/comm/binary.hpp>
 
 std::optional<std::vector<uint8_t>> mqas::core::stream_variant_msg::generate() const {
+    if(extra_params.size() > EXTRA_PARAMS_MAX_SIZE) return {};
     proto::simple_pkg pkg;
     pkg.type = static_cast<uint8_t>(cmd);
     std::vector<uint8_t> params;

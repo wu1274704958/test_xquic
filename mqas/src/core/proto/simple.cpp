@@ -3,7 +3,7 @@
 //
 #include <mqas/core/proto/simple.h>
 #include <cstring>
-#include <limits>
+
 
 uint8_t mqas::core::proto::simple_pkg::calculate_checksum()
 {
@@ -38,7 +38,7 @@ uint8_t mqas::core::proto::simple_pkg::calculate_checksum(const std::span<const 
 }
 
 std::optional<std::vector<uint8_t>> mqas::core::proto::simple_pkg::generate() {
-    if(parameters.size() > std::numeric_limits<uint8_t>::max())
+    if(parameters.size() > PARAMS_MAX_SIZE)
         return {};
     std::vector<uint8_t> buffer;
     buffer.push_back(static_cast<uint8_t>(type));
