@@ -205,10 +205,8 @@ namespace mqas::core{
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     void StreamVariant<S...>::on_peer_change_ret(StreamVariantErrcode code,const std::span<uint8_t>& params)
     {
-        if(stream_tag_ == 0)
+        if(stream_tag_ > 0)
         {
-            return IStream::on_peer_change_ret(code,params);
-        }else{
             ((std::holds_alternative<S>(stream_var_) && (std::get<S>(stream_var_).on_peer_change_ret(code,params),false)),...);
         }
     }

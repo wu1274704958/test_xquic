@@ -7,12 +7,12 @@
 #include <mqas/core/stream.h>
 using namespace mqas;
 
-class UserStream:public core::IStream
+class UserStream:public core::IStreamVariant
 {
 public:
     static constexpr size_t STREAM_TAG = 1;
 };
-class FileStream:public core::IStream
+class FileStream:public core::IStreamVariant
 {
 public:
     static constexpr size_t STREAM_TAG = 2;

@@ -12,10 +12,25 @@
 
 namespace mqas::core {
 
+    class MQAS_EXTERN IStreamVariant : public IStream {
+    public:
+        //interface
+        StreamVariantErrcode on_change(std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
+                                       size_t &buf_len);
+        StreamVariantErrcode on_change_with_params(const std::span<uint8_t> &params,
+                                                   std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
+                                                   size_t &buf_len);
+        void on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params);
+        [[nodiscard]] bool isWaitPeerChangeRet() const;
+        void setIsWaitPeerChangeRet(bool isWaitPeerChangeRet);
+    protected:
+        bool is_wait_peer_change_ret_:1 = false;
+    };
+
     template<typename T>
     concept variability_stream_require = requires {
         requires std::is_default_constructible_v<T>;
-        requires std::is_base_of_v<IStream,T>;
+        requires std::is_base_of_v<IStreamVariant,T>;
         requires HasStreamTag<T>;
     };
     template<typename ... S>

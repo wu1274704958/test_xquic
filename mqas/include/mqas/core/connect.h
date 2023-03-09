@@ -16,13 +16,6 @@ namespace mqas::core{
     public:
         //interface
         void on_init(::lsquic_stream_t* lsquic_stream,connect_cxt* connect_cxt);
-        StreamVariantErrcode on_change(std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-                                       size_t& buf_len);
-
-        StreamVariantErrcode on_change_with_params(const std::span<uint8_t>& params,
-                                                   std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-                                                   size_t& buf_len);
-        void on_peer_change_ret(StreamVariantErrcode code,const std::span<uint8_t>& params);
         size_t do_read();
         void do_write();
         void on_close();
@@ -49,9 +42,6 @@ namespace mqas::core{
         [[nodiscard]] std::span<const uint8_t> read_all_not_move() const;
         [[nodiscard]] size_t  unread_size() const;
         void move_read_pos_uncheck(size_t sz);
-
-        bool isWaitPeerChangeRet() const;
-        void setIsWaitPeerChangeRet(bool isWaitPeerChangeRet);
     protected:
         std::span<const uint8_t> read_uncheck(size_t sz);
         static size_t reader_read(void *lsqr_ctx, void *buf, size_t count);
@@ -70,7 +60,6 @@ namespace mqas::core{
         void* cxt_ = nullptr;
         bool is_closed_:1 = false;
         bool want_read_on_init_:1 = true;
-        bool is_wait_peer_change_ret_:1 = false;
     };
     struct connect_cxt{
         engine_cxt* engine_cxt_;

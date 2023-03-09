@@ -45,3 +45,29 @@ std::tuple<std::optional<mqas::core::stream_variant_msg>,size_t> mqas::core::str
     msg.errcode = static_cast<StreamVariantErrcode>(pkg->parameters[7]);
     return {msg,use_len};
 }
+
+mqas::core::StreamVariantErrcode
+mqas::core::IStreamVariant::on_change(std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
+                                      size_t &buf_len) {
+    return mqas::core::StreamVariantErrcode::ok;
+}
+
+mqas::core::StreamVariantErrcode
+mqas::core::IStreamVariant::on_change_with_params(const std::span<uint8_t>& params,
+                                           std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
+                                           size_t& buf_len)
+{
+    return StreamVariantErrcode::ok;
+}
+
+void mqas::core::IStreamVariant::on_peer_change_ret(mqas::core::StreamVariantErrcode code, const std::span<uint8_t> &params) {
+    setIsWaitPeerChangeRet(false);
+}
+
+bool mqas::core::IStreamVariant::isWaitPeerChangeRet() const {
+    return is_wait_peer_change_ret_;
+}
+
+void mqas::core::IStreamVariant::setIsWaitPeerChangeRet(bool isWaitPeerChangeRet) {
+    is_wait_peer_change_ret_ = isWaitPeerChangeRet;
+}
