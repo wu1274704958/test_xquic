@@ -7,7 +7,10 @@
 //	}
 //	el::base::debug::CrashHandler elCrashHandler(ELPP_USE_DEF_CRASH_HANDLER);
 //}
-INITIALIZE_EASYLOGGINGPP
+
+el::base::type::StoragePointer mqas::log::elStorage = std::make_shared<el::base::Storage>(el::LogBuilderPtr(new el::base::DefaultLogBuilder()));
+
+SHARE_EASYLOGGINGPP(mqas::log::elStorage)
 
 void mqas::log::init(const std::string& conf)
 {

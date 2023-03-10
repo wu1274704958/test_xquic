@@ -17,7 +17,7 @@ class FileStream:public core::IStreamVariant
 public:
     static constexpr size_t STREAM_TAG = 2;
 };
-
+MQAS_SHARE_EASYLOGGINGPP
 int main(int argc,const char** argv)
 {
 	Context<core::InitFlags::GLOBAL_SERVER> context;
@@ -31,6 +31,7 @@ int main(int argc,const char** argv)
 	{
 		std::cerr << e.what() << std::endl;
 	}
+    LOG(ERROR) << "......................";
 	io_cxt.run_until(IsRunning());
 	return 0;
 }

@@ -7,7 +7,7 @@
 
 using namespace mqas;
 
-
+MQAS_SHARE_EASYLOGGINGPP
 class Stream : public core::IStream
 {
 };

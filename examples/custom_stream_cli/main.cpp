@@ -39,7 +39,7 @@ public:
         return current.size();
     }
 };
-
+MQAS_SHARE_EASYLOGGINGPP
 int main(int argc,const char** argv)
 {
 	Context<core::InitFlags::GLOBAL_CLIENT> context;

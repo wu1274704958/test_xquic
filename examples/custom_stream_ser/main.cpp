@@ -6,7 +6,7 @@
 #include <mqas/core/connect.h>
 #include <mqas/core/stream.h>
 using namespace mqas;
-
+MQAS_SHARE_EASYLOGGINGPP
 class Stream:public core::IStreamVariant
 {
 public:

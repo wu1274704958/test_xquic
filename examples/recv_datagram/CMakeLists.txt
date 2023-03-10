@@ -6,12 +6,13 @@ target_include_directories(${CUR_TARGET_NAME} PRIVATE
     ${boringssl_INCLUDE_DIR}
 )
 target_link_libraries(${CUR_TARGET_NAME} PRIVATE 
-    lsquic::lsquic
-    ${OTH_LIBRARY}
-    ${boringssl_LIBRARY}
-    ZLIB::ZLIB
-    $<IF:$<TARGET_EXISTS:uv_a>,uv_a,uv>
-    mqas
+        lsquic::lsquic
+        ${OTH_LIBRARY}
+        ${boringssl_LIBRARY}
+        ZLIB::ZLIB
+        $<IF:$<TARGET_EXISTS:uv_a>,uv_a,uv>
+        mqas
+        ${easyloggingpp_LIBRARY}
 )
 
 get_target_property(mqas_TARGET_TYPE mqas TYPE)
