@@ -41,4 +41,5 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
     $<IF:$<TARGET_EXISTS:uv_a>,uv_a,uv>
     toml11::toml11
     ${easyloggingpp_LIBRARY}
+    protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
 )
