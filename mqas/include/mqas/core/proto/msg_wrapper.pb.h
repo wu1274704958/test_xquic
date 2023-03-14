@@ -5,6 +5,7 @@
 #define GOOGLE_PROTOBUF_INCLUDED_msg_5fwrapper_2eproto
 
 #include <limits>
+#include "mqas/macro.h"
 #include <string>
 
 #include <google/protobuf/port_def.inc>
@@ -32,7 +33,7 @@
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
-#define PROTOBUF_INTERNAL_EXPORT_msg_5fwrapper_2eproto
+#define PROTOBUF_INTERNAL_EXPORT_msg_5fwrapper_2eproto MQAS_EXTERN
 PROTOBUF_NAMESPACE_OPEN
 namespace internal {
 class AnyMetadata;
@@ -40,21 +41,21 @@ class AnyMetadata;
 PROTOBUF_NAMESPACE_CLOSE
 
 // Internal implementation detail -- do not use these members.
-struct TableStruct_msg_5fwrapper_2eproto {
+struct MQAS_EXTERN TableStruct_msg_5fwrapper_2eproto {
   static const uint32_t offsets[];
 };
-extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_msg_5fwrapper_2eproto;
+MQAS_EXTERN extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_msg_5fwrapper_2eproto;
 namespace mqas {
 namespace core {
 namespace proto {
 class MsgWrapper;
 struct MsgWrapperDefaultTypeInternal;
-extern MsgWrapperDefaultTypeInternal _MsgWrapper_default_instance_;
+MQAS_EXTERN extern MsgWrapperDefaultTypeInternal _MsgWrapper_default_instance_;
 }  // namespace proto
 }  // namespace core
 }  // namespace mqas
 PROTOBUF_NAMESPACE_OPEN
-template<> ::mqas::core::proto::MsgWrapper* Arena::CreateMaybeMessage<::mqas::core::proto::MsgWrapper>(Arena*);
+template<> MQAS_EXTERN ::mqas::core::proto::MsgWrapper* Arena::CreateMaybeMessage<::mqas::core::proto::MsgWrapper>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace mqas {
 namespace core {
@@ -62,7 +63,7 @@ namespace proto {
 
 // ===================================================================
 
-class MsgWrapper final :
+class MQAS_EXTERN MsgWrapper final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:mqas.core.proto.MsgWrapper) */ {
  public:
   inline MsgWrapper() : MsgWrapper(nullptr) {}

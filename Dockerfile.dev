@@ -21,6 +21,7 @@ RUN ./vcpkg/vcpkg install libuv
 RUN ./vcpkg/vcpkg install toml11
 RUN ./vcpkg/vcpkg install easyloggingpp
 RUN ./vcpkg/vcpkg install protobuf
+RUN ./vcpkg/vcpkg install libsigcpp
 RUN ./vcpkg/vcpkg integrate install
 RUN /etc/init.d/ssh start
 RUN sed -i '/#PermitRootLogin prohibit-password/cPermitRootLogin yes' /etc/ssh/sshd_config

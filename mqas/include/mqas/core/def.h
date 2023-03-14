@@ -29,6 +29,8 @@ namespace mqas::core
     enum class StreamVariantErrcode : uint8_t {
         ok = 0,
         failed_not_find = 1,
+        parse_failed,
+        not_support,
     };
     template<typename T>
     concept HasStreamTag = requires {
