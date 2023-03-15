@@ -88,7 +88,7 @@ namespace mqas::core {
         return 0;
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
-    void ProtoBufStream<S,M...>::erase_all(size_t mid)
+    void ProtoBufStream<S,M...>::erase_all_handlers(size_t mid)
     {
         if(msg_handlers_.contains(mid))
         {
@@ -159,6 +159,122 @@ namespace mqas::core {
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
     void ProtoBufStream<S,M...>::on_read(size_t,const std::shared_ptr<google::protobuf::Message>&){}
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    void ProtoBufStream<S,M...>::on_peer_quit_ret(StreamVariantErrcode e,const std::span<uint8_t>& d)
+    {
+        auto msg_wrap = parse_base_msg(d);
+        if(!msg_wrap) {
+            LOG(ERROR) << "Try parse proto::MsgWrapper failed on_peer_quit_ret";
+            return;
+        }
+        size_t mid = msg_wrap->msg_id();
+        if(!msg_parsers_.contains(mid)){
+            LOG(ERROR) << "Not support msg "<< mid <<" on_peer_quit_ret";
+            return ;
+        }
+        auto msg = msg_parsers_[mid](*msg_wrap,MsgOrigin::on_peer_quit_ret);
+        return static_cast<S*>(this)->on_peer_quit_ret(e,mid,msg);
+    }
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    void ProtoBufStream<S,M...>::on_peer_quit_ret(StreamVariantErrcode,size_t,const std::shared_ptr<google::protobuf::Message>&){}
+
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    StreamVariantErrcode ProtoBufStream<S,M...>::on_peer_quit(const std::span<uint8_t> & d,
+                                              std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
+                                              size_t& buf_len)
+    {
+        auto msg_wrap = parse_base_msg(d);
+        if(!msg_wrap) {
+            LOG(ERROR) << "Try parse proto::MsgWrapper failed on_peer_quit";
+            return  StreamVariantErrcode::parse_failed;
+        }
+        size_t mid = msg_wrap->msg_id();
+        if(!msg_parsers_.contains(mid)){
+            LOG(ERROR) << "Not support msg "<< mid <<" on_peer_quit";
+            return  StreamVariantErrcode::not_support;
+        }
+        auto msg = msg_parsers_[mid](*msg_wrap,MsgOrigin::on_peer_quit);
+        return static_cast<S*>(this)->on_peer_quit(mid,msg,ret_buf,buf_len);
+    }
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    StreamVariantErrcode ProtoBufStream<S,M...>::on_peer_quit(size_t,const std::shared_ptr<google::protobuf::Message>&,
+                                              std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>&,
+                                              size_t&){
+        return StreamVariantErrcode::ok;
+    }
+
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    template<class SM>
+    requires IsProtoBufMsgConf<SM>
+    bool ProtoBufStream<S,M...>::write_msg_no_wrap(const std::span<uint8_t>& buf,size_t& sz,const typename SM::PB_MSG_TYPE& m) const
+    {
+        if((sz = m.ByteSizeLong()) > buf.size())
+            return false;
+        if(!m.SerializePartialToArray(buf.data(),buf.size()))
+            return false;
+        return true;
+    }
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    template<class SM>
+    requires IsProtoBufMsgConf<SM>
+    std::optional<std::vector<uint8_t>> ProtoBufStream<S,M...>::write_msg_no_wrap(const typename SM::PB_MSG_TYPE& m) const
+    {
+        std::vector<uint8_t> buf(m.ByteSizeLong());
+        if(!m.SerializePartialToArray(buf.data(),buf.size()))
+            return {};
+        return buf;
+    }
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    template<class SM>
+    requires IsProtoBufMsgConf<SM>
+    bool ProtoBufStream<S,M...>::write_msg(const std::span<uint8_t>& buf,size_t& sz,const typename SM::PB_MSG_TYPE& m) const
+    {
+        auto bytes = write_msg_no_wrap<SM>(m);
+        if(!bytes) return false;
+        proto::MsgWrapper wrapper;
+        wrapper.set_msg_id(SM::PB_MSG_ID);
+        wrapper.set_msg_body(std::move(*bytes));
+        if((sz = wrapper.ByteSizeLong()) > buf.size())
+            return false;
+        if(!wrapper.SerializePartialToArray(buf.data(),buf.size()))
+            return false;
+        return true;
+    }
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    template<class SM>
+    requires IsProtoBufMsgConf<SM>
+    std::optional<std::vector<uint8_t>> ProtoBufStream<S,M...>::write_msg(const typename SM::PB_MSG_TYPE&m) const
+    {
+        auto bytes = write_msg_no_wrap<SM>(m);
+        if(!bytes) return {};
+        proto::MsgWrapper wrapper;
+        wrapper.set_msg_id(SM::PB_MSG_ID);
+        wrapper.set_msg_body(std::move(*bytes));
+        std::vector<uint8_t> buf(m.ByteSizeLong());
+        if(!wrapper.SerializePartialToArray(buf.data(),buf.size()))
+            return {};
+        return buf;
+    }
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    template<class SM>
+    requires IsProtoBufMsgConf<SM>
+    bool ProtoBufStream<S,M...>::send(const typename SM::PB_MSG_TYPE& m)
+    {
+        auto buf = write_msg<SM>(m);
+        if(!buf)
+            return false;
+        return write({*buf});
+    }
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    template<class SM>
+    requires IsProtoBufMsgConf<SM>
+    bool ProtoBufStream<S,M...>::send_req_quit(uint32_t curr_tag,const typename SM::PB_MSG_TYPE& m)
+    {
+        auto buf = write_msg<SM>(m);
+        if(!buf)
+            return false;
+        return req_quit(curr_tag,{*buf});
+    }
 }
 
 #undef MQAS_PB_STREAM_TEMPLATE_DECL

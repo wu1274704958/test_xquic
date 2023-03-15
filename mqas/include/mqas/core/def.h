@@ -4,6 +4,8 @@
 #include <limits>
 #include <optional>
 #include <mqas/core/proto/simple.h>
+#include <google/protobuf/message.h>
+
 namespace mqas::core
 {
 	enum class InitFlags : uint32_t
@@ -31,6 +33,7 @@ namespace mqas::core
         failed_not_find = 1,
         parse_failed,
         not_support,
+        tag_not_eq,
     };
     template<typename T>
     concept HasStreamTag = requires {
@@ -38,7 +41,7 @@ namespace mqas::core
     };
     enum class stream_variant_cmd : uint8_t {
         req_use_stream_tag = 1,
-
+        req_quit_hold_stream = 2
     };
     struct MQAS_EXTERN stream_variant_msg{
         stream_variant_cmd cmd;
@@ -50,5 +53,24 @@ namespace mqas::core
         [[nodiscard]] std::optional<std::vector<uint8_t>> generate() const;
         static constexpr size_t EXTRA_PARAMS_MAX_SIZE = proto::simple_pkg::PARAMS_MAX_SIZE - 9;
         static std::tuple<std::optional<stream_variant_msg>,size_t> parse_command(const std::span<const uint8_t>& buffer);
+    };
+    template<typename T>
+    concept IsProtoBufMsgConf = requires {
+        requires std::is_same_v<typename std::remove_cv<decltype(T::PB_MSG_ID)>::type ,size_t>;
+        requires std::is_base_of_v<google::protobuf::Message,typename T::PB_MSG_TYPE>;
+    };
+
+    template<size_t ID,typename T>
+    struct PBMsgPair{
+        constexpr static size_t PB_MSG_ID = ID;
+        using PB_MSG_TYPE = T;
+    };
+
+    enum class MsgOrigin : uint8_t {
+        normal = 0, // or_read
+        on_change_with_params,
+        on_peer_change_ret,
+        on_peer_quit,
+        on_peer_quit_ret
     };
 }

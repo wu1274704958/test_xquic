@@ -71,3 +71,20 @@ bool mqas::core::IStreamVariant::isWaitPeerChangeRet() const {
 void mqas::core::IStreamVariant::setIsWaitPeerChangeRet(bool isWaitPeerChangeRet) {
     is_wait_peer_change_ret_ = isWaitPeerChangeRet;
 }
+
+mqas::core::StreamVariantErrcode mqas::core::IStreamVariant::on_peer_quit(const std::span<uint8_t> &,std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>&,
+size_t&) {
+    return StreamVariantErrcode::ok;
+}
+
+bool mqas::core::IStreamVariant::req_quit(uint32_t curr_tag,const std::span<uint8_t> &d) {
+    stream_variant_msg msg{};
+    msg.cmd = stream_variant_cmd::req_quit_hold_stream;
+    msg.param1 = curr_tag;
+    msg.extra_params = d;
+    auto data = msg.generate();
+    if(!data)return false;
+    return write({*data});
+}
+
+void mqas::core::IStreamVariant::on_peer_quit_ret(mqas::core::StreamVariantErrcode,const std::span<uint8_t> &) {}

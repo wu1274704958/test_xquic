@@ -21,6 +21,10 @@ namespace mqas::core {
                                                    std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
                                                    size_t &buf_len);
         void on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params);
+        StreamVariantErrcode on_peer_quit(const std::span<uint8_t>&,std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>&,
+                          size_t&);
+        void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
+        bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={});
         [[nodiscard]] bool isWaitPeerChangeRet() const;
         void setIsWaitPeerChangeRet(bool isWaitPeerChangeRet);
     protected:
@@ -66,48 +70,27 @@ namespace mqas::core {
                                        size_t& buf_len);
 
         void clear_curr_stream();
-
         template<typename CS>
         requires variability_stream_require<CS>
-        bool req_change(const std::span<uint8_t>& change_params = {})
-        {
-            return req_change_to<CS,S...>(change_params);
-        }
+        bool req_change(const std::span<uint8_t>& change_params = {});
         template<typename CS>
         requires variability_stream_require<CS>
         StreamVariantErrcode change_self(const std::span<uint8_t>& change_params,
                                          std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-                                         size_t& buf_len)
-        {
-            return change_self_inside<CS,S...>(change_params,ret_buf,buf_len);
-        }
+                                         size_t& buf_len);
 
         template<class CS>
         requires variability_stream_require<CS>
-        CS* get_holds_stream()
-        {
-            if(std::holds_alternative<CS>(stream_var_))
-            {
-                return &(std::get<CS>(stream_var_));
-            }
-            return nullptr;
-        }
-
+        CS* get_holds_stream();
+        [[nodiscard]] bool has_holds_stream() const;
+        StreamVariantErrcode on_peer_quit(const std::span<uint8_t> &,std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>&,
+        size_t&);
+        void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
+        bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={});
     protected:
         template<typename CS>
         requires (std::is_base_of_v<IStream,CS>)
-        size_t do_read_curr(CS& cs)
-        {
-            if(cs.isWaitPeerChangeRet())
-                return do_read_shell();
-            const auto ret = cs.do_read();
-            if(ret > 0) {
-                const auto span = cs.read_all_not_move();
-                if (const size_t read_len = cs.on_read(span);read_len > 0)
-                    cs.move_read_pos_uncheck(read_len);
-            }
-            return ret;
-        }
+        size_t do_read_curr(CS& cs);
         template<typename CS, typename F,typename ... Ss>
         requires requires{
             requires variability_stream_require<CS> && variability_stream_require<F>;
@@ -115,79 +98,27 @@ namespace mqas::core {
         }
         StreamVariantErrcode change_self_inside(const std::span<uint8_t>& change_params,
                                                 std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-                                                size_t& buf_len)
-        {
-            if constexpr(std::is_same_v<F,CS>)
-            {
-                return change_to_uncheck<CS>(change_params,ret_buf,buf_len);
-            }else{
-                return change_self_inside<CS,Ss...>(change_params,ret_buf,buf_len);
-            }
-        }
+                                                size_t& buf_len);
         template<typename CS>
         requires variability_stream_require<CS>
-        StreamVariantErrcode change_self_inside(const std::span<uint8_t>& change_params)
-        {
-            return StreamVariantErrcode::failed_not_find;
-        }
+        StreamVariantErrcode change_self_inside([[maybe_unused]] [[maybe_unused]] const std::span<uint8_t>& change_params);
         template<typename CS>
         requires variability_stream_require<CS>
         StreamVariantErrcode change_to_uncheck(const std::span<uint8_t>& change_params,
                                                std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-                                               size_t& buf_len,bool is_req = false)
-        {
-            clear_curr_stream();
-            stream_tag_ = CS::STREAM_TAG;
-            stream_var_ = CS{};
-            auto& stream = std::get<CS>(stream_var_);
-            StreamVariantErrcode res = change_params.empty() ? stream.on_change(ret_buf,buf_len) :
-                    stream.on_change_with_params(change_params,ret_buf,buf_len);
-            if(res != StreamVariantErrcode::ok) {
-                clear_curr_stream();
-                return res;
-            }
-            if(is_req)stream.setIsWaitPeerChangeRet(true);
-            stream.set_cxt(cxt_);
-            stream.on_init(stream_,connect_cxt_);
-            return StreamVariantErrcode::ok;
-        }
+                                               size_t& buf_len,bool is_req = false);
         template<typename CS, typename F,typename ... Ss>
         requires requires{
             requires variability_stream_require<CS> && variability_stream_require<F>;
             requires (variability_stream_require<Ss> && ...);
         }
-        bool req_change_to(const std::span<uint8_t>& change_params)
-        {
-            if(change_params.size() > stream_variant_msg::EXTRA_PARAMS_MAX_SIZE)
-                return false;
-            if constexpr(std::is_same_v<F,CS>)
-            {
-                std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> ret_buf{};
-                std::size_t buf_len = 0;
-                auto ret = change_to_uncheck<CS>(change_params,ret_buf,buf_len,true);
-                if(ret != StreamVariantErrcode::ok)
-                {
-                    LOG(ERROR) << "req_change_to " << CS::STREAM_TAG << " change self failed error = " << (size_t)ret;
-                    return false;
-                }
-                stream_variant_msg msg{};
-                msg.cmd = stream_variant_cmd::req_use_stream_tag;
-                msg.param1 = static_cast<uint32_t >(CS::STREAM_TAG);
-                if(buf_len > 0)
-                    msg.extra_params = std::span<uint8_t>(&ret_buf[0],buf_len);
-                auto data = msg.generate();
-                write({*data});
-                return true;
-            }else{
-                return req_change_to<CS,Ss...>(change_params);
-            }
-        }
+        bool req_change_to([[maybe_unused]] [[maybe_unused]] const std::span<uint8_t>& change_params);
         template<typename CS>
         requires variability_stream_require<CS>
-        bool req_change_to(const std::span<uint8_t>& change_params)
-        {
-            return false;
-        }
+        bool req_change_to([[maybe_unused]] [[maybe_unused]] const std::span<uint8_t>& change_params);
+        template<typename CS,typename MP>
+        requires variability_stream_require<CS> && IsProtoBufMsgConf<MP>
+        bool req_change_to(const typename MP::PB_MSG_TYPE&);
     protected:
             std::variant<std::monostate,S...> stream_var_;
             size_t stream_tag_ = 0;
