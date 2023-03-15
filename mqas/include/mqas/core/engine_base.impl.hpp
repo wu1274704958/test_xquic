@@ -327,11 +327,14 @@ int mqas::core::engine_base<E>::on_packets_out(void* packets_out_ctx, const lsqu
 			bufs[i] = std::span<uint8_t>(static_cast<uint8_t *>(out_spec[n].iov[i].iov_base),out_spec[n].iov[i].iov_len);
 		}
 		try{
-			sock->try_send(bufs, *out_spec[n].dest_sa);
+            sock->send(bufs,*out_spec[n].dest_sa,[](io::UdpSocket* s,int status){
+                if(status != 0) LOG(ERROR) << "packets_out send failed status = " << status;
+            });
+			//sock->try_send(bufs, *out_spec[n].dest_sa);
 		}catch (io::Exception& e)
 		{
 			--succ_num;
-			LOG(ERROR) << "packets_out send failed " << e.what();
+			LOG(ERROR) << "packets_out send failed exception = " << e.what();
 		}
 	}
 	return static_cast<int>(succ_num);

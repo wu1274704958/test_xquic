@@ -178,7 +178,7 @@ void mqas::io::UdpSocket::on_send_callback(uv_udp_send_t* send, int status)
 	const auto cxt = static_cast<UdpSendReqCxt*>(send->data);
 	if (cxt && sock)
 	{
-		cxt->cb(sock, status);
+		if(cxt->cb)cxt->cb(sock, status);
 		for (auto it = sock->send_cxts_.begin(); it != sock->send_cxts_.end(); )
 		{
 			if (&(it->req) == send)
