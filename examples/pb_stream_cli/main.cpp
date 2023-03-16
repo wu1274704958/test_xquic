@@ -59,14 +59,22 @@ int main(int argc,const char** argv)
         io::Ip::str2addr_ipv4("127.0.0.1",8084,addr);
         auto c = e.get_engine()->connect(addr,N_LSQVER);
         auto conn = c.lock();
-        uv_tty_t tty;
-        conn->make_stream([&io_cxt,&tty](std::weak_ptr<core::StreamVariant<Stream>> stream){
-            auto s_ = stream.lock();
-            proto::SayHelloMsg msg;
-            msg.set_msg("req by hello");
-            msg.set_num(1);
-            s_->req_change<Stream,SayHelloMsgPair>(msg);
+        auto t = io_cxt.make_handle<io::Timer>();
+        std::weak_ptr<core::StreamVariant<Stream>> stream_out;
+        conn->make_stream([&io_cxt,&stream_out](std::weak_ptr<core::StreamVariant<Stream>> stream){
+            stream_out = stream;
         });
+        t->start([&stream_out](io::Timer* t){
+            auto s = stream_out.lock();
+            if(s && !s->has_holds_stream())
+            {
+                proto::SayHelloMsg msg;
+                msg.set_msg("req by hello");
+                msg.set_num(1);
+                s->req_change<Stream,SayHelloMsgPair>(msg);
+                printf("no hold stream req chenge -----------------------------------------\n");
+            }
+        },1000,1000);
 	}catch (std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;

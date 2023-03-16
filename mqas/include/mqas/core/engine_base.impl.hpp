@@ -306,6 +306,15 @@ void mqas::core::engine_base<E>::process_conns() const
 	}
 }
 ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::process_conns_lazy() const
+{
+    proc_conns_timer_->stop();
+    proc_conns_timer_->start([this](io::Timer* t)
+        {
+            this->process_conns();
+        },0,0);
+}
+ENGINE_BASE_TEMPLATE_DECL
 std::shared_ptr<E> mqas::core::engine_base<E>::get_engine() const
 {
 	return engine_extern_;

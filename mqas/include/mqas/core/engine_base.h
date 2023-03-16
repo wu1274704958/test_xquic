@@ -76,6 +76,7 @@ namespace mqas::core
 		int init_ssl(const char* cert_file, const char* key_file);
 		void init_lsquic() noexcept(false);
 		void process_conns() const;
+        void process_conns_lazy() const;
 		void start_recv() const;
 		::lsquic_conn_t* connect(const ::sockaddr& addr,::lsquic_version ver, const char* hostname = nullptr, unsigned short base_plpmtu = 0,
 			const unsigned char* sess_resume = nullptr, size_t sess_resume_len = 0,

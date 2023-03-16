@@ -105,7 +105,7 @@ namespace mqas::core {
                                                 size_t& buf_len);
         template<typename CS>
         requires variability_stream_require<CS>
-        StreamVariantErrcode change_self_inside([[maybe_unused]] [[maybe_unused]] const std::span<uint8_t>& change_params);
+        StreamVariantErrcode change_self_inside([[maybe_unused]] const std::span<uint8_t>& change_params);
         template<typename CS>
         requires variability_stream_require<CS>
         StreamVariantErrcode change_to_uncheck(const std::span<uint8_t>& change_params,
@@ -116,10 +116,10 @@ namespace mqas::core {
             requires variability_stream_require<CS> && variability_stream_require<F>;
             requires (variability_stream_require<Ss> && ...);
         }
-        bool req_change_to([[maybe_unused]] [[maybe_unused]] const std::span<uint8_t>& change_params);
+        bool req_change_to([[maybe_unused]] const std::span<uint8_t>& change_params);
         template<typename CS>
         requires variability_stream_require<CS>
-        bool req_change_to([[maybe_unused]] [[maybe_unused]] const std::span<uint8_t>& change_params);
+        bool req_change_to([[maybe_unused]] const std::span<uint8_t>& change_params);
     protected:
             std::variant<std::monostate,S...> stream_var_;
             size_t stream_tag_ = 0;

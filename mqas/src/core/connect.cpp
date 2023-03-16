@@ -71,6 +71,7 @@ bool mqas::core::IStream::write(const std::span<uint8_t> &data) {
     const size_t old_len = buf_.size();
     buf_.resize(old_len + data.size());
     std::memcpy(&buf_[old_len],data.data(),data.size());
+    connect_cxt_->engine_cxt_->process_conns_lazy();
     return true;
 }
 

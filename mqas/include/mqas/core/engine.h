@@ -66,7 +66,9 @@ namespace mqas::core {
 	struct engine_cxt
 	{
         EngineFlags engine_flags;
+        io::Context* io_cxt;
 		std::function<void()> process_conns;
+        std::function<void()> process_conns_lazy;
         std::function<bool(::lsquic_conn_t*,const std::span<uint8_t>&)> write_datagram;
         std::function<bool(::lsquic_conn_t*,lsquic_stream_t*,const std::span<uint8_t>&)> write_stream;
         std::function<bool(::lsquic_conn_t*,lsquic_stream_t*)> has_stream;
@@ -99,16 +101,13 @@ namespace mqas::core {
 		void on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size);
 		void on_reset(lsquic_stream_t* s, [[maybe_unused]] lsquic_stream_ctx_t* h, int how);
 		void on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len);
-	
-		void init(void* engine_base_ptr); //override
 
+		void init(void* engine_base_ptr); //override
 		bool contain(::lsquic_conn_t* conn) const;
 		std::weak_ptr<C> add(::lsquic_conn_t* conn);
-		void process_conns() const;
         bool write_datagram(::lsquic_conn_t* conn,const std::span<uint8_t>&);
         bool write_stream(::lsquic_conn_t* conn,lsquic_stream_t* stream,const std::span<uint8_t>&);
         bool has_stream(lsquic_conn_t* conn,lsquic_stream_t* stream) const;
-        [[nodiscard]] EngineFlags get_engine_flags() const;
 	public:
 		engine_cxt engine_cxt_;
 	protected:

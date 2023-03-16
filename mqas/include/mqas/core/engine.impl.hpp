@@ -10,8 +10,11 @@ ENGINE_TEMPLATE_DECL
 void mqas::core::engine<C>::init(void* engine_base_ptr) //override
 {
 	IEngine::init(engine_base_ptr);
-    engine_cxt_.engine_flags = get_engine_flags();
-	engine_cxt_.process_conns = std::bind(&engine<C>::process_conns,this);
+    const auto p = static_cast<engine_base<engine<C>>*>(engine_base_ptr_);
+    engine_cxt_.engine_flags = p->engine_flags_;
+    engine_cxt_.io_cxt = &p->cxt;
+	engine_cxt_.process_conns = std::bind(&engine_base<engine<C>>::process_conns,p);
+    engine_cxt_.process_conns_lazy = std::bind(&engine_base<engine<C>>::process_conns_lazy,p);
     engine_cxt_.write_datagram = std::bind_front(&engine<C>::write_datagram,this);
     engine_cxt_.write_stream = std::bind_front(&engine<C>::write_stream,this);
     engine_cxt_.has_stream = std::bind_front(&engine<C>::has_stream,this);
@@ -160,12 +163,6 @@ void mqas::core::engine<C>::on_conncloseframe_received(lsquic_conn_t* c, int app
 		conn_map_[key]->on_conncloseframe_received(app_error,error_code,reason,reason_len);
 	}
 }
-ENGINE_TEMPLATE_DECL
-void mqas::core::engine<C>::process_conns() const
-{
-	const auto p = static_cast<engine_base<engine<C>>*>(engine_base_ptr_);
-	p->process_conns();
-}
 
 ENGINE_TEMPLATE_DECL
 bool mqas::core::engine<C>::write_datagram(::lsquic_conn_t* conn, const std::span<uint8_t> &d) {
@@ -200,11 +197,6 @@ bool mqas::core::engine<C>::has_stream(lsquic_conn_t *conn, lsquic_stream_t *str
     return false;
 }
 
-ENGINE_TEMPLATE_DECL
-mqas::core::EngineFlags mqas::core::engine<C>::get_engine_flags() const {
-    const auto p = static_cast<engine_base<engine<C>>*>(engine_base_ptr_);
-    return p->engine_flags_;
-}
 
 ENGINE_TEMPLATE_DECL
 void mqas::core::engine<C>::close()
@@ -213,7 +205,7 @@ void mqas::core::engine<C>::close()
     {
         c.second->close();
     }
-    process_conns();
+    engine_cxt_.process_conns();
 }
 
 #undef ENGINE_TEMPLATE_DECL
