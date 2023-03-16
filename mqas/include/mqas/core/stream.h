@@ -9,15 +9,14 @@
 
 #include <variant>
 #include <mqas/core/connect.h>
+#include <mqas/core/protobuf_msg.h>
 
 namespace mqas::core {
 
     class MQAS_EXTERN IStreamVariant : public IStream {
     public:
         //interface
-        StreamVariantErrcode on_change(std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
-                                       size_t &buf_len);
-        StreamVariantErrcode on_change_with_params(const std::span<uint8_t> &params,
+        StreamVariantErrcode on_change(const std::span<uint8_t> &params,
                                                    std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
                                                    size_t &buf_len);
         void on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params);
@@ -73,6 +72,9 @@ namespace mqas::core {
         template<typename CS>
         requires variability_stream_require<CS>
         bool req_change(const std::span<uint8_t>& change_params = {});
+        template<typename CS,typename MP>
+        requires variability_stream_require<CS> && IsProtoBufMsgConf<MP>
+        bool req_change(const typename MP::PB_MSG_TYPE&);
         template<typename CS>
         requires variability_stream_require<CS>
         StreamVariantErrcode change_self(const std::span<uint8_t>& change_params,
@@ -87,6 +89,8 @@ namespace mqas::core {
         size_t&);
         void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
         bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={});
+        [[nodiscard]] bool isWaitPeerChangeRet() const;
+        void setIsWaitPeerChangeRet(bool isWaitPeerChangeRet);
     protected:
         template<typename CS>
         requires (std::is_base_of_v<IStream,CS>)
@@ -116,9 +120,6 @@ namespace mqas::core {
         template<typename CS>
         requires variability_stream_require<CS>
         bool req_change_to([[maybe_unused]] [[maybe_unused]] const std::span<uint8_t>& change_params);
-        template<typename CS,typename MP>
-        requires variability_stream_require<CS> && IsProtoBufMsgConf<MP>
-        bool req_change_to(const typename MP::PB_MSG_TYPE&);
     protected:
             std::variant<std::monostate,S...> stream_var_;
             size_t stream_tag_ = 0;

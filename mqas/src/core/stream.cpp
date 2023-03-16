@@ -47,13 +47,7 @@ std::tuple<std::optional<mqas::core::stream_variant_msg>,size_t> mqas::core::str
 }
 
 mqas::core::StreamVariantErrcode
-mqas::core::IStreamVariant::on_change(std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
-                                      size_t &buf_len) {
-    return mqas::core::StreamVariantErrcode::ok;
-}
-
-mqas::core::StreamVariantErrcode
-mqas::core::IStreamVariant::on_change_with_params(const std::span<uint8_t>& params,
+mqas::core::IStreamVariant::on_change(const std::span<uint8_t>& params,
                                            std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
                                            size_t& buf_len)
 {
@@ -61,7 +55,7 @@ mqas::core::IStreamVariant::on_change_with_params(const std::span<uint8_t>& para
 }
 
 void mqas::core::IStreamVariant::on_peer_change_ret(mqas::core::StreamVariantErrcode code, const std::span<uint8_t> &params) {
-    setIsWaitPeerChangeRet(false);
+
 }
 
 bool mqas::core::IStreamVariant::isWaitPeerChangeRet() const {
@@ -84,7 +78,9 @@ bool mqas::core::IStreamVariant::req_quit(uint32_t curr_tag,const std::span<uint
     msg.extra_params = d;
     auto data = msg.generate();
     if(!data)return false;
-    return write({*data});
+    bool ret = write({*data});
+    if(ret) setIsWaitPeerChangeRet(true);
+    return ret;
 }
 
 void mqas::core::IStreamVariant::on_peer_quit_ret(mqas::core::StreamVariantErrcode,const std::span<uint8_t> &) {}

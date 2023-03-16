@@ -12,12 +12,12 @@ class Stream:public core::IStreamVariant
 public:
     static constexpr size_t STREAM_TAG = 1;
 
-    mqas::core::StreamVariantErrcode on_change_with_params(const std::span<uint8_t>& params,
+    mqas::core::StreamVariantErrcode on_change(const std::span<uint8_t>& params,
                                                std::array<uint8_t,mqas::core::stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
                                                size_t& buf_len)
     {
         std::string_view sv(reinterpret_cast<const char*>(params.data()), params.size());
-        std::cout << "on_change_with_params " << sv <<std::endl;
+        std::cout << "on_change " << sv <<std::endl;
         sprintf((char*)ret_buf.data(),"req change lalalal");
         buf_len = strlen((char*)ret_buf.data());
         return mqas::core::StreamVariantErrcode::ok;

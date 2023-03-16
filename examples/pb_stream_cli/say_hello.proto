@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package proto;
+
+message SayHelloMsg{
+  string msg = 1;
+  uint32 num = 2;
+}
+
+message SayByeMsg{
+  uint32 num = 1;
+  uint32 num2 = 2;
+}

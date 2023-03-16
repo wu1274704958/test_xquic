@@ -54,21 +54,10 @@ namespace mqas::core
         static constexpr size_t EXTRA_PARAMS_MAX_SIZE = proto::simple_pkg::PARAMS_MAX_SIZE - 9;
         static std::tuple<std::optional<stream_variant_msg>,size_t> parse_command(const std::span<const uint8_t>& buffer);
     };
-    template<typename T>
-    concept IsProtoBufMsgConf = requires {
-        requires std::is_same_v<typename std::remove_cv<decltype(T::PB_MSG_ID)>::type ,size_t>;
-        requires std::is_base_of_v<google::protobuf::Message,typename T::PB_MSG_TYPE>;
-    };
-
-    template<size_t ID,typename T>
-    struct PBMsgPair{
-        constexpr static size_t PB_MSG_ID = ID;
-        using PB_MSG_TYPE = T;
-    };
 
     enum class MsgOrigin : uint8_t {
         normal = 0, // or_read
-        on_change_with_params,
+        on_change,
         on_peer_change_ret,
         on_peer_quit,
         on_peer_quit_ret

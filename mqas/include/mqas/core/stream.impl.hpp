@@ -234,11 +234,29 @@ namespace mqas::core{
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     bool StreamVariant<S...>::req_quit(uint32_t curr_tag,const std::span<uint8_t> &d)
     {
+        bool ret = false;
         if(stream_tag_ > 0)
         {
-            bool ret = false;
-            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).req_quit(d)),...);
-            return ret;
+            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).req_quit(curr_tag,d)),...);
+        }
+        return ret;
+    }
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    bool StreamVariant<S...>::isWaitPeerChangeRet() const
+    {
+        bool ret = false;
+        if(stream_tag_ > 0)
+        {
+            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).isWaitPeerChangeRet()),...);
+        }
+        return ret;
+    }
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    void StreamVariant<S...>::setIsWaitPeerChangeRet(bool v)
+    {
+        if(stream_tag_ > 0)
+        {
+            ((std::holds_alternative<S>(stream_var_) && (std::get<S>(stream_var_).setIsWaitPeerChangeRet(v),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -253,6 +271,7 @@ namespace mqas::core{
                     if(msg->errcode != StreamVariantErrcode::ok)
                         LOG(ERROR) << "StreamVariant peer change to " << msg->param1 << " failed error = " << (int)msg->errcode;
                     on_peer_change_ret(msg->errcode,msg->extra_params);
+                    setIsWaitPeerChangeRet(false);
                 }else // is req
                 {
                     std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> ret_buf{};
@@ -327,7 +346,16 @@ namespace mqas::core{
     {
         return req_change_to<CS,S...>(change_params);
     }
-
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    template<typename CS,typename MP>
+    requires variability_stream_require<CS> && IsProtoBufMsgConf<MP>
+    bool StreamVariant<S...>::req_change(const typename MP::PB_MSG_TYPE& m)
+    {
+        auto buf = ProtoBufMsg::write_msg<MP>(m);
+        if(!buf)
+            return false;
+        return req_change_to<CS,S...>({*buf});
+    }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     template<typename CS>
     requires variability_stream_require<CS>
@@ -407,15 +435,14 @@ namespace mqas::core{
         stream_tag_ = CS::STREAM_TAG;
         stream_var_ = CS{};
         auto& stream = std::get<CS>(stream_var_);
-        StreamVariantErrcode res = change_params.empty() ? stream.on_change(ret_buf,buf_len) :
-                                   stream.on_change_with_params(change_params,ret_buf,buf_len);
+        stream.set_cxt(cxt_);
+        stream.on_init(stream_,connect_cxt_);
+        StreamVariantErrcode res = stream.on_change(change_params,ret_buf,buf_len);
         if(res != StreamVariantErrcode::ok) {
             clear_curr_stream();
             return res;
         }
         if(is_req)stream.setIsWaitPeerChangeRet(true);
-        stream.set_cxt(cxt_);
-        stream.on_init(stream_,connect_cxt_);
         return StreamVariantErrcode::ok;
     }
 
@@ -457,16 +484,6 @@ namespace mqas::core{
     bool StreamVariant<S...>::req_change_to([[maybe_unused]] const std::span<uint8_t>& change_params)
     {
         return false;
-    }
-    MQAS_STREAM_IMPL_TEMPLATE_DECL
-    template<typename CS,typename MP>
-    requires variability_stream_require<CS> && IsProtoBufMsgConf<MP>
-    bool StreamVariant<S...>::req_change_to(const typename MP::PB_MSG_TYPE& m)
-    {
-        std::vector<uint8_t> buf(m.ByteSizeLong());
-        if(!m.SerializePartialToArray(buf.data(),buf.size()))
-            return false;
-        return req_change_to<CS,S...>({buf});
     }
 }
 
