@@ -13,7 +13,6 @@ void mqas::core::IStream::on_init(::lsquic_stream_t *lsquic_stream,connect_cxt* 
 }
 
 size_t mqas::core::IStream::do_read() {
-    const size_t old_len = read_buf_.size();
     const auto ret = lsquic_stream_readf(stream_,read_func,this);
     if(ret == -1)
     {
@@ -34,9 +33,12 @@ size_t mqas::core::IStream::do_read() {
     {
         LOG(INFO) << "Stream "<< stream_ <<" EOS has been reached will be closed";
         shutdown(StreamAspect::Read);
-    }else{
+    }
+#if !NDEBUG
+    else{
         LOG(INFO) << "Stream "<< stream_ <<" read " << ret << "bytes";
     }
+#endif
     return ret;
 }
 
@@ -45,8 +47,11 @@ void mqas::core::IStream::do_write() {
     if(ret == -1) {
         LOG(ERROR) << "Stream " << stream_ << " write get error " << errno;
         want_write(false);
-    }else
+    }
+#if !NDEBUG
+    else
         LOG(INFO) << "Stream "<< stream_ <<" write " << ret << "bytes";
+#endif
     if(buf_write_pos == buf_.size())
     {
         buf_.clear();

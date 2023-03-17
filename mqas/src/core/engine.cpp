@@ -33,7 +33,9 @@ namespace mqas::core{
 			return on_dg_write(buf,sz);
 		}
 		std::memcpy(buf,datagram_buf_.data() + datagram_buf_write_p_,dg_sz);
+#if !NDEBUG
 		LOG(INFO) << "datagram write " << dg_sz << "bytes";
+#endif
 		datagram_buf_write_p_ = datagram_buf_write_p_ + dg_sz;
 		datagram_queue_.pop();
 		if (datagram_buf_write_p_ == datagram_buf_.size() || datagram_queue_.empty())

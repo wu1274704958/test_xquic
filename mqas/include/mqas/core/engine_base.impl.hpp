@@ -172,7 +172,7 @@ void mqas::core::engine_base<E>::start_recv() const
 		{
 			const int ret = ::lsquic_engine_packet_in(engine_, reinterpret_cast<const unsigned char*>(buf->data()), nread,
 				&this->local_addr_, addr, static_cast<void*>(const_cast<engine_base*>(this)), 0);
-			LOG(INFO) << "lsquic_engine_packet_in ret = " << ret;
+			//LOG(INFO) << "lsquic_engine_packet_in ret = " << ret;
 			this->process_conns();
 		}
 	});
@@ -184,7 +184,9 @@ ENGINE_BASE_TEMPLATE_DECL
 	const unsigned char* token, size_t token_sz)
 {
 	auto conn = ::lsquic_engine_connect(engine_, ver,&local_addr_, &addr, nullptr, reinterpret_cast<::lsquic_conn_ctx*>(engine_extern_.get()), hostname, base_plpmtu, sess_resume, sess_resume_len, token, token_sz);
-	LOG(INFO) << "connect conn = " <<  reinterpret_cast<size_t>(conn);
+#if !NDEBUG
+    LOG(INFO) << "connect conn = " <<  reinterpret_cast<size_t>(conn);
+#endif
 	process_conns();
 	return conn;
 }
@@ -358,7 +360,7 @@ ssl_ctx_st* mqas::core::engine_base<E>::on_get_ssl_ctx(void* peer_ctx, const soc
 ENGINE_BASE_TEMPLATE_DECL
 int mqas::core::engine_base<E>::init_ssl(const char* cert_file, const char* key_file)
 {
-	LOG(INFO) << "initialize ssl ctx";
+	//LOG(INFO) << "initialize ssl ctx";
 	int ret = 0;
 	ssl_ctx_ = SSL_CTX_new(TLS_method());
 	if (!ssl_ctx_)
