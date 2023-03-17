@@ -5,6 +5,7 @@
 #include <mqas/core/engine.h>
 #include <mqas/core/connect.h>
 #include <mqas/core/stream.h>
+#include <uv.h>
 using namespace mqas;
 
 class UserStream:public core::IStreamVariant
@@ -20,6 +21,7 @@ public:
 MQAS_SHARE_EASYLOGGINGPP
 int main(int argc,const char** argv)
 {
+    constexpr int a = O_RDONLY;
 	Context<core::InitFlags::GLOBAL_SERVER> context;
 	io::Context io_cxt;
 	core::engine_base<core::engine<core::Connect<core::StreamVariant<UserStream,FileStream>>>> e(io_cxt);
