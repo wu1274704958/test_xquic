@@ -27,6 +27,7 @@ PROTOBUF_CONSTEXPR MsgWrapper::MsgWrapper(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.msg_body_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.msg_id_)*/0u
+  , /*decltype(_impl_.body_len_)*/0u
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct MsgWrapperDefaultTypeInternal {
   PROTOBUF_CONSTEXPR MsgWrapperDefaultTypeInternal()
@@ -52,6 +53,7 @@ const uint32_t TableStruct_msg_5fwrapper_2eproto::offsets[] PROTOBUF_SECTION_VAR
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::mqas::core::proto::MsgWrapper, _impl_.msg_id_),
+  PROTOBUF_FIELD_OFFSET(::mqas::core::proto::MsgWrapper, _impl_.body_len_),
   PROTOBUF_FIELD_OFFSET(::mqas::core::proto::MsgWrapper, _impl_.msg_body_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
@@ -63,13 +65,13 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_msg_5fwrapper_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\021msg_wrapper.proto\022\017mqas.core.proto\".\n\n"
-  "MsgWrapper\022\016\n\006msg_id\030\001 \001(\r\022\020\n\010msg_body\030\002"
-  " \001(\014b\006proto3"
+  "\n\021msg_wrapper.proto\022\017mqas.core.proto\"@\n\n"
+  "MsgWrapper\022\016\n\006msg_id\030\001 \001(\r\022\020\n\010body_len\030\002"
+  " \001(\r\022\020\n\010msg_body\030\003 \001(\014b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_msg_5fwrapper_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_msg_5fwrapper_2eproto = {
-    false, false, 92, descriptor_table_protodef_msg_5fwrapper_2eproto,
+    false, false, 110, descriptor_table_protodef_msg_5fwrapper_2eproto,
     "msg_wrapper.proto",
     &descriptor_table_msg_5fwrapper_2eproto_once, nullptr, 0, 1,
     schemas, file_default_instances, TableStruct_msg_5fwrapper_2eproto::offsets,
@@ -104,6 +106,7 @@ MsgWrapper::MsgWrapper(const MsgWrapper& from)
   new (&_impl_) Impl_{
       decltype(_impl_.msg_body_){}
     , decltype(_impl_.msg_id_){}
+    , decltype(_impl_.body_len_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -115,7 +118,9 @@ MsgWrapper::MsgWrapper(const MsgWrapper& from)
     _this->_impl_.msg_body_.Set(from._internal_msg_body(), 
       _this->GetArenaForAllocation());
   }
-  _this->_impl_.msg_id_ = from._impl_.msg_id_;
+  ::memcpy(&_impl_.msg_id_, &from._impl_.msg_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.body_len_) -
+    reinterpret_cast<char*>(&_impl_.msg_id_)) + sizeof(_impl_.body_len_));
   // @@protoc_insertion_point(copy_constructor:mqas.core.proto.MsgWrapper)
 }
 
@@ -126,6 +131,7 @@ inline void MsgWrapper::SharedCtor(
   new (&_impl_) Impl_{
       decltype(_impl_.msg_body_){}
     , decltype(_impl_.msg_id_){0u}
+    , decltype(_impl_.body_len_){0u}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.msg_body_.InitDefault();
@@ -159,7 +165,9 @@ void MsgWrapper::Clear() {
   (void) cached_has_bits;
 
   _impl_.msg_body_.ClearToEmpty();
-  _impl_.msg_id_ = 0u;
+  ::memset(&_impl_.msg_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.body_len_) -
+      reinterpret_cast<char*>(&_impl_.msg_id_)) + sizeof(_impl_.body_len_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -177,9 +185,17 @@ const char* MsgWrapper::_InternalParse(const char* ptr, ::_pbi::ParseContext* ct
         } else
           goto handle_unusual;
         continue;
-      // bytes msg_body = 2;
+      // uint32 body_len = 2;
       case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.body_len_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bytes msg_body = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           auto str = _internal_mutable_msg_body();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
@@ -221,10 +237,16 @@ uint8_t* MsgWrapper::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteUInt32ToArray(1, this->_internal_msg_id(), target);
   }
 
-  // bytes msg_body = 2;
+  // uint32 body_len = 2;
+  if (this->_internal_body_len() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(2, this->_internal_body_len(), target);
+  }
+
+  // bytes msg_body = 3;
   if (!this->_internal_msg_body().empty()) {
     target = stream->WriteBytesMaybeAliased(
-        2, this->_internal_msg_body(), target);
+        3, this->_internal_msg_body(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -243,7 +265,7 @@ size_t MsgWrapper::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // bytes msg_body = 2;
+  // bytes msg_body = 3;
   if (!this->_internal_msg_body().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
@@ -253,6 +275,11 @@ size_t MsgWrapper::ByteSizeLong() const {
   // uint32 msg_id = 1;
   if (this->_internal_msg_id() != 0) {
     total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_msg_id());
+  }
+
+  // uint32 body_len = 2;
+  if (this->_internal_body_len() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_body_len());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
@@ -279,6 +306,9 @@ void MsgWrapper::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PRO
   if (from._internal_msg_id() != 0) {
     _this->_internal_set_msg_id(from._internal_msg_id());
   }
+  if (from._internal_body_len() != 0) {
+    _this->_internal_set_body_len(from._internal_body_len());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -302,7 +332,12 @@ void MsgWrapper::InternalSwap(MsgWrapper* other) {
       &_impl_.msg_body_, lhs_arena,
       &other->_impl_.msg_body_, rhs_arena
   );
-  swap(_impl_.msg_id_, other->_impl_.msg_id_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(MsgWrapper, _impl_.body_len_)
+      + sizeof(MsgWrapper::_impl_.body_len_)
+      - PROTOBUF_FIELD_OFFSET(MsgWrapper, _impl_.msg_id_)>(
+          reinterpret_cast<char*>(&_impl_.msg_id_),
+          reinterpret_cast<char*>(&other->_impl_.msg_id_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata MsgWrapper::GetMetadata() const {

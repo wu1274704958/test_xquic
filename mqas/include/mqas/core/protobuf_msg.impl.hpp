@@ -34,6 +34,7 @@ namespace mqas {
             if(!bytes) return false;
             proto::MsgWrapper wrapper;
             wrapper.set_msg_id(SM::PB_MSG_ID);
+            wrapper.set_body_len((uint32_t)bytes->size());
             wrapper.set_msg_body((const char*)bytes->data(),bytes->size());
             if((sz = wrapper.ByteSizeLong()) > buf.size())
                 return false;
@@ -50,6 +51,7 @@ namespace mqas {
             if(!bytes) return {};
             proto::MsgWrapper wrapper;
             wrapper.set_msg_id(SM::PB_MSG_ID);
+            wrapper.set_body_len((uint32_t)bytes->size());
             wrapper.set_msg_body((const char*)bytes->data(),bytes->size());
             std::vector<uint8_t> buf(wrapper.ByteSizeLong());
             if(!wrapper.SerializePartialToArray(buf.data(),buf.size()))

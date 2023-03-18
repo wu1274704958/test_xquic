@@ -4,5 +4,6 @@ package mqas.core.proto;
 
 message MsgWrapper{
   uint32 msg_id = 1;
-  bytes msg_body = 2;
+  uint32 body_len = 2;
+  bytes msg_body = 3;
 }

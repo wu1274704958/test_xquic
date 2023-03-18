@@ -73,7 +73,7 @@ namespace mqas::core {
         auto pb_stream = this;
         auto [it,ok] = msg_parsers_.try_emplace(CM::PB_MSG_ID,[pb_stream](const proto::MsgWrapper& wrapper,MsgOrigin origin)->std::shared_ptr<google::protobuf::Message>{
             auto msg = std::make_shared<MSG_T>();
-            if(!msg->ParseFromString(wrapper.msg_body()))
+            if(!msg->ParsePartialFromString(wrapper.msg_body()))
             {
                 LOG(ERROR) << "Try parse proto buf message " << CM::PB_MSG_ID << " failed";
                 return nullptr;
@@ -99,8 +99,10 @@ namespace mqas::core {
     std::shared_ptr<proto::MsgWrapper> ProtoBufStream<S,M...>::parse_base_msg(const std::span<uint8_t>& d) const
     {
         auto msg = std::make_shared<proto::MsgWrapper>();
-        if(!msg->ParseFromArray(d.data(),d.size()))
+        if(!msg->ParsePartialFromArray(d.data(),d.size()))
         {
+            if(msg->body_len() == msg->msg_body().size())
+                return msg;
             //LOG(ERROR) << "Try parse proto::MsgWrapper failed";
             return nullptr;
         }
