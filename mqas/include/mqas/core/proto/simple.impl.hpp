@@ -12,7 +12,7 @@ namespace mqas::core::proto {
     {
         checksum = 0;
         std::array<uint8_t,sizeof (LT)> array {};
-        comm::to_big_endian(body_len,array);
+        comm::to_big_endian((LT)body.size(),array);
         for (uint8_t byte : array)
             checksum ^= byte;
         for (uint8_t byte : body)
@@ -28,7 +28,6 @@ namespace mqas::core::proto {
         const auto checksum = calculate_checksum(std::span<const uint8_t>(buffer.data(),all_size - 1));
         if(checksum != buffer[all_size - 1]) return {{},0};
         simple_pkg<LT> pkg;
-        pkg.body_len = param_len;
         if(param_len > 0)
             pkg.body = std::span(const_cast<uint8_t*>(&buffer[sizeof(LT)]),param_len);
         pkg.checksum = checksum;

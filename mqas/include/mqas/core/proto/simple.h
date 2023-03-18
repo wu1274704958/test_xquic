@@ -21,7 +21,8 @@ namespace mqas::core::proto {
     template<typename LT>
     requires std::is_unsigned_v<LT>
     struct simple_pkg {
-        LT body_len;
+        using LEN_TY = LT;
+        static constexpr size_t LEN_TY_SZ = sizeof(LT);
         std::span<uint8_t> body;
         uint8_t checksum;
 

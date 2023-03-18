@@ -70,9 +70,9 @@ namespace mqas::core {
     void ProtoBufStream<S,M...>::init_msg_parser() {
         using MSG_T = typename CM::PB_MSG_TYPE;
         auto pb_stream = this;
-        auto [it,ok] = msg_parsers_.try_emplace(CM::PB_MSG_ID,[pb_stream](const proto::MsgWrapper& wrapper,MsgOrigin origin)->std::shared_ptr<google::protobuf::Message>{
+        auto [it,ok] = msg_parsers_.try_emplace(CM::PB_MSG_ID,[pb_stream](const MsgHeader& wrapper,MsgOrigin origin)->std::shared_ptr<google::protobuf::Message>{
             auto msg = std::make_shared<MSG_T>();
-            if(!msg->ParsePartialFromString(wrapper.msg_body()))
+            if(!msg->ParsePartialFromArray(wrapper.msg_body.data(),wrapper.msg_body.size()))
             {
                 LOG(ERROR) << "Try parse proto buf message " << CM::PB_MSG_ID << " failed";
                 return nullptr;
@@ -95,17 +95,15 @@ namespace mqas::core {
             LOG(WARNING) << "Not insert proto buf message handler " << CM::PB_MSG_ID << " cause by already has one";
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
-    std::shared_ptr<proto::MsgWrapper> ProtoBufStream<S,M...>::parse_base_msg(const std::span<uint8_t>& d) const
+    std::optional<MsgHeader> ProtoBufStream<S,M...>::parse_base_msg(const std::span<uint8_t>& d) const
     {
-        auto msg = std::make_shared<proto::MsgWrapper>();
-        if(!msg->ParsePartialFromArray(d.data(),d.size()))
-        {
-            if(msg->body_len() == msg->msg_body().size())
-                return msg;
-            //LOG(ERROR) << "Try parse proto::MsgWrapper failed";
-            return nullptr;
-        }
-        return msg;
+        auto [pkg,use_len] = MsgHeader::PKG_T::parse_command(d);
+        if(!pkg) return {};
+        MsgHeader mh{};
+        mh.msg_id = comm::from_big_endian<MsgHeader::IT>(std::span<uint8_t>(&pkg->body[0],sizeof(MsgHeader::IT)));
+        mh.msg_body = std::span<uint8_t>(&pkg->body[sizeof(MsgHeader::IT)],pkg->body.size() - sizeof(MsgHeader::IT));
+        mh.use_len = use_len;
+        return mh;
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
     sigc::connection ProtoBufStream<S,M...>::add_handler(size_t mid,const HANDLER_FUN_TY::slot_type& f)
@@ -146,7 +144,7 @@ namespace mqas::core {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_change";
             return StreamVariantErrcode::parse_failed;
         }
-        size_t mid = msg_wrap->msg_id();
+        size_t mid = msg_wrap->msg_id;
         if(!msg_parsers_.contains(mid)){
             LOG(ERROR) << "Not support msg "<< mid <<" on_change";
             return StreamVariantErrcode::not_support;
@@ -194,7 +192,7 @@ namespace mqas::core {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_peer_change_ret";
             return;
         }
-        size_t mid = msg_wrap->msg_id();
+        size_t mid = msg_wrap->msg_id;
         if(!msg_parsers_.contains(mid)){
             LOG(ERROR) << "Not support msg "<< mid <<" on_peer_change_ret";
             return;
@@ -234,13 +232,13 @@ namespace mqas::core {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_read";
             return 0;
         }
-        size_t mid = msg_wrap->msg_id();
+        size_t mid = msg_wrap->msg_id;
         if(!msg_parsers_.contains(mid)){
             LOG(ERROR) << "Not support msg "<< mid <<" on_read";
-            return msg_wrap->ByteSizeLong();
+            return msg_wrap->use_len;
         }
         auto msg = msg_parsers_[mid](*msg_wrap,MsgOrigin::normal);
-        return msg_wrap->ByteSizeLong();
+        return msg_wrap->use_len;
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
     void ProtoBufStream<S,M...>::on_read_msg(size_t,const std::shared_ptr<google::protobuf::Message>&){}
@@ -254,7 +252,7 @@ namespace mqas::core {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_peer_quit_ret";
             return;
         }
-        size_t mid = msg_wrap->msg_id();
+        size_t mid = msg_wrap->msg_id;
         if(!msg_parsers_.contains(mid)){
             LOG(ERROR) << "Not support msg "<< mid <<" on_peer_quit_ret";
             return ;
@@ -296,7 +294,7 @@ namespace mqas::core {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_peer_quit";
             return  StreamVariantErrcode::parse_failed;
         }
-        size_t mid = msg_wrap->msg_id();
+        size_t mid = msg_wrap->msg_id;
         if(!msg_parsers_.contains(mid)){
             LOG(ERROR) << "Not support msg "<< mid <<" on_peer_quit";
             return  StreamVariantErrcode::not_support;

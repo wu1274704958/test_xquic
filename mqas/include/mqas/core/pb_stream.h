@@ -19,7 +19,7 @@ namespace mqas::core{
     class ProtoBufStream : public IStreamVariant {
     public:
         using HANDLER_FUN_TY = sigc::signal<void(size_t,const std::shared_ptr<google::protobuf::Message>&)>;
-        using PARSER_FUN_TY = std::function<std::shared_ptr<google::protobuf::Message>(const proto::MsgWrapper&,MsgOrigin)>;
+        using PARSER_FUN_TY = std::function<std::shared_ptr<google::protobuf::Message>(const MsgHeader&,MsgOrigin)>;
         void on_init(::lsquic_stream_t* lsquic_stream,connect_cxt* connect_cxt);
         sigc::connection add_handler(size_t mid,const HANDLER_FUN_TY::slot_type& f);
         [[nodiscard]] bool has_handler(size_t mid)const;
@@ -48,7 +48,7 @@ namespace mqas::core{
         requires IsProtoBufMsgConf<SM>
         bool send_req_quit(uint32_t curr_tag,const typename SM::PB_MSG_TYPE&);
     protected:
-        [[nodiscard]] std::shared_ptr<proto::MsgWrapper> parse_base_msg(const std::span<uint8_t>&) const;
+        [[nodiscard]] std::optional<MsgHeader> parse_base_msg(const std::span<uint8_t>&) const;
         void init_msg_parsers();
         template<class CM>
         void init_msg_parser();

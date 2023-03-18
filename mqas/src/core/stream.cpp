@@ -3,6 +3,8 @@
 //
 #include <mqas/core/stream.h>
 #include <mqas/comm/binary.hpp>
+#include "mqas/core/def.h"
+
 
 std::optional<std::vector<uint8_t>> mqas::core::stream_variant_msg::generate() const {
     if(extra_params.size() > EXTRA_PARAMS_MAX_SIZE) return {};
@@ -22,7 +24,6 @@ std::optional<std::vector<uint8_t>> mqas::core::stream_variant_msg::generate() c
         params.insert(params.end(), p1.begin(), p1.end());//4
         params.insert(params.end(), extra_params.begin(), extra_params.end());//N
     }
-    pkg.body_len = params.size();
     pkg.body = {params};
     return pkg.generate();
 }
@@ -88,3 +89,18 @@ bool mqas::core::IStreamVariant::req_quit(uint32_t curr_tag,const std::span<uint
 }
 
 void mqas::core::IStreamVariant::on_peer_quit_ret(mqas::core::StreamVariantErrcode,const std::span<uint8_t> &) {}
+
+std::optional<std::vector<uint8_t>> mqas::core::MsgHeader::generate() const {
+    PKG_T pkg;
+    std::vector<uint8_t> body;
+    std::array<uint8_t,sizeof (IT)> array{};
+    mqas::comm::to_big_endian(msg_id,array);
+    body.insert(body.end(),array.begin(),array.end());
+    body.insert(body.end(),msg_body.begin(),msg_body.end());
+    pkg.body = {body};
+    return pkg.generate();
+}
+
+size_t mqas::core::MsgHeader::byte_size() const {
+    return PKG_T::SIZE_WITHOUT_PARAMS + msg_body.size() + sizeof(IT);
+}

@@ -62,4 +62,16 @@ namespace mqas::core
         on_peer_quit,
         on_peer_quit_ret
     };
+
+    struct MQAS_EXTERN MsgHeader{
+        using LT = uint32_t;
+        using IT = uint32_t;
+        using PKG_T = proto::simple_pkg<LT>;
+        IT msg_id;
+        std::span<uint8_t > msg_body;
+        size_t use_len = 0;
+        [[nodiscard]] std::optional<std::vector<uint8_t>> generate() const;
+        size_t byte_size() const;
+    };
+
 }

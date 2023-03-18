@@ -2,7 +2,8 @@
 // Created by Administrator on 2023/3/16.
 //
 
-#include <mqas/core/proto/msg_wrapper.pb.h>
+#include <google/protobuf/message.h>
+#include <mqas/core/def.h>
 namespace mqas {
     namespace core {
         /// protobuf message gen
@@ -26,35 +27,36 @@ namespace mqas {
             return buf;
         }
 
-        template<class SM>
-        requires IsProtoBufMsgConf<SM>
-        bool ProtoBufMsg::write_msg(const std::span<uint8_t>& buf,size_t& sz,const typename SM::PB_MSG_TYPE& m)
-        {
-            auto bytes = write_msg_no_wrap<SM>(m);
-            if(!bytes) return false;
-            proto::MsgWrapper wrapper;
-            wrapper.set_msg_id(SM::PB_MSG_ID);
-            wrapper.set_body_len((uint32_t)bytes->size());
-            wrapper.set_msg_body((const char*)bytes->data(),bytes->size());
-            if((sz = wrapper.ByteSizeLong()) > buf.size())
-                return false;
-            if(!wrapper.SerializePartialToArray(buf.data(),buf.size()))
-                return false;
-            return true;
-        }
+//        template<class SM>
+//        requires IsProtoBufMsgConf<SM>
+//        bool ProtoBufMsg::write_msg(const std::span<uint8_t>& buf,size_t& sz,const typename SM::PB_MSG_TYPE& m)
+//        {
+//            auto bytes = write_msg_no_wrap<SM>(m);
+//            if(!bytes) return false;
+//            MsgHeader pkg;
+//            pkg.msg_id = SM::PB_MSG_ID;
+//            pkg.msg_body = bytes;
+//            if((sz = pkg.byte_size()) > buf.size())
+//                return false;
+//            auto ret = pkg.generate();
+//            if(!ret)
+//                return false;
+//            memcpy(buf.data(),ret->data(), ret->size());
+//            return true;
+//        }
         template<class SM>
         requires IsProtoBufMsgConf<SM>
         bool ProtoBufMsg::write_msg(std::vector<uint8_t>& buf,const typename SM::PB_MSG_TYPE& m)
         {
             auto bytes = write_msg_no_wrap<SM>(m);
             if(!bytes) return {};
-            proto::MsgWrapper wrapper;
-            wrapper.set_msg_id(SM::PB_MSG_ID);
-            wrapper.set_body_len((uint32_t)bytes->size());
-            wrapper.set_msg_body((const char*)bytes->data(),bytes->size());
-            buf.resize(wrapper.ByteSizeLong());
-            if(!wrapper.SerializePartialToArray(buf.data(),buf.size()))
+            MsgHeader pkg;
+            pkg.msg_id = SM::PB_MSG_ID;
+            pkg.msg_body = {*bytes};
+            auto ret = pkg.generate();
+            if(!ret)
                 return false;
+            buf = std::move(*ret);
             return true;
         }
 
@@ -64,14 +66,10 @@ namespace mqas {
         {
             auto bytes = write_msg_no_wrap<SM>(m);
             if(!bytes) return {};
-            proto::MsgWrapper wrapper;
-            wrapper.set_msg_id(SM::PB_MSG_ID);
-            wrapper.set_body_len((uint32_t)bytes->size());
-            wrapper.set_msg_body((const char*)bytes->data(),bytes->size());
-            std::vector<uint8_t> buf(wrapper.ByteSizeLong());
-            if(!wrapper.SerializePartialToArray(buf.data(),buf.size()))
-                return {};
-            return buf;
+            MsgHeader pkg;
+            pkg.msg_id = SM::PB_MSG_ID;
+            pkg.msg_body = {*bytes};
+            return pkg.generate();
         }
     } // mqas
 } // core
