@@ -20,8 +20,7 @@ public:
         return current.size();
     }
     mqas::core::StreamVariantErrcode on_change(const std::span<uint8_t>& params,
-                                                           std::array<uint8_t,mqas::core::stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-                                                           size_t& buf_len)
+                                                           std::vector<uint8_t>& ret_buf)
     {
         std::string_view sv(reinterpret_cast<const char*>(params.data()), params.size());
         std::cout << "on_change " << sv <<std::endl;

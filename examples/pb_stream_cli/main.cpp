@@ -15,12 +15,11 @@ class Stream:public core::ProtoBufStream<Stream,SayHelloMsgPair,SayByeMsgPair>
 public:
     static constexpr size_t STREAM_TAG = 1;
     core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::SayHelloMsg>& hello,
-                                               std::array<uint8_t, core::stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
-                                               size_t &buf_len)
+                                               std::vector<uint8_t> &ret_buf)
     {
         printf("on_change %s %d\n",hello->msg().c_str(),hello->num());
         hello->set_num(hello->num() * 2);
-        core::ProtoBufMsg::write_msg<SayHelloMsgPair>({ret_buf},buf_len,*hello);
+        core::ProtoBufMsg::write_msg<SayHelloMsgPair>(ret_buf,*hello);
         return core::StreamVariantErrcode::ok;
     }
     void on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code,const std::shared_ptr<proto::SayHelloMsg>& m)

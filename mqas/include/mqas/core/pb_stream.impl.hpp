@@ -27,7 +27,7 @@ namespace mqas::core {
 
     template<typename T,typename M>
     struct has_member_function_on_change_msg_s<T,M,std::void_t<decltype(std::declval<T>().on_change_msg_s(std::declval<std::shared_ptr<M>>(),
-            std::declval<std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>&>(),std::declval<size_t&>()))>>
+            std::declval<std::vector<uint8_t>&>()))>>
             : std::true_type {};
 
     template<typename T,typename M,typename = std::void_t<>>
@@ -37,7 +37,6 @@ namespace mqas::core {
     struct has_member_function_on_peer_change_ret_msg_s<T,M,std::void_t<decltype(std::declval<T>().on_peer_change_ret_msg_s(std::declval<StreamVariantErrcode>(),
             std::declval<std::shared_ptr<M>>()))>>
             : std::true_type {};
-    //void ProtoBufStream<S,M...>::on_peer_quit_ret_msg(StreamVariantErrcode,size_t,const std::shared_ptr<google::protobuf::Message>&){}
 
     template<typename T,typename M,typename = std::void_t<>>
     struct has_member_function_on_peer_quit_ret_msg_s : std::false_type {};
@@ -52,7 +51,7 @@ namespace mqas::core {
 
     template<typename T,typename M>
     struct has_member_function_on_peer_quit_msg_s<T,M,std::void_t<decltype(std::declval<T>().on_peer_quit_msg_s(std::declval<std::shared_ptr<M>>(),
-            std::declval<std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>&>(),std::declval<size_t&>()))>>
+            std::declval<std::vector<uint8_t>&>()))>>
             : std::true_type {};
 
     MQAS_PB_STREAM_TEMPLATE_DECL
@@ -138,11 +137,10 @@ namespace mqas::core {
 
     MQAS_PB_STREAM_TEMPLATE_DECL
     StreamVariantErrcode ProtoBufStream<S,M...>::on_change(const std::span<uint8_t> &params,
-                                               std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
-                                               size_t &buf_len)
+                                               std::vector<uint8_t> &ret_buf)
     {
         if(params.empty())
-            return on_change_msg_forward<M...>(0, nullptr,ret_buf,buf_len);
+            return on_change_msg_forward<M...>(0, nullptr,ret_buf);
         auto msg_wrap = parse_base_msg(params);
         if(!msg_wrap) {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_change";
@@ -154,35 +152,33 @@ namespace mqas::core {
             return StreamVariantErrcode::not_support;
         }
         auto msg = msg_parsers_[mid](*msg_wrap,MsgOrigin::on_change);
-        return on_change_msg_forward<M...>(mid,msg,ret_buf,buf_len);
+        return on_change_msg_forward<M...>(mid,msg,ret_buf);
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
     StreamVariantErrcode ProtoBufStream<S,M...>::on_change_msg(size_t,const std::shared_ptr<google::protobuf::Message>&,
-                                               std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
-                                               size_t &buf_len)
+                                               std::vector<uint8_t> &ret_buf)
     {
         return StreamVariantErrcode::not_support;
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
     template<class F,class ... Ss>
     StreamVariantErrcode ProtoBufStream<S,M...>::on_change_msg_forward(size_t mid,const std::shared_ptr<google::protobuf::Message>& msg,
-            std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
-            size_t &buf_len)
+            std::vector<uint8_t> &ret_buf)
     {
         if(F::PB_MSG_ID == mid)
         {
             if constexpr (has_member_function_on_change_msg_s<S,typename F::PB_MSG_TYPE>::value)
             {
-                return static_cast<S*>(this)->on_change_msg_s(std::static_pointer_cast<typename F::PB_MSG_TYPE>(msg),ret_buf,buf_len);
+                return static_cast<S*>(this)->on_change_msg_s(std::static_pointer_cast<typename F::PB_MSG_TYPE>(msg),ret_buf);
             }else{
-                return static_cast<S*>(this)->on_change_msg(mid,msg,ret_buf,buf_len);
+                return static_cast<S*>(this)->on_change_msg(mid,msg,ret_buf);
             }
         }else{
             if constexpr (sizeof...(Ss) == 0)
             {
-                return static_cast<S*>(this)->on_change_msg(mid,msg,ret_buf,buf_len);
+                return static_cast<S*>(this)->on_change_msg(mid,msg,ret_buf);
             }else{
-                return on_change_msg_forward<Ss...>(mid,msg,ret_buf,buf_len);
+                return on_change_msg_forward<Ss...>(mid,msg,ret_buf);
             }
         }
 
@@ -291,11 +287,10 @@ namespace mqas::core {
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
     StreamVariantErrcode ProtoBufStream<S,M...>::on_peer_quit(const std::span<uint8_t> & d,
-                                              std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-                                              size_t& buf_len)
+                                              std::vector<uint8_t>& ret_buf)
     {
         if(d.empty())
-            return on_peer_quit_msg_forward<M...>(0, nullptr,ret_buf,buf_len);
+            return on_peer_quit_msg_forward<M...>(0, nullptr,ret_buf);
         auto msg_wrap = parse_base_msg(d);
         if(!msg_wrap) {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_peer_quit";
@@ -307,34 +302,32 @@ namespace mqas::core {
             return  StreamVariantErrcode::not_support;
         }
         auto msg = msg_parsers_[mid](*msg_wrap,MsgOrigin::on_peer_quit);
-        return on_peer_quit_msg_forward<M...>(mid, msg,ret_buf,buf_len);
+        return on_peer_quit_msg_forward<M...>(mid, msg,ret_buf);
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
     StreamVariantErrcode ProtoBufStream<S,M...>::on_peer_quit_msg(size_t,const std::shared_ptr<google::protobuf::Message>&,
-                                              std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>&,
-                                              size_t&){
+                                              std::vector<uint8_t>&){
         return StreamVariantErrcode::not_support;
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
     template<class F,class ... Ss>
     StreamVariantErrcode ProtoBufStream<S,M...>::on_peer_quit_msg_forward(size_t mid,const std::shared_ptr<google::protobuf::Message>& msg,
-        std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-        size_t& sz)
+        std::vector<uint8_t>& ret_buf)
     {
         if(F::PB_MSG_ID == mid)
         {
             if constexpr (has_member_function_on_peer_quit_msg_s<S,typename F::PB_MSG_TYPE>::value)
             {
-                return static_cast<S*>(this)->on_peer_quit_msg_s(std::static_pointer_cast<typename F::PB_MSG_TYPE>(msg),ret_buf,sz);
+                return static_cast<S*>(this)->on_peer_quit_msg_s(std::static_pointer_cast<typename F::PB_MSG_TYPE>(msg),ret_buf);
             }else{
-                return static_cast<S*>(this)->on_peer_quit_msg(mid,msg,ret_buf,sz);
+                return static_cast<S*>(this)->on_peer_quit_msg(mid,msg,ret_buf);
             }
         }else{
             if constexpr (sizeof...(Ss) == 0)
             {
-                return static_cast<S*>(this)->on_peer_quit_msg(mid,msg,ret_buf,sz);
+                return static_cast<S*>(this)->on_peer_quit_msg(mid,msg,ret_buf);
             }else{
-                return on_peer_quit_msg_forward<Ss...>(mid,msg,ret_buf,sz);
+                return on_peer_quit_msg_forward<Ss...>(mid,msg,ret_buf);
             }
         }
     }

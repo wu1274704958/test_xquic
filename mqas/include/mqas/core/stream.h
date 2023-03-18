@@ -17,11 +17,9 @@ namespace mqas::core {
     public:
         //interface
         StreamVariantErrcode on_change(const std::span<uint8_t> &params,
-                                                   std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
-                                                   size_t &buf_len);
+                                                   std::vector<uint8_t> &ret_buf);
         void on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params);
-        StreamVariantErrcode on_peer_quit(const std::span<uint8_t>&,std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>&,
-                          size_t&);
+        StreamVariantErrcode on_peer_quit(const std::span<uint8_t>&,std::vector<uint8_t>&);
         void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
         bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={});
         [[nodiscard]] bool isWaitPeerChangeRet() const;
@@ -65,8 +63,7 @@ namespace mqas::core {
         size_t on_read(const std::span<const uint8_t>& current);
         void on_peer_change_ret(StreamVariantErrcode code,const std::span<uint8_t>& params);
         StreamVariantErrcode change_to(size_t tag,const std::span<uint8_t>& change_params,
-                                       std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-                                       size_t& buf_len);
+                                       std::vector<uint8_t>& ret_buf);
 
         void clear_curr_stream();
         template<typename CS>
@@ -78,15 +75,13 @@ namespace mqas::core {
         template<typename CS>
         requires variability_stream_require<CS>
         StreamVariantErrcode change_self(const std::span<uint8_t>& change_params,
-                                         std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-                                         size_t& buf_len);
+                                         std::vector<uint8_t>& ret_buf);
 
         template<class CS>
         requires variability_stream_require<CS>
         CS* get_holds_stream();
         [[nodiscard]] bool has_holds_stream() const;
-        StreamVariantErrcode on_peer_quit(const std::span<uint8_t> &,std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>&,
-        size_t&);
+        StreamVariantErrcode on_peer_quit(const std::span<uint8_t> &,std::vector<uint8_t>&);
         void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
         bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={});
         [[nodiscard]] bool isWaitPeerChangeRet() const;
@@ -101,16 +96,14 @@ namespace mqas::core {
             requires (variability_stream_require<Ss> && ...);
         }
         StreamVariantErrcode change_self_inside(const std::span<uint8_t>& change_params,
-                                                std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-                                                size_t& buf_len);
+                                                std::vector<uint8_t>& ret_buf);
         template<typename CS>
         requires variability_stream_require<CS>
         StreamVariantErrcode change_self_inside([[maybe_unused]] const std::span<uint8_t>& change_params);
         template<typename CS>
         requires variability_stream_require<CS>
         StreamVariantErrcode change_to_uncheck(const std::span<uint8_t>& change_params,
-                                               std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-                                               size_t& buf_len,bool is_req = false);
+                                               std::vector<uint8_t>& ret_buf,bool is_req = false);
         template<typename CS, typename F,typename ... Ss>
         requires requires{
             requires variability_stream_require<CS> && variability_stream_require<F>;

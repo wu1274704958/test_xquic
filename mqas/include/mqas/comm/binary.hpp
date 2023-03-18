@@ -22,6 +22,17 @@ namespace mqas::comm {
         }
         return result;
     }
+    template<typename T>
+    void to_big_endian(T val,std::array<uint8_t,sizeof(T)>& result) {
+        if constexpr (std::endian::native == std::endian::big) {
+            std::memcpy(result.data(), &val, sizeof(T));
+        } else {
+            unsigned char *data = reinterpret_cast<unsigned char *>(&val);
+            for (int i = 0; i < sizeof(T); i++) {
+                result[i] = data[sizeof(T) - i - 1];
+            }
+        }
+    }
 
     template<typename T>
     T from_big_endian(const std::span<uint8_t> &data) {

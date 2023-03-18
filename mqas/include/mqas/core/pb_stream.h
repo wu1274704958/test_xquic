@@ -27,23 +27,19 @@ namespace mqas::core{
         void erase_all_handlers(size_t mid);
 
         StreamVariantErrcode on_change(const std::span<uint8_t> &params,
-                                                   std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
-                                                   size_t &buf_len);
+                                                   std::vector<uint8_t> &ret_buf);
         StreamVariantErrcode on_change_msg(size_t,const std::shared_ptr<google::protobuf::Message>&,
-                                                   std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
-                                                   size_t &buf_len);
+                                                   std::vector<uint8_t> &ret_buf);
 
         void on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params);
         void on_peer_change_ret_msg(StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&);
         size_t on_read(const std::span<const uint8_t>& current);
         void on_read_msg(size_t,const std::shared_ptr<google::protobuf::Message>&);
         StreamVariantErrcode on_peer_quit(const std::span<uint8_t>&,
-                std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>&,
-                                          size_t&);
+                std::vector<uint8_t>&);
         void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
         StreamVariantErrcode on_peer_quit_msg(size_t,const std::shared_ptr<google::protobuf::Message>&,
-                                          std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>&,
-                                          size_t&);
+                                          std::vector<uint8_t>&);
         void on_peer_quit_ret_msg(StreamVariantErrcode,size_t,const std::shared_ptr<google::protobuf::Message>&);
         template<class SM>
         requires IsProtoBufMsgConf<SM>
@@ -59,14 +55,12 @@ namespace mqas::core{
 
         template<class F,class ... Ss>
         StreamVariantErrcode on_change_msg_forward(size_t,const std::shared_ptr<google::protobuf::Message>&,
-                std::array<uint8_t, stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
-                size_t &buf_len);
+                std::vector<uint8_t> &ret_buf);
         template<class F,class ... Ss>
         void on_peer_change_ret_msg_forward(StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&);
         template<class F,class ... Ss>
         StreamVariantErrcode on_peer_quit_msg_forward(size_t,const std::shared_ptr<google::protobuf::Message>&,
-                                              std::array<uint8_t,stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>&,
-                                              size_t&);
+                                              std::vector<uint8_t>&);
         template<class F,class ... Ss>
         void on_peer_quit_ret_msg_forward(StreamVariantErrcode,size_t,const std::shared_ptr<google::protobuf::Message>&);
         std::unordered_map<size_t ,PARSER_FUN_TY> msg_parsers_;

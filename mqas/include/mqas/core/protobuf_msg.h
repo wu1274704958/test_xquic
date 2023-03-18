@@ -34,6 +34,9 @@ namespace mqas {
             static bool write_msg(const std::span<uint8_t>& buf,size_t& sz,const typename SM::PB_MSG_TYPE&);
             template<class SM>
             requires IsProtoBufMsgConf<SM>
+            static bool write_msg(std::vector<uint8_t>& buf,const typename SM::PB_MSG_TYPE&);
+            template<class SM>
+            requires IsProtoBufMsgConf<SM>
             static std::optional<std::vector<uint8_t>> write_msg(const typename SM::PB_MSG_TYPE&);
         };
 

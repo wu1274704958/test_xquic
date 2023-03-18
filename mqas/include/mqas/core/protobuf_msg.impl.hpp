@@ -42,6 +42,21 @@ namespace mqas {
                 return false;
             return true;
         }
+        template<class SM>
+        requires IsProtoBufMsgConf<SM>
+        bool ProtoBufMsg::write_msg(std::vector<uint8_t>& buf,const typename SM::PB_MSG_TYPE& m)
+        {
+            auto bytes = write_msg_no_wrap<SM>(m);
+            if(!bytes) return {};
+            proto::MsgWrapper wrapper;
+            wrapper.set_msg_id(SM::PB_MSG_ID);
+            wrapper.set_body_len((uint32_t)bytes->size());
+            wrapper.set_msg_body((const char*)bytes->data(),bytes->size());
+            buf.resize(wrapper.ByteSizeLong());
+            if(!wrapper.SerializePartialToArray(buf.data(),buf.size()))
+                return false;
+            return true;
+        }
 
         template<class SM>
         requires IsProtoBufMsgConf<SM>

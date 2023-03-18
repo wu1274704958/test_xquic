@@ -44,14 +44,14 @@ namespace mqas::core
         req_quit_hold_stream = 2
     };
     struct MQAS_EXTERN stream_variant_msg{
-        stream_variant_cmd cmd;
+        stream_variant_cmd cmd; // 1
         uint32_t param1 = 0;    // 4
         uint16_t param2 = 0;    // 2
         uint8_t param3 = 0;     // 1
         StreamVariantErrcode errcode = StreamVariantErrcode::ok;  //1
-        std::span<uint8_t> extra_params; // SIZE 1
+        std::span<uint8_t> extra_params; // SIZE 4
         [[nodiscard]] std::optional<std::vector<uint8_t>> generate() const;
-        static constexpr size_t EXTRA_PARAMS_MAX_SIZE = proto::simple_pkg::PARAMS_MAX_SIZE - 9;
+        static constexpr size_t EXTRA_PARAMS_MAX_SIZE = proto::simple_pkg<uint32_t>::PARAMS_MAX_SIZE - 13;
         static std::tuple<std::optional<stream_variant_msg>,size_t> parse_command(const std::span<const uint8_t>& buffer);
     };
 

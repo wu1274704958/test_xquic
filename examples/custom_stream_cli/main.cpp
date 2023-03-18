@@ -13,13 +13,12 @@ public:
     static constexpr size_t STREAM_TAG = 1;
 
     mqas::core::StreamVariantErrcode on_change(const std::span<uint8_t>& params,
-                                               std::array<uint8_t,mqas::core::stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& ret_buf,
-                                               size_t& buf_len)
+                                               std::vector<uint8_t>& ret_buf)
     {
         std::string_view sv(reinterpret_cast<const char*>(params.data()), params.size());
         std::cout << "on_change " << sv <<std::endl;
+        ret_buf.resize(strlen("req change lalalal") + 1);
         sprintf((char*)ret_buf.data(),"req change lalalal");
-        buf_len = strlen((char*)ret_buf.data());
         return mqas::core::StreamVariantErrcode::ok;
     }
 

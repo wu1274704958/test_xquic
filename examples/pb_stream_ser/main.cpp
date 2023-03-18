@@ -15,12 +15,11 @@ class Stream:public core::ProtoBufStream<Stream,SayHelloMsgPair,SayByeMsgPair>
 public:
     static constexpr size_t STREAM_TAG = 1;
     core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::SayHelloMsg>& hello,
-                                               std::array<uint8_t, core::stream_variant_msg::EXTRA_PARAMS_MAX_SIZE> &ret_buf,
-                                               size_t &buf_len)
+                                               std::vector<uint8_t> &ret_buf)
     {
         printf("on_change %s %d\n",hello->msg().c_str(),hello->num());
         hello->set_num(hello->num() * 2);
-        core::ProtoBufMsg::write_msg<SayHelloMsgPair>({ret_buf},buf_len,*hello);
+        core::ProtoBufMsg::write_msg<SayHelloMsgPair>(ret_buf,*hello);
         return core::StreamVariantErrcode::ok;
     }
 
@@ -34,12 +33,11 @@ public:
         setIsWaitPeerChangeRet(true);
     }
     mqas::core::StreamVariantErrcode on_peer_quit_msg_s(const std::shared_ptr<proto::SayByeMsg>& m,
-                                      std::array<uint8_t,core::stream_variant_msg::EXTRA_PARAMS_MAX_SIZE>& buf,
-                                      size_t& sz)
+                                      std::vector<uint8_t>& buf)
     {
         printf("on_peer_quit %d %d\n",m->num(),m->num2());
         m->set_num2(m->num2() + 1);
-        core::ProtoBufMsg::write_msg<SayByeMsgPair>({buf},sz,*m);
+        core::ProtoBufMsg::write_msg<SayByeMsgPair>(buf,*m);
         return mqas::core::StreamVariantErrcode::ok;
     }
 
