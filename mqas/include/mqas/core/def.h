@@ -39,6 +39,12 @@ namespace mqas::core
     concept HasStreamTag = requires {
         requires std::is_same_v<typename std::remove_cv<decltype(T::STREAM_TAG)>::type ,size_t>;
     };
+    template<size_t Tag,typename T>
+    struct StreamVariantPair
+    {
+        constexpr static size_t STREAM_TAG = Tag;
+        using STREAM_TYPE = T;
+    };
     enum class stream_variant_cmd : uint8_t {
         req_use_stream_tag = 1,
         req_quit_hold_stream = 2

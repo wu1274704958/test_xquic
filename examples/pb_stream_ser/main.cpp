@@ -13,7 +13,6 @@ using SayByeMsgPair = core::PBMsgPair<2,proto::SayByeMsg>;
 class Stream:public core::ProtoBufStream<Stream,SayHelloMsgPair,SayByeMsgPair>
 {
 public:
-    static constexpr size_t STREAM_TAG = 1;
     core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::SayHelloMsg>& hello,
                                                std::vector<uint8_t> &ret_buf)
     {
@@ -47,7 +46,7 @@ int main(int argc,const char** argv)
 {
 	Context<core::InitFlags::GLOBAL_SERVER> context;
 	io::Context io_cxt;
-	core::engine_base<core::engine<core::Connect<core::StreamVariant<Stream>>>> e(io_cxt);
+	core::engine_base<core::engine<core::Connect<core::StreamVariant<core::StreamVariantPair<1,Stream>>>>> e(io_cxt);
 	try{
 		e.init("conf.txt",core::EngineFlags::Server);
 		e.start_recv();

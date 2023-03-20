@@ -29,14 +29,19 @@ namespace mqas::core {
     };
 
     template<typename T>
+    concept variability_stream_pair_require = requires {
+        requires std::is_default_constructible_v<typename T::STREAM_TYPE>;
+        requires std::is_base_of_v<IStreamVariant,typename T::STREAM_TYPE>;
+        requires HasStreamTag<T>;
+    };
+    template<typename T>
     concept variability_stream_require = requires {
         requires std::is_default_constructible_v<T>;
         requires std::is_base_of_v<IStreamVariant,T>;
-        requires HasStreamTag<T>;
     };
     template<typename ... S>
     requires requires{
-        requires (variability_stream_require<S> && ...);
+        requires (variability_stream_pair_require<S> && ...);
     }
     class StreamVariant : public IStream{
     public:
@@ -92,8 +97,8 @@ namespace mqas::core {
         size_t do_read_curr(CS& cs);
         template<typename CS, typename F,typename ... Ss>
         requires requires{
-            requires variability_stream_require<CS> && variability_stream_require<F>;
-            requires (variability_stream_require<Ss> && ...);
+            requires variability_stream_require<CS> && variability_stream_pair_require<F>;
+            requires (variability_stream_pair_require<Ss> && ...);
         }
         StreamVariantErrcode change_self_inside(const std::span<uint8_t>& change_params,
                                                 std::vector<uint8_t>& ret_buf);
@@ -101,20 +106,20 @@ namespace mqas::core {
         requires variability_stream_require<CS>
         StreamVariantErrcode change_self_inside([[maybe_unused]] const std::span<uint8_t>& change_params);
         template<typename CS>
-        requires variability_stream_require<CS>
+        requires variability_stream_pair_require<CS>
         StreamVariantErrcode change_to_uncheck(const std::span<uint8_t>& change_params,
                                                std::vector<uint8_t>& ret_buf,bool is_req = false);
         template<typename CS, typename F,typename ... Ss>
         requires requires{
-            requires variability_stream_require<CS> && variability_stream_require<F>;
-            requires (variability_stream_require<Ss> && ...);
+            requires variability_stream_require<CS> && variability_stream_pair_require<F>;
+            requires (variability_stream_pair_require<Ss> && ...);
         }
         bool req_change_to([[maybe_unused]] const std::span<uint8_t>& change_params);
         template<typename CS>
         requires variability_stream_require<CS>
         bool req_change_to([[maybe_unused]] const std::span<uint8_t>& change_params);
     protected:
-            std::variant<std::monostate,S...> stream_var_;
+            std::variant<std::monostate,typename S::STREAM_TYPE ...> stream_var_;
             size_t stream_tag_ = 0;
     };
 }

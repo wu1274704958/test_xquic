@@ -13,7 +13,6 @@ using SayByeMsgPair = core::PBMsgPair<2,proto::SayByeMsg>;
 class Stream:public core::ProtoBufStream<Stream,SayHelloMsgPair,SayByeMsgPair>
 {
 public:
-    static constexpr size_t STREAM_TAG = 1;
     core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::SayHelloMsg>& hello,
                                                std::vector<uint8_t> &ret_buf)
     {
@@ -49,7 +48,7 @@ int main(int argc,const char** argv)
 {
 	Context<core::InitFlags::GLOBAL_CLIENT> context;
 	io::Context io_cxt;
-	core::engine_base<core::engine<core::Connect<core::StreamVariant<Stream>>>> e(io_cxt);
+	core::engine_base<core::engine<core::Connect<core::StreamVariant<core::StreamVariantPair<1,Stream>>>>> e(io_cxt);
 	try{
 		e.init("conf.txt",core::EngineFlags::None);
 		e.start_recv();
@@ -59,8 +58,8 @@ int main(int argc,const char** argv)
         auto c = e.get_engine()->connect(addr,N_LSQVER);
         auto conn = c.lock();
         auto t = io_cxt.make_handle<io::Timer>();
-        std::weak_ptr<core::StreamVariant<Stream>> stream_out;
-        conn->make_stream([&io_cxt,&stream_out](std::weak_ptr<core::StreamVariant<Stream>> stream){
+        std::weak_ptr<core::StreamVariant<core::StreamVariantPair<1,Stream>>> stream_out;
+        conn->make_stream([&io_cxt,&stream_out](std::weak_ptr<core::StreamVariant<core::StreamVariantPair<1,Stream>>> stream){
             stream_out = stream;
         });
         t->start([&stream_out](io::Timer* t){

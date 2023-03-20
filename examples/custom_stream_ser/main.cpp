@@ -10,7 +10,6 @@ MQAS_SHARE_EASYLOGGINGPP
 class Stream:public core::IStreamVariant
 {
 public:
-    static constexpr size_t STREAM_TAG = 1;
 
     size_t on_read(const std::span<const uint8_t> &current) {
         std::string_view sv(reinterpret_cast<const char*>(current.data()), current.size());
@@ -32,7 +31,7 @@ int main(int argc,const char** argv)
 {
 	Context<core::InitFlags::GLOBAL_SERVER> context;
 	io::Context io_cxt;
-	core::engine_base<core::engine<core::Connect<core::StreamVariant<Stream>>>> e(io_cxt);
+	core::engine_base<core::engine<core::Connect<core::StreamVariant<core::StreamVariantPair<1,Stream>>>>> e(io_cxt);
 	try{
 		e.init("conf.txt",core::EngineFlags::Server);
 		e.start_recv();

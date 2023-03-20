@@ -10,7 +10,6 @@ using namespace mqas;
 class Stream:public core::IStreamVariant
 {
 public:
-    static constexpr size_t STREAM_TAG = 1;
 
     mqas::core::StreamVariantErrcode on_change(const std::span<uint8_t>& params,
                                                std::vector<uint8_t>& ret_buf)
@@ -43,7 +42,7 @@ int main(int argc,const char** argv)
 {
 	Context<core::InitFlags::GLOBAL_CLIENT> context;
 	io::Context io_cxt;
-	core::engine_base<core::engine<core::Connect<core::StreamVariant<Stream>>>> e(io_cxt);
+	core::engine_base<core::engine<core::Connect<core::StreamVariant<core::StreamVariantPair<1,Stream>>>>> e(io_cxt);
 	try{
 		e.init("conf.txt",core::EngineFlags::None);
 		e.start_recv();
@@ -53,7 +52,7 @@ int main(int argc,const char** argv)
         auto c = e.get_engine()->connect(addr,N_LSQVER);
         auto conn = c.lock();
         uv_tty_t tty;
-        conn->make_stream([&io_cxt,&tty](std::weak_ptr<core::StreamVariant<Stream>> stream){
+        conn->make_stream([&io_cxt,&tty](std::weak_ptr<core::StreamVariant<core::StreamVariantPair<1,Stream>>> stream){
             auto s_ = stream.lock();
             std::string_view sv("req self");
             s_->req_change<Stream>();

@@ -10,13 +10,9 @@ using namespace mqas;
 
 class UserStream:public core::IStreamVariant
 {
-public:
-    static constexpr size_t STREAM_TAG = 1;
 };
 class FileStream:public core::IStreamVariant
 {
-public:
-    static constexpr size_t STREAM_TAG = 2;
 };
 MQAS_SHARE_EASYLOGGINGPP
 int main(int argc,const char** argv)
@@ -24,7 +20,10 @@ int main(int argc,const char** argv)
     constexpr int a = O_RDONLY;
 	Context<core::InitFlags::GLOBAL_SERVER> context;
 	io::Context io_cxt;
-	core::engine_base<core::engine<core::Connect<core::StreamVariant<UserStream,FileStream>>>> e(io_cxt);
+	core::engine_base<core::engine<core::Connect<core::StreamVariant<
+	        core::StreamVariantPair<1,UserStream>,
+            core::StreamVariantPair<2,FileStream>
+            >>>> e(io_cxt);
 	try{
 		e.init("conf.txt",core::EngineFlags::Server);
 		e.start_recv();

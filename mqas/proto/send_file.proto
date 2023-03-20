@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package mqas.tools.proto;
+
+message ReqSendFile{
+  string name = 1;
+  uint64 size = 2;
+}
+message SendFileMd5{
+  string name = 1;
+  bytes md5 = 2;
+}

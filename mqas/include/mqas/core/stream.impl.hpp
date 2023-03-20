@@ -12,7 +12,7 @@
 #define MQAS_STREAM_IMPL_TEMPLATE_DECL                                  \
 template<typename ... S>                                                \
 requires requires{                                                      \
-    requires (variability_stream_require<S> && ...);                    \
+    requires (variability_stream_pair_require<S> && ...);                    \
 }
 
 namespace mqas::core{
@@ -40,7 +40,7 @@ namespace mqas::core{
     size_t StreamVariant<S...>::do_read_hold()
     {
         size_t ret = 0;
-        ((std::holds_alternative<S>(stream_var_) && (ret = do_read_curr(std::get<S>(stream_var_)))),...);
+        ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (ret = do_read_curr(std::get<typename S::STREAM_TYPE>(stream_var_)))),...);
         return ret;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -50,7 +50,7 @@ namespace mqas::core{
         {
             IStream::do_write();
         }else{
-            ((std::holds_alternative<S>(stream_var_) && (std::get<S>(stream_var_).do_write(),false)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).do_write(),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -60,7 +60,7 @@ namespace mqas::core{
         {
             IStream::on_close();
         }else{
-            ((std::holds_alternative<S>(stream_var_) && (std::get<S>(stream_var_).on_close(),false)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).on_close(),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -70,7 +70,7 @@ namespace mqas::core{
         {
             IStream::on_reset(how);
         }else{
-            ((std::holds_alternative<S>(stream_var_) && (std::get<S>(stream_var_).on_reset(how),false)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).on_reset(how),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -81,7 +81,7 @@ namespace mqas::core{
             return IStream::write(d);
         }else{
             bool ret = false;
-            ((std::holds_alternative<S>(stream_var_) && (ret = std::get<S>(stream_var_).write(d))),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (ret = std::get<typename S::STREAM_TYPE>(stream_var_).write(d))),...);
             return ret;
         }
     }
@@ -93,7 +93,7 @@ namespace mqas::core{
             return IStream::want_read();
         }else{
             bool ret = false;
-            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).want_read(f)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).want_read(f)),...);
             return ret;
         }
     }
@@ -105,7 +105,7 @@ namespace mqas::core{
             return IStream::want_write();
         }else{
             bool ret = false;
-            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).want_write(f)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).want_write(f)),...);
             return ret;
         }
     }
@@ -118,7 +118,7 @@ namespace mqas::core{
             return IStream::get_cxt();
         }else{
             void* ret = nullptr;
-            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).get_cxt()),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).get_cxt()),...);
             return ret;
         }
     }
@@ -129,7 +129,7 @@ namespace mqas::core{
         {
             IStream::set_cxt(c);
         }else{
-            ((std::holds_alternative<S>(stream_var_) && (std::get<S>(stream_var_).set_cxt(c),false)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).set_cxt(c),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -139,7 +139,7 @@ namespace mqas::core{
         {
             IStream::clear_read_buf();
         }else{
-            ((std::holds_alternative<S>(stream_var_) && (std::get<S>(stream_var_).clear_read_buf(),false)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).clear_read_buf(),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -150,7 +150,7 @@ namespace mqas::core{
             return IStream::has_unread_data();
         }else{
             bool ret = false;
-            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).has_unread_data()),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).has_unread_data()),...);
             return ret;
         }
     }
@@ -162,7 +162,7 @@ namespace mqas::core{
             return IStream::read(sz);
         }else{
             std::span<const uint8_t> ret;
-            ((std::holds_alternative<S>(stream_var_) && (ret = std::get<S>(stream_var_).read(sz),false)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (ret = std::get<typename S::STREAM_TYPE>(stream_var_).read(sz),false)),...);
             return ret;
         }
     }
@@ -174,7 +174,7 @@ namespace mqas::core{
             return IStream::read_all();
         }else{
             std::span<const uint8_t> ret;
-            ((std::holds_alternative<S>(stream_var_) && (ret = std::get<S>(stream_var_).read_all()),false),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (ret = std::get<typename S::STREAM_TYPE>(stream_var_).read_all()),false),...);
             return ret;
         }
     }
@@ -186,7 +186,7 @@ namespace mqas::core{
             return IStream::read_all_not_move();
         }else{
             std::span<const uint8_t> ret;
-            ((std::holds_alternative<S>(stream_var_) && (ret = std::get<S>(stream_var_).read_all_not_move()),false),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (ret = std::get<typename S::STREAM_TYPE>(stream_var_).read_all_not_move()),false),...);
             return ret;
         }
     }
@@ -198,7 +198,7 @@ namespace mqas::core{
             return IStream::unread_size();
         }else{
             size_t ret;
-            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).unread_size()),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).unread_size()),...);
             return ret;
         }
     }
@@ -207,7 +207,7 @@ namespace mqas::core{
     {
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<S>(stream_var_) && (std::get<S>(stream_var_).on_peer_change_ret(code,params),false)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).on_peer_change_ret(code,params),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -217,7 +217,7 @@ namespace mqas::core{
         if(stream_tag_ > 0)
         {
             StreamVariantErrcode ret = StreamVariantErrcode::ok;
-            ((std::holds_alternative<S>(stream_var_) && (ret = std::get<S>(stream_var_).on_peer_quit(d,buf),false)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (ret = std::get<typename S::STREAM_TYPE>(stream_var_).on_peer_quit(d,buf),false)),...);
             return ret;
         }
         return StreamVariantErrcode::failed_not_find;
@@ -227,7 +227,7 @@ namespace mqas::core{
     {
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<S>(stream_var_) && (std::get<S>(stream_var_).on_peer_quit_ret(e,d),false)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).on_peer_quit_ret(e,d),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -236,7 +236,7 @@ namespace mqas::core{
         bool ret = false;
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).req_quit(curr_tag,d)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).req_quit(curr_tag,d)),...);
         }
         return ret;
     }
@@ -246,7 +246,7 @@ namespace mqas::core{
         bool ret = false;
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<S>(stream_var_) && ret = std::get<S>(stream_var_).isWaitPeerChangeRet()),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).isWaitPeerChangeRet()),...);
         }
         return ret;
     }
@@ -255,7 +255,7 @@ namespace mqas::core{
     {
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<S>(stream_var_) && (std::get<S>(stream_var_).setIsWaitPeerChangeRet(v),false)),...);
+            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).setIsWaitPeerChangeRet(v),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -396,15 +396,15 @@ namespace mqas::core{
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     template<typename CS, typename F,typename ... Ss>
     requires requires{
-        requires variability_stream_require<CS> && variability_stream_require<F>;
-        requires (variability_stream_require<Ss> && ...);
+        requires variability_stream_require<CS> && variability_stream_pair_require<F>;
+        requires (variability_stream_pair_require<Ss> && ...);
     }
     StreamVariantErrcode StreamVariant<S...>::change_self_inside(const std::span<uint8_t>& change_params,
                                             std::vector<uint8_t>& ret_buf)
     {
-        if constexpr(std::is_same_v<F,CS>)
+        if constexpr(std::is_same_v<typename F::STREAM_TYPE,CS>)
         {
-            return change_to_uncheck<CS>(change_params,ret_buf);
+            return change_to_uncheck<F>(change_params,ret_buf);
         }else{
             return change_self_inside<CS,Ss...>(change_params,ret_buf);
         }
@@ -420,14 +420,14 @@ namespace mqas::core{
 
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     template<typename CS>
-    requires variability_stream_require<CS>
+    requires variability_stream_pair_require<CS>
     StreamVariantErrcode StreamVariant<S...>::change_to_uncheck(const std::span<uint8_t>& change_params,
                                            std::vector<uint8_t>& ret_buf,bool is_req)
     {
         clear_curr_stream();
         stream_tag_ = CS::STREAM_TAG;
-        stream_var_ = CS{};
-        auto& stream = std::get<CS>(stream_var_);
+        stream_var_ = typename CS::STREAM_TYPE{};
+        auto& stream = std::get<typename CS::STREAM_TYPE>(stream_var_);
         stream.set_cxt(cxt_);
         stream.on_init(stream_,connect_cxt_);
         StreamVariantErrcode res = stream.on_change(change_params,ret_buf);
@@ -442,17 +442,17 @@ namespace mqas::core{
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     template<typename CS, typename F,typename ... Ss>
     requires requires{
-        requires variability_stream_require<CS> && variability_stream_require<F>;
-        requires (variability_stream_require<Ss> && ...);
+        requires variability_stream_require<CS> && variability_stream_pair_require<F>;
+        requires (variability_stream_pair_require<Ss> && ...);
     }
     bool StreamVariant<S...>::req_change_to(const std::span<uint8_t>& change_params)
     {
         if(change_params.size() > stream_variant_msg::EXTRA_PARAMS_MAX_SIZE)
             return false;
-        if constexpr(std::is_same_v<F,CS>)
+        if constexpr(std::is_same_v<typename F::STREAM_TYPE,CS>)
         {
             std::vector<uint8_t> ret_buf{};
-            auto ret = change_to_uncheck<CS>(change_params,ret_buf,true);
+            auto ret = change_to_uncheck<F>(change_params,ret_buf,true);
             if(ret != StreamVariantErrcode::ok)
             {
                 LOG(ERROR) << "req_change_to " << CS::STREAM_TAG << " change self failed error = " << (size_t)ret;

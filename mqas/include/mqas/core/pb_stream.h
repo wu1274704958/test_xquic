@@ -9,7 +9,6 @@
 
 #include <mqas/macro.h>
 #include <mqas/core/stream.h>
-#include <mqas/core/proto/msg_wrapper.pb.h>
 #include <sigc++/sigc++.h>
 
 namespace mqas::core{
