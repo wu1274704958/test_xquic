@@ -138,7 +138,7 @@ namespace mqas::core {
                                                std::vector<uint8_t> &ret_buf)
     {
         if(params.empty())
-            return on_change_msg_forward<M...>(0, nullptr,ret_buf);
+            return on_change_msg(0, nullptr,ret_buf);
         auto msg_wrap = parse_base_msg(params);
         if(!msg_wrap) {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_change";
@@ -186,7 +186,7 @@ namespace mqas::core {
     void ProtoBufStream<S,M...>::on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params)
     {
         if(params.empty())
-            return on_peer_change_ret_msg_forward<M...>(code,0, nullptr);
+            return on_peer_change_ret_msg(code,0, nullptr);
         auto msg_wrap = parse_base_msg(params);
         if(!msg_wrap) {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_peer_change_ret";
@@ -246,7 +246,7 @@ namespace mqas::core {
     void ProtoBufStream<S,M...>::on_peer_quit_ret(StreamVariantErrcode e,const std::span<uint8_t>& d)
     {
         if(d.empty())
-            return on_peer_quit_ret_msg_forward<M...>(e,0, nullptr);
+            return on_peer_quit_ret_msg(e,0, nullptr);
         auto msg_wrap = parse_base_msg(d);
         if(!msg_wrap) {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_peer_quit_ret";
@@ -288,7 +288,7 @@ namespace mqas::core {
                                               std::vector<uint8_t>& ret_buf)
     {
         if(d.empty())
-            return on_peer_quit_msg_forward<M...>(0, nullptr,ret_buf);
+            return on_peer_quit_msg(0, nullptr,ret_buf);
         auto msg_wrap = parse_base_msg(d);
         if(!msg_wrap) {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_peer_quit";

@@ -30,6 +30,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
@@ -51,20 +52,53 @@ namespace proto {
 class ReqSendFile;
 struct ReqSendFileDefaultTypeInternal;
 MQAS_EXTERN extern ReqSendFileDefaultTypeInternal _ReqSendFile_default_instance_;
-class SendFileMd5;
-struct SendFileMd5DefaultTypeInternal;
-MQAS_EXTERN extern SendFileMd5DefaultTypeInternal _SendFileMd5_default_instance_;
+class ReqSendFileRet;
+struct ReqSendFileRetDefaultTypeInternal;
+MQAS_EXTERN extern ReqSendFileRetDefaultTypeInternal _ReqSendFileRet_default_instance_;
+class SendFileEnd;
+struct SendFileEndDefaultTypeInternal;
+MQAS_EXTERN extern SendFileEndDefaultTypeInternal _SendFileEnd_default_instance_;
 }  // namespace proto
 }  // namespace tools
 }  // namespace mqas
 PROTOBUF_NAMESPACE_OPEN
 template<> MQAS_EXTERN ::mqas::tools::proto::ReqSendFile* Arena::CreateMaybeMessage<::mqas::tools::proto::ReqSendFile>(Arena*);
-template<> MQAS_EXTERN ::mqas::tools::proto::SendFileMd5* Arena::CreateMaybeMessage<::mqas::tools::proto::SendFileMd5>(Arena*);
+template<> MQAS_EXTERN ::mqas::tools::proto::ReqSendFileRet* Arena::CreateMaybeMessage<::mqas::tools::proto::ReqSendFileRet>(Arena*);
+template<> MQAS_EXTERN ::mqas::tools::proto::SendFileEnd* Arena::CreateMaybeMessage<::mqas::tools::proto::SendFileEnd>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace mqas {
 namespace tools {
 namespace proto {
 
+enum ReqSendFileRet_Code : int {
+  ReqSendFileRet_Code_ok = 0,
+  ReqSendFileRet_Code_already_exists = 1,
+  ReqSendFileRet_Code_open_failed = 2,
+  ReqSendFileRet_Code_write_failed = 3,
+  ReqSendFileRet_Code_close_failed = 4,
+  ReqSendFileRet_Code_md5_not_same = 5,
+  ReqSendFileRet_Code_ReqSendFileRet_Code_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  ReqSendFileRet_Code_ReqSendFileRet_Code_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+MQAS_EXTERN bool ReqSendFileRet_Code_IsValid(int value);
+constexpr ReqSendFileRet_Code ReqSendFileRet_Code_Code_MIN = ReqSendFileRet_Code_ok;
+constexpr ReqSendFileRet_Code ReqSendFileRet_Code_Code_MAX = ReqSendFileRet_Code_md5_not_same;
+constexpr int ReqSendFileRet_Code_Code_ARRAYSIZE = ReqSendFileRet_Code_Code_MAX + 1;
+
+MQAS_EXTERN const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ReqSendFileRet_Code_descriptor();
+template<typename T>
+inline const std::string& ReqSendFileRet_Code_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, ReqSendFileRet_Code>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function ReqSendFileRet_Code_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    ReqSendFileRet_Code_descriptor(), enum_t_value);
+}
+inline bool ReqSendFileRet_Code_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, ReqSendFileRet_Code* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ReqSendFileRet_Code>(
+    ReqSendFileRet_Code_descriptor(), name, value);
+}
 // ===================================================================
 
 class MQAS_EXTERN ReqSendFile final :
@@ -190,6 +224,8 @@ class MQAS_EXTERN ReqSendFile final :
   enum : int {
     kNameFieldNumber = 1,
     kSizeFieldNumber = 2,
+    kBufSizeFieldNumber = 3,
+    kOverlayFieldNumber = 4,
   };
   // string name = 1;
   void clear_name();
@@ -214,6 +250,24 @@ class MQAS_EXTERN ReqSendFile final :
   void _internal_set_size(uint64_t value);
   public:
 
+  // uint32 buf_size = 3;
+  void clear_buf_size();
+  uint32_t buf_size() const;
+  void set_buf_size(uint32_t value);
+  private:
+  uint32_t _internal_buf_size() const;
+  void _internal_set_buf_size(uint32_t value);
+  public:
+
+  // bool overlay = 4;
+  void clear_overlay();
+  bool overlay() const;
+  void set_overlay(bool value);
+  private:
+  bool _internal_overlay() const;
+  void _internal_set_overlay(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.ReqSendFile)
  private:
   class _Internal;
@@ -224,6 +278,8 @@ class MQAS_EXTERN ReqSendFile final :
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr name_;
     uint64_t size_;
+    uint32_t buf_size_;
+    bool overlay_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -231,24 +287,24 @@ class MQAS_EXTERN ReqSendFile final :
 };
 // -------------------------------------------------------------------
 
-class MQAS_EXTERN SendFileMd5 final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:mqas.tools.proto.SendFileMd5) */ {
+class MQAS_EXTERN ReqSendFileRet final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:mqas.tools.proto.ReqSendFileRet) */ {
  public:
-  inline SendFileMd5() : SendFileMd5(nullptr) {}
-  ~SendFileMd5() override;
-  explicit PROTOBUF_CONSTEXPR SendFileMd5(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline ReqSendFileRet() : ReqSendFileRet(nullptr) {}
+  ~ReqSendFileRet() override;
+  explicit PROTOBUF_CONSTEXPR ReqSendFileRet(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  SendFileMd5(const SendFileMd5& from);
-  SendFileMd5(SendFileMd5&& from) noexcept
-    : SendFileMd5() {
+  ReqSendFileRet(const ReqSendFileRet& from);
+  ReqSendFileRet(ReqSendFileRet&& from) noexcept
+    : ReqSendFileRet() {
     *this = ::std::move(from);
   }
 
-  inline SendFileMd5& operator=(const SendFileMd5& from) {
+  inline ReqSendFileRet& operator=(const ReqSendFileRet& from) {
     CopyFrom(from);
     return *this;
   }
-  inline SendFileMd5& operator=(SendFileMd5&& from) noexcept {
+  inline ReqSendFileRet& operator=(ReqSendFileRet&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -271,20 +327,20 @@ class MQAS_EXTERN SendFileMd5 final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const SendFileMd5& default_instance() {
+  static const ReqSendFileRet& default_instance() {
     return *internal_default_instance();
   }
-  static inline const SendFileMd5* internal_default_instance() {
-    return reinterpret_cast<const SendFileMd5*>(
-               &_SendFileMd5_default_instance_);
+  static inline const ReqSendFileRet* internal_default_instance() {
+    return reinterpret_cast<const ReqSendFileRet*>(
+               &_ReqSendFileRet_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
     1;
 
-  friend void swap(SendFileMd5& a, SendFileMd5& b) {
+  friend void swap(ReqSendFileRet& a, ReqSendFileRet& b) {
     a.Swap(&b);
   }
-  inline void Swap(SendFileMd5* other) {
+  inline void Swap(ReqSendFileRet* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -297,7 +353,7 @@ class MQAS_EXTERN SendFileMd5 final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(SendFileMd5* other) {
+  void UnsafeArenaSwap(ReqSendFileRet* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -305,14 +361,14 @@ class MQAS_EXTERN SendFileMd5 final :
 
   // implements Message ----------------------------------------------
 
-  SendFileMd5* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<SendFileMd5>(arena);
+  ReqSendFileRet* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ReqSendFileRet>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const SendFileMd5& from);
+  void CopyFrom(const ReqSendFileRet& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const SendFileMd5& from) {
-    SendFileMd5::MergeImpl(*this, from);
+  void MergeFrom( const ReqSendFileRet& from) {
+    ReqSendFileRet::MergeImpl(*this, from);
   }
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
@@ -330,15 +386,217 @@ class MQAS_EXTERN SendFileMd5 final :
   void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(SendFileMd5* other);
+  void InternalSwap(ReqSendFileRet* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "mqas.tools.proto.SendFileMd5";
+    return "mqas.tools.proto.ReqSendFileRet";
   }
   protected:
-  explicit SendFileMd5(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit ReqSendFileRet(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  typedef ReqSendFileRet_Code Code;
+  static constexpr Code ok =
+    ReqSendFileRet_Code_ok;
+  static constexpr Code already_exists =
+    ReqSendFileRet_Code_already_exists;
+  static constexpr Code open_failed =
+    ReqSendFileRet_Code_open_failed;
+  static constexpr Code write_failed =
+    ReqSendFileRet_Code_write_failed;
+  static constexpr Code close_failed =
+    ReqSendFileRet_Code_close_failed;
+  static constexpr Code md5_not_same =
+    ReqSendFileRet_Code_md5_not_same;
+  static inline bool Code_IsValid(int value) {
+    return ReqSendFileRet_Code_IsValid(value);
+  }
+  static constexpr Code Code_MIN =
+    ReqSendFileRet_Code_Code_MIN;
+  static constexpr Code Code_MAX =
+    ReqSendFileRet_Code_Code_MAX;
+  static constexpr int Code_ARRAYSIZE =
+    ReqSendFileRet_Code_Code_ARRAYSIZE;
+  static inline const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor*
+  Code_descriptor() {
+    return ReqSendFileRet_Code_descriptor();
+  }
+  template<typename T>
+  static inline const std::string& Code_Name(T enum_t_value) {
+    static_assert(::std::is_same<T, Code>::value ||
+      ::std::is_integral<T>::value,
+      "Incorrect type passed to function Code_Name.");
+    return ReqSendFileRet_Code_Name(enum_t_value);
+  }
+  static inline bool Code_Parse(::PROTOBUF_NAMESPACE_ID::ConstStringParam name,
+      Code* value) {
+    return ReqSendFileRet_Code_Parse(name, value);
+  }
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kCodeFieldNumber = 1,
+    kErrorCodeFieldNumber = 2,
+  };
+  // .mqas.tools.proto.ReqSendFileRet.Code code = 1;
+  void clear_code();
+  ::mqas::tools::proto::ReqSendFileRet_Code code() const;
+  void set_code(::mqas::tools::proto::ReqSendFileRet_Code value);
+  private:
+  ::mqas::tools::proto::ReqSendFileRet_Code _internal_code() const;
+  void _internal_set_code(::mqas::tools::proto::ReqSendFileRet_Code value);
+  public:
+
+  // optional sint32 error_code = 2;
+  bool has_error_code() const;
+  private:
+  bool _internal_has_error_code() const;
+  public:
+  void clear_error_code();
+  int32_t error_code() const;
+  void set_error_code(int32_t value);
+  private:
+  int32_t _internal_error_code() const;
+  void _internal_set_error_code(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:mqas.tools.proto.ReqSendFileRet)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+    int code_;
+    int32_t error_code_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_send_5ffile_2eproto;
+};
+// -------------------------------------------------------------------
+
+class MQAS_EXTERN SendFileEnd final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:mqas.tools.proto.SendFileEnd) */ {
+ public:
+  inline SendFileEnd() : SendFileEnd(nullptr) {}
+  ~SendFileEnd() override;
+  explicit PROTOBUF_CONSTEXPR SendFileEnd(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SendFileEnd(const SendFileEnd& from);
+  SendFileEnd(SendFileEnd&& from) noexcept
+    : SendFileEnd() {
+    *this = ::std::move(from);
+  }
+
+  inline SendFileEnd& operator=(const SendFileEnd& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SendFileEnd& operator=(SendFileEnd&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SendFileEnd& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SendFileEnd* internal_default_instance() {
+    return reinterpret_cast<const SendFileEnd*>(
+               &_SendFileEnd_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(SendFileEnd& a, SendFileEnd& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SendFileEnd* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SendFileEnd* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SendFileEnd* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SendFileEnd>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SendFileEnd& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SendFileEnd& from) {
+    SendFileEnd::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SendFileEnd* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "mqas.tools.proto.SendFileEnd";
+  }
+  protected:
+  explicit SendFileEnd(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -383,7 +641,7 @@ class MQAS_EXTERN SendFileMd5 final :
   std::string* _internal_mutable_md5();
   public:
 
-  // @@protoc_insertion_point(class_scope:mqas.tools.proto.SendFileMd5)
+  // @@protoc_insertion_point(class_scope:mqas.tools.proto.SendFileEnd)
  private:
   class _Internal;
 
@@ -479,46 +737,138 @@ inline void ReqSendFile::set_size(uint64_t value) {
   // @@protoc_insertion_point(field_set:mqas.tools.proto.ReqSendFile.size)
 }
 
+// uint32 buf_size = 3;
+inline void ReqSendFile::clear_buf_size() {
+  _impl_.buf_size_ = 0u;
+}
+inline uint32_t ReqSendFile::_internal_buf_size() const {
+  return _impl_.buf_size_;
+}
+inline uint32_t ReqSendFile::buf_size() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.ReqSendFile.buf_size)
+  return _internal_buf_size();
+}
+inline void ReqSendFile::_internal_set_buf_size(uint32_t value) {
+  
+  _impl_.buf_size_ = value;
+}
+inline void ReqSendFile::set_buf_size(uint32_t value) {
+  _internal_set_buf_size(value);
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.ReqSendFile.buf_size)
+}
+
+// bool overlay = 4;
+inline void ReqSendFile::clear_overlay() {
+  _impl_.overlay_ = false;
+}
+inline bool ReqSendFile::_internal_overlay() const {
+  return _impl_.overlay_;
+}
+inline bool ReqSendFile::overlay() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.ReqSendFile.overlay)
+  return _internal_overlay();
+}
+inline void ReqSendFile::_internal_set_overlay(bool value) {
+  
+  _impl_.overlay_ = value;
+}
+inline void ReqSendFile::set_overlay(bool value) {
+  _internal_set_overlay(value);
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.ReqSendFile.overlay)
+}
+
 // -------------------------------------------------------------------
 
-// SendFileMd5
+// ReqSendFileRet
+
+// .mqas.tools.proto.ReqSendFileRet.Code code = 1;
+inline void ReqSendFileRet::clear_code() {
+  _impl_.code_ = 0;
+}
+inline ::mqas::tools::proto::ReqSendFileRet_Code ReqSendFileRet::_internal_code() const {
+  return static_cast< ::mqas::tools::proto::ReqSendFileRet_Code >(_impl_.code_);
+}
+inline ::mqas::tools::proto::ReqSendFileRet_Code ReqSendFileRet::code() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.ReqSendFileRet.code)
+  return _internal_code();
+}
+inline void ReqSendFileRet::_internal_set_code(::mqas::tools::proto::ReqSendFileRet_Code value) {
+  
+  _impl_.code_ = value;
+}
+inline void ReqSendFileRet::set_code(::mqas::tools::proto::ReqSendFileRet_Code value) {
+  _internal_set_code(value);
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.ReqSendFileRet.code)
+}
+
+// optional sint32 error_code = 2;
+inline bool ReqSendFileRet::_internal_has_error_code() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline bool ReqSendFileRet::has_error_code() const {
+  return _internal_has_error_code();
+}
+inline void ReqSendFileRet::clear_error_code() {
+  _impl_.error_code_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline int32_t ReqSendFileRet::_internal_error_code() const {
+  return _impl_.error_code_;
+}
+inline int32_t ReqSendFileRet::error_code() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.ReqSendFileRet.error_code)
+  return _internal_error_code();
+}
+inline void ReqSendFileRet::_internal_set_error_code(int32_t value) {
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.error_code_ = value;
+}
+inline void ReqSendFileRet::set_error_code(int32_t value) {
+  _internal_set_error_code(value);
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.ReqSendFileRet.error_code)
+}
+
+// -------------------------------------------------------------------
+
+// SendFileEnd
 
 // string name = 1;
-inline void SendFileMd5::clear_name() {
+inline void SendFileEnd::clear_name() {
   _impl_.name_.ClearToEmpty();
 }
-inline const std::string& SendFileMd5::name() const {
-  // @@protoc_insertion_point(field_get:mqas.tools.proto.SendFileMd5.name)
+inline const std::string& SendFileEnd::name() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.SendFileEnd.name)
   return _internal_name();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void SendFileMd5::set_name(ArgT0&& arg0, ArgT... args) {
+void SendFileEnd::set_name(ArgT0&& arg0, ArgT... args) {
  
  _impl_.name_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:mqas.tools.proto.SendFileMd5.name)
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.SendFileEnd.name)
 }
-inline std::string* SendFileMd5::mutable_name() {
+inline std::string* SendFileEnd::mutable_name() {
   std::string* _s = _internal_mutable_name();
-  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.SendFileMd5.name)
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.SendFileEnd.name)
   return _s;
 }
-inline const std::string& SendFileMd5::_internal_name() const {
+inline const std::string& SendFileEnd::_internal_name() const {
   return _impl_.name_.Get();
 }
-inline void SendFileMd5::_internal_set_name(const std::string& value) {
+inline void SendFileEnd::_internal_set_name(const std::string& value) {
   
   _impl_.name_.Set(value, GetArenaForAllocation());
 }
-inline std::string* SendFileMd5::_internal_mutable_name() {
+inline std::string* SendFileEnd::_internal_mutable_name() {
   
   return _impl_.name_.Mutable(GetArenaForAllocation());
 }
-inline std::string* SendFileMd5::release_name() {
-  // @@protoc_insertion_point(field_release:mqas.tools.proto.SendFileMd5.name)
+inline std::string* SendFileEnd::release_name() {
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.SendFileEnd.name)
   return _impl_.name_.Release();
 }
-inline void SendFileMd5::set_allocated_name(std::string* name) {
+inline void SendFileEnd::set_allocated_name(std::string* name) {
   if (name != nullptr) {
     
   } else {
@@ -530,45 +880,45 @@ inline void SendFileMd5::set_allocated_name(std::string* name) {
     _impl_.name_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.SendFileMd5.name)
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.SendFileEnd.name)
 }
 
 // bytes md5 = 2;
-inline void SendFileMd5::clear_md5() {
+inline void SendFileEnd::clear_md5() {
   _impl_.md5_.ClearToEmpty();
 }
-inline const std::string& SendFileMd5::md5() const {
-  // @@protoc_insertion_point(field_get:mqas.tools.proto.SendFileMd5.md5)
+inline const std::string& SendFileEnd::md5() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.SendFileEnd.md5)
   return _internal_md5();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void SendFileMd5::set_md5(ArgT0&& arg0, ArgT... args) {
+void SendFileEnd::set_md5(ArgT0&& arg0, ArgT... args) {
  
  _impl_.md5_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:mqas.tools.proto.SendFileMd5.md5)
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.SendFileEnd.md5)
 }
-inline std::string* SendFileMd5::mutable_md5() {
+inline std::string* SendFileEnd::mutable_md5() {
   std::string* _s = _internal_mutable_md5();
-  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.SendFileMd5.md5)
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.SendFileEnd.md5)
   return _s;
 }
-inline const std::string& SendFileMd5::_internal_md5() const {
+inline const std::string& SendFileEnd::_internal_md5() const {
   return _impl_.md5_.Get();
 }
-inline void SendFileMd5::_internal_set_md5(const std::string& value) {
+inline void SendFileEnd::_internal_set_md5(const std::string& value) {
   
   _impl_.md5_.Set(value, GetArenaForAllocation());
 }
-inline std::string* SendFileMd5::_internal_mutable_md5() {
+inline std::string* SendFileEnd::_internal_mutable_md5() {
   
   return _impl_.md5_.Mutable(GetArenaForAllocation());
 }
-inline std::string* SendFileMd5::release_md5() {
-  // @@protoc_insertion_point(field_release:mqas.tools.proto.SendFileMd5.md5)
+inline std::string* SendFileEnd::release_md5() {
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.SendFileEnd.md5)
   return _impl_.md5_.Release();
 }
-inline void SendFileMd5::set_allocated_md5(std::string* md5) {
+inline void SendFileEnd::set_allocated_md5(std::string* md5) {
   if (md5 != nullptr) {
     
   } else {
@@ -580,12 +930,14 @@ inline void SendFileMd5::set_allocated_md5(std::string* md5) {
     _impl_.md5_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.SendFileMd5.md5)
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.SendFileEnd.md5)
 }
 
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 
@@ -594,6 +946,16 @@ inline void SendFileMd5::set_allocated_md5(std::string* md5) {
 }  // namespace proto
 }  // namespace tools
 }  // namespace mqas
+
+PROTOBUF_NAMESPACE_OPEN
+
+template <> struct is_proto_enum< ::mqas::tools::proto::ReqSendFileRet_Code> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::mqas::tools::proto::ReqSendFileRet_Code>() {
+  return ::mqas::tools::proto::ReqSendFileRet_Code_descriptor();
+}
+
+PROTOBUF_NAMESPACE_CLOSE
 
 // @@protoc_insertion_point(global_scope)
 

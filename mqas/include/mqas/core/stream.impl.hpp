@@ -269,8 +269,9 @@ namespace mqas::core{
                 {
                     if(msg->errcode != StreamVariantErrcode::ok)
                         LOG(ERROR) << "StreamVariant peer change to " << msg->param1 << " failed error = " << (int)msg->errcode;
+                    else
+                        setIsWaitPeerChangeRet(false);
                     on_peer_change_ret(msg->errcode,msg->extra_params);
-                    setIsWaitPeerChangeRet(false);
                 }else // is req
                 {
                     std::vector<uint8_t> ret_buf{};
@@ -428,6 +429,7 @@ namespace mqas::core{
         stream_tag_ = CS::STREAM_TAG;
         stream_var_ = typename CS::STREAM_TYPE{};
         auto& stream = std::get<typename CS::STREAM_TYPE>(stream_var_);
+        stream.setStreamTag(stream_tag_);
         stream.set_cxt(cxt_);
         stream.on_init(stream_,connect_cxt_);
         StreamVariantErrcode res = stream.on_change(change_params,ret_buf);
@@ -455,12 +457,12 @@ namespace mqas::core{
             auto ret = change_to_uncheck<F>(change_params,ret_buf,true);
             if(ret != StreamVariantErrcode::ok)
             {
-                LOG(ERROR) << "req_change_to " << CS::STREAM_TAG << " change self failed error = " << (size_t)ret;
+                LOG(ERROR) << "req_change_to " << F::STREAM_TAG << " change self failed error = " << (size_t)ret;
                 return false;
             }
             stream_variant_msg msg{};
             msg.cmd = stream_variant_cmd::req_use_stream_tag;
-            msg.param1 = static_cast<uint32_t >(CS::STREAM_TAG);
+            msg.param1 = static_cast<uint32_t >(F::STREAM_TAG);
             if(!ret_buf.empty())
                 msg.extra_params = {ret_buf};
             auto data = msg.generate();

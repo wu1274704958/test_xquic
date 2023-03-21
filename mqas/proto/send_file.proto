@@ -5,8 +5,23 @@ package mqas.tools.proto;
 message ReqSendFile{
   string name = 1;
   uint64 size = 2;
+  uint32 buf_size = 3;
+  bool overlay = 4;
 }
-message SendFileMd5{
+
+message ReqSendFileRet{
+  enum Code{
+    ok = 0;
+    already_exists = 1;
+    open_failed = 2;
+    write_failed = 3;
+    close_failed = 4;
+    md5_not_same = 5;
+  };
+  Code code = 1;
+  optional sint32 error_code = 2;
+}
+message SendFileEnd{
   string name = 1;
   bytes md5 = 2;
 }

@@ -90,6 +90,14 @@ bool mqas::core::IStreamVariant::req_quit(uint32_t curr_tag,const std::span<uint
 
 void mqas::core::IStreamVariant::on_peer_quit_ret(mqas::core::StreamVariantErrcode,const std::span<uint8_t> &) {}
 
+size_t mqas::core::IStreamVariant::getStreamTag() const {
+    return stream_tag_;
+}
+
+void mqas::core::IStreamVariant::setStreamTag(size_t streamTag) {
+    stream_tag_ = streamTag;
+}
+
 std::optional<std::vector<uint8_t>> mqas::core::MsgHeader::generate() const {
     PKG_T pkg;
     std::vector<uint8_t> body;

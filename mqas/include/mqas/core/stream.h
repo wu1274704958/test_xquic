@@ -16,6 +16,7 @@ namespace mqas::core {
     class MQAS_EXTERN IStreamVariant : public IStream {
     public:
         //interface
+
         StreamVariantErrcode on_change(const std::span<uint8_t> &params,
                                                    std::vector<uint8_t> &ret_buf);
         void on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params);
@@ -24,8 +25,11 @@ namespace mqas::core {
         bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={});
         [[nodiscard]] bool isWaitPeerChangeRet() const;
         void setIsWaitPeerChangeRet(bool isWaitPeerChangeRet);
+        [[nodiscard]] size_t getStreamTag() const;
+        void setStreamTag(size_t streamTag);
     protected:
         bool is_wait_peer_change_ret_:1 = false;
+        size_t stream_tag_ = 0;
     };
 
     template<typename T>

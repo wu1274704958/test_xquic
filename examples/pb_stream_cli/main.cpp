@@ -35,7 +35,7 @@ public:
         proto::SayByeMsg bye;
         bye.set_num(1);
         bye.set_num2(2);
-        send_req_quit<SayByeMsgPair>(STREAM_TAG,bye);
+        send_req_quit<SayByeMsgPair>(1,bye);
     }
     void on_peer_quit_ret_msg_s(core::StreamVariantErrcode e,const std::shared_ptr<proto::SayByeMsg>& bye)
     {
