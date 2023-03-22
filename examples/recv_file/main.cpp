@@ -6,23 +6,16 @@
 #include <mqas/core/connect.h>
 #include <mqas/core/stream.h>
 #include <uv.h>
+#include <mqas/tools/stream/recv_file.h>
 using namespace mqas;
 
-class UserStream:public core::IStreamVariant
-{
-};
-class FileStream:public core::IStreamVariant
-{
-};
 MQAS_SHARE_EASYLOGGINGPP
 int main(int argc,const char** argv)
 {
-    constexpr int a = O_RDONLY;
 	Context<core::InitFlags::GLOBAL_SERVER> context;
 	io::Context io_cxt;
 	core::engine_base<core::engine<core::Connect<core::StreamVariant<
-	        core::StreamVariantPair<1,UserStream>,
-            core::StreamVariantPair<2,FileStream>
+	        core::StreamVariantPair<1,tools::RecvFileStream>
             >>>> e(io_cxt);
 	try{
 		e.init("conf.txt",core::EngineFlags::Server);
@@ -32,7 +25,6 @@ int main(int argc,const char** argv)
 	{
 		std::cerr << e.what() << std::endl;
 	}
-    LOG(ERROR) << "......................";
 	io_cxt.run_until(IsRunning());
 	return 0;
 }

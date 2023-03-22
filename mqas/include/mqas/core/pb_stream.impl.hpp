@@ -72,7 +72,7 @@ namespace mqas::core {
         auto pb_stream = this;
         auto [it,ok] = msg_parsers_.try_emplace(CM::PB_MSG_ID,[pb_stream](const MsgHeader& wrapper,MsgOrigin origin)->std::shared_ptr<google::protobuf::Message>{
             auto msg = std::make_shared<MSG_T>();
-            if(!msg->ParsePartialFromArray(wrapper.msg_body.data(),wrapper.msg_body.size()))
+            if(!wrapper.msg_body.empty() && !msg->ParsePartialFromArray(wrapper.msg_body.data(),wrapper.msg_body.size()))
             {
                 LOG(ERROR) << "Try parse proto buf message " << CM::PB_MSG_ID << " failed";
                 return nullptr;
@@ -101,7 +101,8 @@ namespace mqas::core {
         if(!pkg) return {};
         MsgHeader mh{};
         mh.msg_id = comm::from_big_endian<MsgHeader::IT>(std::span<uint8_t>(&pkg->body[0],sizeof(MsgHeader::IT)));
-        mh.msg_body = std::span<uint8_t>(&pkg->body[sizeof(MsgHeader::IT)],pkg->body.size() - sizeof(MsgHeader::IT));
+        if( pkg->body.size() > sizeof(MsgHeader::IT))
+           mh.msg_body = std::span<uint8_t>(&pkg->body[sizeof(MsgHeader::IT)],pkg->body.size() - sizeof(MsgHeader::IT));
         mh.use_len = use_len;
         return mh;
     }

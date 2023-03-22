@@ -12,7 +12,7 @@
 #include <sigc++/sigc++.h>
 
 namespace mqas::tools{
-    class MQAS_EXTERN SendFileStream : public core::ProtoBufStream<ReqSendFileMsgPair,SendFileEndMsgPair,ReqSendFileMsgRetPair>{
+    class MQAS_EXTERN SendFileStream : public core::ProtoBufStream<SendFileStream,ReqSendFileMsgPair,SendFileEndMsgPair,ReqSendFileMsgRetPair>{
     public:
         using ON_PEER_CHANGE_RET_ERR_SIGNAL_T = sigc::signal<void(SendFileStream*,const proto::ReqSendFileRet&)>;
         using ON_READ_FILE_FAILED_SIGNAL_T = sigc::signal<void(ssize_t)>;
@@ -24,7 +24,9 @@ namespace mqas::tools{
         sigc::connection add_on_change_ret_err_cb(const typename ON_PEER_CHANGE_RET_ERR_SIGNAL_T::slot_type &);
         void on_read_msg_s(const std::shared_ptr<proto::ReqSendFileRet>& ret);
         void on_peer_quit_ret_msg_s(core::StreamVariantErrcode e,const std::shared_ptr<proto::ReqSendFileRet>& ret);
+        void close_file();
         void on_close();
+        static void on_read_file_cb(uv_fs_t*);
     protected:
         ON_PEER_CHANGE_RET_ERR_SIGNAL_T on_peer_change_ret_err_cb_;
         ON_READ_FILE_FAILED_SIGNAL_T on_read_failed_cb_;

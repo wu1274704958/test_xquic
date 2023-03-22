@@ -41,26 +41,7 @@ mqas::tools::SendFileStream::on_peer_change_ret_msg_s(mqas::core::StreamVariantE
         return;
     }else{
         buf_ = uv_buf_init((char*)real_buf_.data(),real_buf_.size());
-        uv_fs_read(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(),&read_req_,file_,&buf_,1,-1,[](uv_fs_t* req){
-            auto self = static_cast<SendFileStream*>(req->ptr);
-            if (req->result < 0) {
-                LOG(ERROR) << "SendFileStream read file failed " << req->result;
-                self->on_read_failed_cb_.emit(req->result);
-                self->close();
-            }
-            else if (req->result == 0) {
-                uint8_t arr[MD5_DIGEST_LENGTH]{0};
-                MD5_Final(arr,&self->md5Ctx_);
-                proto::SendFileEnd end;
-                end.set_name(self->req_msg_->name());
-                end.set_md5(arr,sizeof (arr));
-                self->send_req_quit<SendFileEndMsgPair>(self->stream_tag_,end);
-            }
-            else if (req->result > 0) {
-                MD5_Update(&self->md5Ctx_,self->buf_.base,self->buf_.len);
-                self->write(std::span<uint8_t>((uint8_t*)self->buf_.base,self->buf_.len));
-            }
-        });
+        uv_fs_read(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(),&read_req_,file_,&buf_,1,-1,on_read_file_cb);
         read_req_.ptr = this;
     }
 }
@@ -92,11 +73,39 @@ sigc::connection mqas::tools::SendFileStream::add_on_change_ret_err_cb(const typ
 
 void mqas::tools::SendFileStream::on_close() {
     IStream::on_close();
-    if(buf_.base != nullptr) {
-        uv_fs_req_cleanup(&read_req_);
-        buf_ = {};
+    close_file();
+}
+
+void mqas::tools::SendFileStream::on_read_file_cb(uv_fs_t *req) {
+    auto self = static_cast<SendFileStream*>(req->ptr);
+    if (req->result < 0) {
+        LOG(ERROR) << "SendFileStream read file failed " << req->result;
+        self->on_read_failed_cb_.emit(req->result);
+        self->close();
     }
-    if(file_ != 0)
-        uv_fs_close(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(),&read_req_,file_, nullptr);
+    else if (req->result == 0) {
+        uint8_t arr[MD5_DIGEST_LENGTH]{0};
+        MD5_Final(arr,&self->md5Ctx_);
+        proto::SendFileEnd end;
+        end.set_name(self->req_msg_->name());
+        end.set_md5(arr,sizeof (arr));
+        self->send_req_quit<SendFileEndMsgPair>(self->stream_tag_,end);
+        uv_fs_req_cleanup(req);
+        self->close_file();
+    }
+    else if (req->result > 0) {
+        MD5_Update(&self->md5Ctx_,self->buf_.base,req->result);
+        self->write(std::span<uint8_t>((uint8_t*)self->buf_.base,req->result));
+        uv_fs_req_cleanup(req);
+        uv_fs_read(self->connect_cxt_->engine_cxt_->io_cxt->get_loop().get(),&self->read_req_,self->file_,&self->buf_,1,-1,on_read_file_cb);
+        self->read_req_.ptr = self;
+    }
+}
+
+void mqas::tools::SendFileStream::close_file() {
+    if(file_ != 0) {
+        uv_fs_close(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(), &read_req_, file_, nullptr);
+        file_ = 0;
+    }
 }
 
