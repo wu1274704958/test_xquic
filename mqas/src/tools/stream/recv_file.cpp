@@ -11,25 +11,31 @@ mqas::tools::RecvFileStream::on_change_msg_s(const std::shared_ptr<proto::ReqSen
     proto::ReqSendFileRet ret;
     int mode = req->overlay() ? O_RDWR : O_CREAT | O_RDWR;
     ret.set_code(proto::ReqSendFileRet_Code_ok);
-    if(!req->overlay() && fs::exists(req->name())) {
-        ret.set_code(proto::ReqSendFileRet_Code_already_exists);
-        core::ProtoBufMsg::write_msg<ReqSendFileMsgRetPair>(ret_buf,ret);
-        return mqas::core::StreamVariantErrcode::failed;
-    }
-    uv_fs_t open_req;
-    int fd = uv_fs_open(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(),&open_req,req->name().c_str(),mode,0666, nullptr);
-    if(fd < 0)
-    {
-        ret.set_code(proto::ReqSendFileRet_Code_open_failed);
-        ret.set_error_code(fd);
-        core::ProtoBufMsg::write_msg<ReqSendFileMsgRetPair>(ret_buf,ret);
-        return mqas::core::StreamVariantErrcode::failed;
-    }
-    file_ = fd;
+//    if(!req->overlay() && fs::exists(req->name())) {
+//        ret.set_code(proto::ReqSendFileRet_Code_already_exists);
+//        core::ProtoBufMsg::write_msg<ReqSendFileMsgRetPair>(ret_buf,ret);
+//        return mqas::core::StreamVariantErrcode::failed;
+//    }
+    uv_fs_open(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(),&open_req_,req->name().c_str(),mode,0666, [](uv_fs_t* req){
+        auto self = static_cast<RecvFileStream*>(req->ptr);
+        core::StreamVariantErrcode errcode = core::StreamVariantErrcode::ok;
+        proto::ReqSendFileRet ret;
+        ret.set_code(proto::ReqSendFileRet_Code_ok);
+        if(req->result < 0)
+        {
+            ret.set_code(proto::ReqSendFileRet_Code_open_failed);
+            ret.set_error_code((int )req->result);
+            errcode = core::StreamVariantErrcode::failed;
+        }else{
+            self->file_ = (uv_file)req->result;
+            MD5_Init(&self->md5Ctx_);
+        }
+        self->send_sv_msg<ReqSendFileMsgRetPair,core::stream_variant_cmd::req_use_stream_tag>(ret,self->stream_tag_,0,1,errcode);
+        uv_fs_req_cleanup(req);
+    });
+    open_req_.ptr = this;
     req_msg_ = req;
-    MD5_Init(&md5Ctx_);
-    core::ProtoBufMsg::write_msg<ReqSendFileMsgRetPair>(ret_buf,ret);
-    return mqas::core::StreamVariantErrcode::ok;
+    return mqas::core::StreamVariantErrcode::skip_and_manual;
 }
 
 bool mqas::tools::RecvFileStream::is_recv_end() const {
@@ -39,26 +45,25 @@ bool mqas::tools::RecvFileStream::is_recv_end() const {
 size_t mqas::tools::RecvFileStream::on_read(const std::span<const uint8_t> &current) {
     if(is_recv_end())
         return ProtoBufStream::on_read(current);
-    auto is_empty = write_req_.empty();
+    auto expect_max_size = req_msg_->size() - recv_bytes_;
+    auto real_size = current.size() > expect_max_size ? expect_max_size : current.size();
     write_req_.emplace_back(std::make_tuple<std::shared_ptr<uv_fs_t>,std::vector<uint8_t>,uv_buf_t>(std::make_shared<uv_fs_t>(),{},{}));
     auto& back = write_req_.back();
     auto& write_req = std::get<0>(back);
     auto& real_buf = std::get<1>(back);
     auto& buf = std::get<2>(back);
 
-    real_buf.resize(current.size());
-    memcpy(real_buf.data(),current.data(),current.size());
-    MD5_Update(&md5Ctx_,current.data(),current.size());
+    real_buf.resize(real_size);
+    memcpy(real_buf.data(),current.data(),real_size);
+    MD5_Update(&md5Ctx_,current.data(),real_size);
     buf = uv_buf_init((char *) real_buf.data(), real_buf.size());
-    recv_bytes_ += current.size();
+    recv_bytes_ += real_size;
     if(is_recv_end())
         setIsWaitPeerChangeRet(true);
-    if(is_empty) {
-        uv_fs_write(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(), write_req.get(), file_, &buf, 1, -1,
+    uv_fs_write(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(), write_req.get(), file_, &buf, 1, -1,
                     on_write_file_cb);
-        write_req->ptr = this;
-    }
-    return current.size();
+    write_req->ptr = this;
+    return real_size;
 }
 
 mqas::core::StreamVariantErrcode
@@ -75,19 +80,26 @@ mqas::tools::RecvFileStream::on_peer_quit_msg_s(const std::shared_ptr<proto::Sen
         core::ProtoBufMsg::write_msg<ReqSendFileMsgRetPair>(ret_buf,ret);
         return mqas::core::StreamVariantErrcode::failed;
     }
-    while(file_ != 0){}
+    is_checked_md5 = true;
+    if(file_ != 0)
+        return core::StreamVariantErrcode::skip_and_manual;
     return mqas::core::StreamVariantErrcode::ok;
 }
 
 void mqas::tools::RecvFileStream::on_close() {
     IStream::on_close();
-    close_file();
+    if(!write_req_.empty())
+    {
+        for(auto & i : write_req_)
+            uv_fs_req_cleanup(std::get<0>(i).get());
+        write_req_.clear();
+    }
+    close_file_sync();
 }
 
-void mqas::tools::RecvFileStream::close_file() {
+void mqas::tools::RecvFileStream::close_file_sync() {
     if(file_!=0) {
-        uv_fs_t close_req;
-        uv_fs_close(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(), &close_req, file_, nullptr);
+        uv_fs_close(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(), &close_req_, file_, nullptr);
         file_ = 0;
     }
 }
@@ -108,9 +120,8 @@ void mqas::tools::RecvFileStream::on_write_file_cb(uv_fs_t *req) {
         self->write_bytes_ += res;
     }
     uv_fs_req_cleanup(req);
-    printf("wb = %zu/%zu\n",self->write_bytes_,self->req_msg_->size());
     if(self->write_bytes_ >= self->req_msg_->size()) {
-        self->close_file();
+        self->close_file_async();
     }
     for(auto it = self->write_req_.begin();it != self->write_req_.end();++it)
     {
@@ -120,9 +131,21 @@ void mqas::tools::RecvFileStream::on_write_file_cb(uv_fs_t *req) {
             break;
         }
     }
-    auto& write_req = std::get<0>(self->write_req_[0]);
-    auto& buf = std::get<2>(self->write_req_[0]);
-    uv_fs_write(self->connect_cxt_->engine_cxt_->io_cxt->get_loop().get(), write_req.get(), self->file_, &buf, 1, -1,
-                on_write_file_cb);
-    write_req->ptr = self;
+}
+
+void mqas::tools::RecvFileStream::close_file_async() {
+    if(file_!=0) {
+        uv_fs_close(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(), &close_req_, file_, [](uv_fs_t* req){
+            auto self = static_cast<RecvFileStream*>(req->ptr);
+            uv_fs_req_cleanup(req);
+            self->file_ = 0;
+            if(self->is_checked_md5)
+            {
+                proto::ReqSendFileRet ret;
+                ret.set_code(proto::ReqSendFileRet_Code_ok);
+                self->send_sv_msg<ReqSendFileMsgRetPair,core::stream_variant_cmd::req_quit_hold_stream>(ret,self->stream_tag_,0,1,core::StreamVariantErrcode::ok);
+            }
+        });
+        close_req_.ptr = this;
+    }
 }

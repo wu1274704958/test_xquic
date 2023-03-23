@@ -29,10 +29,12 @@ namespace mqas::core{
     size_t StreamVariant<S...>::do_read_shell()
     {
         auto ret = IStream::do_read();
-        if(ret > 0) {
+        while(IStream::has_unread_data()) {
             const auto span = IStream::read_all_not_move();
             if (const auto read_len = on_read(span); read_len > 0)
                 IStream::move_read_pos_uncheck(read_len);
+            else if(read_len == 0)
+                break;
         }
         return ret;
     }
@@ -277,10 +279,13 @@ namespace mqas::core{
                     std::vector<uint8_t> ret_buf{};
                     msg->errcode = StreamVariantErrcode::ok;
                     msg->param3 = 1;
-                    if(auto ret = change_to(static_cast<size_t>(msg->param1),msg->extra_params,ret_buf); ret != StreamVariantErrcode::ok) {
-                        LOG(ERROR) << "StreamVariant handle req change to " << msg->param1 << " failed error = " << (int)ret;
-                        msg->errcode = ret;
+                    auto change_ret = change_to(static_cast<size_t>(msg->param1),msg->extra_params,ret_buf);
+                    if(change_ret != StreamVariantErrcode::ok && change_ret != StreamVariantErrcode::skip_and_manual) {
+                        LOG(ERROR) << "StreamVariant handle req change to " << msg->param1 << " failed error = " << (int)change_ret;
+                        msg->errcode = change_ret;
                     }
+                    if(change_ret == StreamVariantErrcode::skip_and_manual)
+                        break;
                     if(!ret_buf.empty())
                         msg->extra_params = std::span<uint8_t >({ret_buf});
                     else
@@ -304,7 +309,8 @@ namespace mqas::core{
                     if(msg->param1 != stream_tag_)
                         msg->errcode = StreamVariantErrcode::tag_not_eq;
                     if(msg->errcode == StreamVariantErrcode::ok) {
-                        msg->errcode = on_peer_quit(msg->extra_params,ret_buf);
+                        if((msg->errcode = on_peer_quit(msg->extra_params,ret_buf)) == StreamVariantErrcode::skip_and_manual)
+                            break;
                         clear_curr_stream();
                     }
                     if(!ret_buf.empty())
@@ -386,10 +392,12 @@ namespace mqas::core{
         if(cs.isWaitPeerChangeRet())
             return do_read_shell();
         const auto ret = cs.do_read();
-        if(ret > 0) {
+        while (cs.has_unread_data()) {
             const auto span = cs.read_all_not_move();
             if (const size_t read_len = cs.on_read(span);read_len > 0)
                 cs.move_read_pos_uncheck(read_len);
+            else if(read_len == 0)
+                break;
         }
         return ret;
     }
@@ -433,12 +441,12 @@ namespace mqas::core{
         stream.set_cxt(cxt_);
         stream.on_init(stream_,connect_cxt_);
         StreamVariantErrcode res = stream.on_change(change_params,ret_buf);
-        if(res != StreamVariantErrcode::ok) {
+        if(res != StreamVariantErrcode::ok && res != StreamVariantErrcode::skip_and_manual) {
             clear_curr_stream();
             return res;
         }
         if(is_req)stream.setIsWaitPeerChangeRet(true);
-        return StreamVariantErrcode::ok;
+        return res;
     }
 
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -455,11 +463,13 @@ namespace mqas::core{
         {
             std::vector<uint8_t> ret_buf{};
             auto ret = change_to_uncheck<F>(change_params,ret_buf,true);
-            if(ret != StreamVariantErrcode::ok)
+            if(ret != StreamVariantErrcode::ok && ret != StreamVariantErrcode::skip_and_manual)
             {
                 LOG(ERROR) << "req_change_to " << F::STREAM_TAG << " change self failed error = " << (size_t)ret;
                 return false;
             }
+            if(ret == StreamVariantErrcode::skip_and_manual)
+                return true;
             stream_variant_msg msg{};
             msg.cmd = stream_variant_cmd::req_use_stream_tag;
             msg.param1 = static_cast<uint32_t >(F::STREAM_TAG);

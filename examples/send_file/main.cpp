@@ -33,6 +33,19 @@ int main(int argc,const char** argv)
                 tools::proto::ReqSendFile msg;
                 msg.set_name(argv[1]);
                 s->req_change<tools::SendFileStream,tools::ReqSendFileMsgPair>(msg);
+                auto real_stream = s->get_holds_stream<tools::SendFileStream>();
+                real_stream->add_on_success_cb([](tools::SendFileStream* s){
+                    printf("send success\n");
+                    s->close();
+                });
+                real_stream->add_on_read_failed_cb([](tools::SendFileStream* s,ssize_t code){
+                    std::cout <<  "read failed " << code << std::endl;
+                    s->close();
+                });
+                real_stream->add_on_change_ret_err_cb([](tools::SendFileStream* s,const tools::proto::ReqSendFileRet& ret){
+                    std::cout <<  "peer ret code " << ret.code() << " err = " << ret.error_code() << std::endl;
+                    s->close();
+                });
             }
         });
 	}catch (std::exception& e)

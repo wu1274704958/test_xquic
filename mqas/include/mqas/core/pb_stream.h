@@ -46,6 +46,9 @@ namespace mqas::core{
         template<class SM>
         requires IsProtoBufMsgConf<SM>
         bool send_req_quit(uint32_t curr_tag,const typename SM::PB_MSG_TYPE&);
+        template<class SM,stream_variant_cmd C>
+        requires IsProtoBufMsgConf<SM>
+        bool send_sv_msg(const typename SM::PB_MSG_TYPE&,uint32_t p1,uint16_t p2,uint8_t p3,StreamVariantErrcode errcode);
     protected:
         [[nodiscard]] std::optional<MsgHeader> parse_base_msg(const std::span<uint8_t>&) const;
         void init_msg_parsers();

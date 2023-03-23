@@ -350,6 +350,25 @@ namespace mqas::core {
             return false;
         return req_quit(curr_tag,{*buf});
     }
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    template<class SM,stream_variant_cmd C>
+    requires IsProtoBufMsgConf<SM>
+    bool ProtoBufStream<S,M...>::send_sv_msg(const typename SM::PB_MSG_TYPE& m,uint32_t p1,uint16_t p2,uint8_t p3,StreamVariantErrcode errcode)
+    {
+        stream_variant_msg msg;
+        msg.cmd = C;
+        msg.param1 = p1;
+        msg.param2 = p2;
+        msg.param3 = p3;
+        msg.errcode = errcode;
+        auto buf = ProtoBufMsg::write_msg<SM>(m);
+        if(!buf)
+            return false;
+        msg.extra_params = {*buf};
+        auto data = msg.generate();
+        if(!data)return false;
+        return write({*data});
+    }
 }
 
 #undef MQAS_PB_STREAM_TEMPLATE_DECL

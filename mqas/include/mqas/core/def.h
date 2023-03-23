@@ -30,7 +30,8 @@ namespace mqas::core
     };
     enum class StreamVariantErrcode : uint8_t {
         ok = 0,
-        failed_not_find = 1,
+        skip_and_manual,
+        failed_not_find,
         parse_failed,
         not_support,
         tag_not_eq,
