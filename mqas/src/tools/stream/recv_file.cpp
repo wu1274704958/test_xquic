@@ -43,8 +43,6 @@ bool mqas::tools::RecvFileStream::is_recv_end() const {
 }
 
 size_t mqas::tools::RecvFileStream::on_read(const std::span<const uint8_t> &current) {
-    if(is_recv_end())
-        return ProtoBufStream::on_read(current);
     auto expect_max_size = req_msg_->size() - recv_bytes_;
     auto real_size = current.size() > expect_max_size ? expect_max_size : current.size();
     write_req_.emplace_back(std::make_tuple<std::shared_ptr<uv_fs_t>,std::vector<uint8_t>,uv_buf_t>(std::make_shared<uv_fs_t>(),{},{}));

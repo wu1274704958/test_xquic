@@ -394,12 +394,25 @@ namespace mqas::core{
         const auto ret = cs.do_read();
         while (cs.has_unread_data()) {
             const auto span = cs.read_all_not_move();
-            if (const size_t read_len = cs.on_read(span);read_len > 0)
+            if (const size_t read_len = cs.on_read(span);read_len > 0) {
                 cs.move_read_pos_uncheck(read_len);
-            else if(read_len == 0)
+                if(cs.has_unread_data() && cs.isWaitPeerChangeRet())
+                {
+                    hold_stream_unread_moveto_shell(cs);
+                    return do_read_shell();
+                }
+            }else if(read_len == 0)
                 break;
         }
         return ret;
+    }
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    template<typename CS>
+    requires (std::is_base_of_v<IStream,CS>)
+    void StreamVariant<S...>::hold_stream_unread_moveto_shell(CS& cs)
+    {
+        const auto span = cs.read_all();
+        IStream::append_unread(std::span<uint8_t>((uint8_t*)span.data(),span.size()));
     }
 
     MQAS_STREAM_IMPL_TEMPLATE_DECL

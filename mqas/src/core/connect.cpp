@@ -200,4 +200,10 @@ bool mqas::core::IStream::flush() const {
     return true;
 }
 
+void mqas::core::IStream::append_unread(const std::span<uint8_t> &d) {
+    const size_t old_len = read_buf_.size();
+    read_buf_.resize(old_len + d.size());
+    std::memcpy(&read_buf_[old_len],d.data(),d.size());
+}
+
 

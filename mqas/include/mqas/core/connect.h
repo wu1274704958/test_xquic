@@ -44,6 +44,7 @@ namespace mqas::core{
         void move_read_pos_uncheck(size_t sz);
     protected:
         std::span<const uint8_t> read_uncheck(size_t sz);
+        void append_unread(const std::span<uint8_t>&);
         static size_t reader_read(void *lsqr_ctx, void *buf, size_t count);
         static size_t reader_size(void *lsqr_ctx);
         static size_t read_func(void *ctx, const unsigned char *buf, size_t len, [[maybe_unused]] int fin);

@@ -122,6 +122,9 @@ namespace mqas::core {
         template<typename CS>
         requires variability_stream_require<CS>
         bool req_change_to([[maybe_unused]] const std::span<uint8_t>& change_params);
+        template<typename CS>
+        requires (std::is_base_of_v<IStream,CS>)
+        void hold_stream_unread_moveto_shell(CS& cs);
     protected:
             std::variant<std::monostate,typename S::STREAM_TYPE ...> stream_var_;
             size_t stream_tag_ = 0;
