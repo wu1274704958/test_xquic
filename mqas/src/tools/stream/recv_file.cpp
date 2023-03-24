@@ -16,8 +16,9 @@ mqas::tools::RecvFileStream::on_change_msg_s(const std::shared_ptr<proto::ReqSen
 //        core::ProtoBufMsg::write_msg<ReqSendFileMsgRetPair>(ret_buf,ret);
 //        return mqas::core::StreamVariantErrcode::failed;
 //    }
+    open_req_.data = this;
     uv_fs_open(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(),&open_req_,req->name().c_str(),mode,0666, [](uv_fs_t* req){
-        auto self = static_cast<RecvFileStream*>(req->ptr);
+        auto self = static_cast<RecvFileStream*>(req->data);
         core::StreamVariantErrcode errcode = core::StreamVariantErrcode::ok;
         proto::ReqSendFileRet ret;
         ret.set_code(proto::ReqSendFileRet_Code_ok);
@@ -33,7 +34,6 @@ mqas::tools::RecvFileStream::on_change_msg_s(const std::shared_ptr<proto::ReqSen
         self->send_sv_msg<ReqSendFileMsgRetPair,core::stream_variant_cmd::req_use_stream_tag>(ret,self->stream_tag_,0,1,errcode);
         uv_fs_req_cleanup(req);
     });
-    open_req_.ptr = this;
     req_msg_ = req;
     return mqas::core::StreamVariantErrcode::skip_and_manual;
 }
@@ -58,9 +58,10 @@ size_t mqas::tools::RecvFileStream::on_read(const std::span<const uint8_t> &curr
     recv_bytes_ += real_size;
     if(is_recv_end())
         setIsWaitPeerChangeRet(true);
+    write_req->data = this;
     uv_fs_write(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(), write_req.get(), file_, &buf, 1, -1,
                     on_write_file_cb);
-    write_req->ptr = this;
+
     return real_size;
 }
 
@@ -98,12 +99,13 @@ void mqas::tools::RecvFileStream::on_close() {
 void mqas::tools::RecvFileStream::close_file_sync() {
     if(file_!=0) {
         uv_fs_close(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(), &close_req_, file_, nullptr);
+        uv_fs_req_cleanup(&close_req_);
         file_ = 0;
     }
 }
 
 void mqas::tools::RecvFileStream::on_write_file_cb(uv_fs_t *req) {
-    auto self = static_cast<RecvFileStream*>(req->ptr);
+    auto self = static_cast<RecvFileStream*>(req->data);
     if(self == nullptr) return;
     ssize_t res = req->result;
     if (res < 0) {
@@ -133,8 +135,9 @@ void mqas::tools::RecvFileStream::on_write_file_cb(uv_fs_t *req) {
 
 void mqas::tools::RecvFileStream::close_file_async() {
     if(file_!=0) {
+        close_req_.data = this;
         uv_fs_close(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(), &close_req_, file_, [](uv_fs_t* req){
-            auto self = static_cast<RecvFileStream*>(req->ptr);
+            auto self = static_cast<RecvFileStream*>(req->data);
             uv_fs_req_cleanup(req);
             self->file_ = 0;
             if(self->is_checked_md5)
@@ -144,6 +147,5 @@ void mqas::tools::RecvFileStream::close_file_async() {
                 self->send_sv_msg<ReqSendFileMsgRetPair,core::stream_variant_cmd::req_quit_hold_stream>(ret,self->stream_tag_,0,1,core::StreamVariantErrcode::ok);
             }
         });
-        close_req_.ptr = this;
     }
 }
