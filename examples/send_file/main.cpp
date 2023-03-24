@@ -34,6 +34,10 @@ int main(int argc,const char** argv)
                 msg.set_name(argv[1]);
                 s->req_change<tools::SendFileStream,tools::ReqSendFileMsgPair>(msg);
                 auto real_stream = s->get_holds_stream<tools::SendFileStream>();
+                if(!real_stream)
+                {
+                    std::cout << "file not found or can not read" << std::endl;
+                }
                 real_stream->add_on_success_cb([](tools::SendFileStream* s){
                     printf("send success\n");
                     s->close();
