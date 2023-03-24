@@ -1,1 +1,1 @@
-docker run -it --rm -p 8083:8083/udp -p 27:27 -d ey1274704958/test_quic_dev
+docker run -it --rm -p 8083:8083/udp -p 8084:8084/udp -p 27:27 -d ey1274704958/test_quic_dev
