@@ -14,6 +14,10 @@ using Stream = core::StreamVariant<
 int main(int argc,const char** argv)
 {
     if(argc < 2) return -1;
+    auto file_path = argv[1];
+    auto buf_size = 2048;
+    if(argc >= 3)
+        buf_size = atoi(argv[2]);
 	Context<core::InitFlags::GLOBAL_CLIENT> context;
 	io::Context io_cxt;
 	core::engine_base<core::engine<core::Connect<Stream>>> e(io_cxt);
@@ -26,12 +30,14 @@ int main(int argc,const char** argv)
         auto c = e.get_engine()->connect(addr,N_LSQVER);
         auto conn = c.lock();
         auto t = io_cxt.make_handle<io::Timer>();
-        conn->make_stream([argv](std::weak_ptr<Stream> stream){
+        conn->make_stream([file_path,buf_size](std::weak_ptr<Stream> stream){
             auto s = stream.lock();
             if(s)
             {
+                std::cout << "connect stream \n";
                 tools::proto::ReqSendFile msg;
-                msg.set_name(argv[1]);
+                msg.set_name(file_path);
+                msg.set_buf_size(buf_size);
                 s->req_change<tools::SendFileStream,tools::ReqSendFileMsgPair>(msg);
                 auto real_stream = s->get_holds_stream<tools::SendFileStream>();
                 if(!real_stream)

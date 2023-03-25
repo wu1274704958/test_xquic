@@ -11,11 +11,15 @@ mqas::tools::RecvFileStream::on_change_msg_s(const std::shared_ptr<proto::ReqSen
     proto::ReqSendFileRet ret;
     int mode = req->overlay() ? O_RDWR : O_CREAT | O_RDWR;
     ret.set_code(proto::ReqSendFileRet_Code_ok);
-//    if(!req->overlay() && fs::exists(req->name())) {
-//        ret.set_code(proto::ReqSendFileRet_Code_already_exists);
-//        core::ProtoBufMsg::write_msg<ReqSendFileMsgRetPair>(ret_buf,ret);
-//        return mqas::core::StreamVariantErrcode::failed;
-//    }
+    if(req->overlay()) {
+        if(fs::exists(req->name()))
+            fs::remove(req->name());
+    }else
+    if(fs::exists(req->name())) {
+        ret.set_code(proto::ReqSendFileRet_Code_already_exists);
+        core::ProtoBufMsg::write_msg<ReqSendFileMsgRetPair>(ret_buf,ret);
+        return mqas::core::StreamVariantErrcode::failed;
+    }
     open_req_.data = this;
     uv_fs_open(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(),&open_req_,req->name().c_str(),mode,0666, [](uv_fs_t* req){
         auto self = static_cast<RecvFileStream*>(req->data);
