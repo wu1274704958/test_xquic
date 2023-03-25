@@ -12,7 +12,7 @@ mqas::tools::SendFileStream::on_change_msg_s(const std::shared_ptr<proto::ReqSen
     if(req->name().empty() || !fs::exists(req->name()))
         return core::StreamVariantErrcode::failed;
     fs::path path = req->name();
-    proto::ReqSendFile ret;
+    proto::ReqSendFile ret(*req);
     read_req_.data = this;
     uv_fs_open(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(),&read_req_,req->name().c_str(),O_RDONLY,0644, [](uv_fs_t* req){
         auto self = static_cast<SendFileStream*>(req->data);

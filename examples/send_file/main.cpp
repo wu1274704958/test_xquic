@@ -16,8 +16,11 @@ int main(int argc,const char** argv)
     if(argc < 2) return -1;
     auto file_path = argv[1];
     auto buf_size = 2048;
+    bool overlay = false;
     if(argc >= 3)
         buf_size = atoi(argv[2]);
+    if(argc >= 4)
+        overlay = argv[3][0] == '1';
 	Context<core::InitFlags::GLOBAL_CLIENT> context;
 	io::Context io_cxt;
 	core::engine_base<core::engine<core::Connect<Stream>>> e(io_cxt);
@@ -30,7 +33,7 @@ int main(int argc,const char** argv)
         auto c = e.get_engine()->connect(addr,N_LSQVER);
         auto conn = c.lock();
         auto t = io_cxt.make_handle<io::Timer>();
-        conn->make_stream([file_path,buf_size](std::weak_ptr<Stream> stream){
+        conn->make_stream([file_path,buf_size,overlay](std::weak_ptr<Stream> stream){
             auto s = stream.lock();
             if(s)
             {
@@ -38,6 +41,8 @@ int main(int argc,const char** argv)
                 tools::proto::ReqSendFile msg;
                 msg.set_name(file_path);
                 msg.set_buf_size(buf_size);
+                msg.set_overlay(overlay);
+                printf("overlay = %d\n",msg.overlay());
                 s->req_change<tools::SendFileStream,tools::ReqSendFileMsgPair>(msg);
                 auto real_stream = s->get_holds_stream<tools::SendFileStream>();
                 if(!real_stream)
