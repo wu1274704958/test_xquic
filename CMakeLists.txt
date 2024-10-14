@@ -6,7 +6,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-	add_definitions(-DWIN32_LEAN_AND_MEAN -DWIN32)
+	add_definitions(-DWIN32_LEAN_AND_MEAN -DWIN32 -DNOMINMAX)
 	add_compile_options(/EHsc)
 	set(OTH_LIBRARY ws2_32.lib)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")

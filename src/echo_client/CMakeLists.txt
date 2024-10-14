@@ -10,5 +10,5 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
     ${OTH_LIBRARY}
     ${boringssl_LIBRARY}
     ZLIB::ZLIB
-    $<IF:$<TARGET_EXISTS:uv_a>,uv_a,uv>
+    $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
 )
