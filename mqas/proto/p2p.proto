@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package mqas.tools.proto.p2p;
+
+message ReqPeerList{}
+
+message PeerData {
+    uint32 id = 1;
+    string name = 2;
+}
+
+enum RetCode{
+    ok = 0;
+    already_exists = 1;
+    not_exists = 2;
+    peer_rejected = 3;
+    failed = 4;
+}
+
+message RespondPeerList{
+    repeated PeerData peer_list = 1;
+}
+
+message ReqRegistePeer{
+    string name = 1;
+}
+
+message RespondRegistePeer{
+    RetCode ret = 1;
+}
+
+message ReqUnregistePeer{
+    string name = 1;
+}
+
+message RespondUnregistePeer{
+    RetCode ret = 1;
+}
+
+message ClientIpList{
+    repeated string ip_list = 1;
+}
+
+message ReqConnectPeer{
+    uint32 peer_id = 1;
+    ClientIpList ip_list = 2;
+}
+
+message ReqRespondPeerReqConnect{
+    bool agree = 1;
+    optional ClientIpList ip_list = 2;
+}
+
+message ConnectPeerData{
+    string ip = 1;
+    uint32 port = 2;
+    string self_key = 3;
+    string peer_key = 4;
+}
+
+message RespondConnectPeer{
+    RetCode ret = 1;
+}
+
+message NotifyConnectPeerData{
+    ConnectPeerData connect_data = 1;
+}
+
+message NotifyConnectResult{
+    RetCode ret = 1;
+    optional string reason = 2;
+}
+
+message ReqConnectPeerSuccessed{
+    uint32 peer_id = 1;
+}
+
+message RespondConnectPeerSuccessed{
+    RetCode ret = 1;
+}

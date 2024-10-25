@@ -10,6 +10,8 @@
 #include <optional>
 #include <span>
 #include <tuple>
+#pragma once
+
 #include <limits>
 
 #ifdef max
