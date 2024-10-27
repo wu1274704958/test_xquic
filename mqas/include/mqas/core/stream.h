@@ -8,6 +8,7 @@
 #define MQAS_STREAM_H
 
 #include <variant>
+#include <stack>
 #include <mqas/core/connect.h>
 #include <mqas/core/protobuf_msg.h>
 
@@ -125,8 +126,18 @@ namespace mqas::core {
         template<typename CS>
         requires (std::is_base_of_v<IStream,CS>)
         void hold_stream_unread_moveto_shell(CS& cs);
+        void try_push_curr_stream();
+        
+        template<typename SP>
+        requires variability_stream_pair_require<SP>
+        void push_stream(std::shared_ptr<typename SP::STREAM_TYPE> stream);
+        void try_pop_stream();
+        template<typename SP>
+        requires variability_stream_pair_require<SP>
+        void set_curr_stream(std::shared_ptr<IStream> stream);
     protected:
-            std::variant<std::monostate,typename S::STREAM_TYPE ...> stream_var_;
+            std::variant<std::monostate,typename std::shared_ptr<typename S::STREAM_TYPE> ...> stream_var_;
+            std::stack<std::pair<size_t,std::shared_ptr<IStream>>> stack;
             size_t stream_tag_ = 0;
     };
 }

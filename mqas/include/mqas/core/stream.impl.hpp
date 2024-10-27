@@ -42,7 +42,7 @@ namespace mqas::core{
     size_t StreamVariant<S...>::do_read_hold()
     {
         size_t ret = 0;
-        ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (ret = do_read_curr(std::get<typename S::STREAM_TYPE>(stream_var_)))),...);
+        ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (ret = do_read_curr(*std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)))),...);
         return ret;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -52,7 +52,7 @@ namespace mqas::core{
         {
             IStream::do_write();
         }else{
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).do_write(),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->do_write(),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -62,7 +62,7 @@ namespace mqas::core{
         {
             IStream::on_close();
         }else{
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).on_close(),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->on_close(),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -72,7 +72,7 @@ namespace mqas::core{
         {
             IStream::on_reset(how);
         }else{
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).on_reset(how),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->on_reset(how),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -83,7 +83,7 @@ namespace mqas::core{
             return IStream::write(d);
         }else{
             bool ret = false;
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (ret = std::get<typename S::STREAM_TYPE>(stream_var_).write(d))),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->write(d))),...);
             return ret;
         }
     }
@@ -95,7 +95,7 @@ namespace mqas::core{
             return IStream::want_read();
         }else{
             bool ret = false;
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).want_read(f)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->want_read(f)),...);
             return ret;
         }
     }
@@ -107,7 +107,7 @@ namespace mqas::core{
             return IStream::want_write();
         }else{
             bool ret = false;
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).want_write(f)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->want_write(f)),...);
             return ret;
         }
     }
@@ -120,7 +120,7 @@ namespace mqas::core{
             return IStream::get_cxt();
         }else{
             void* ret = nullptr;
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).get_cxt()),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->get_cxt()),...);
             return ret;
         }
     }
@@ -131,7 +131,7 @@ namespace mqas::core{
         {
             IStream::set_cxt(c);
         }else{
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).set_cxt(c),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->set_cxt(c),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -141,7 +141,7 @@ namespace mqas::core{
         {
             IStream::clear_read_buf();
         }else{
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).clear_read_buf(),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->clear_read_buf(),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -152,7 +152,7 @@ namespace mqas::core{
             return IStream::has_unread_data();
         }else{
             bool ret = false;
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).has_unread_data()),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->has_unread_data()),...);
             return ret;
         }
     }
@@ -164,7 +164,7 @@ namespace mqas::core{
             return IStream::read(sz);
         }else{
             std::span<const uint8_t> ret;
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (ret = std::get<typename S::STREAM_TYPE>(stream_var_).read(sz),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->read(sz),false)),...);
             return ret;
         }
     }
@@ -176,7 +176,7 @@ namespace mqas::core{
             return IStream::read_all();
         }else{
             std::span<const uint8_t> ret;
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (ret = std::get<typename S::STREAM_TYPE>(stream_var_).read_all()),false),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->read_all()),false),...);
             return ret;
         }
     }
@@ -188,7 +188,7 @@ namespace mqas::core{
             return IStream::read_all_not_move();
         }else{
             std::span<const uint8_t> ret;
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (ret = std::get<typename S::STREAM_TYPE>(stream_var_).read_all_not_move()),false),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->read_all_not_move()),false),...);
             return ret;
         }
     }
@@ -200,7 +200,7 @@ namespace mqas::core{
             return IStream::unread_size();
         }else{
             size_t ret;
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).unread_size()),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->unread_size()),...);
             return ret;
         }
     }
@@ -209,7 +209,7 @@ namespace mqas::core{
     {
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).on_peer_change_ret(code,params),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->on_peer_change_ret(code,params),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -219,7 +219,7 @@ namespace mqas::core{
         if(stream_tag_ > 0)
         {
             StreamVariantErrcode ret = StreamVariantErrcode::ok;
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (ret = std::get<typename S::STREAM_TYPE>(stream_var_).on_peer_quit(d,buf),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->on_peer_quit(d,buf),false)),...);
             return ret;
         }
         return StreamVariantErrcode::failed_not_find;
@@ -229,7 +229,7 @@ namespace mqas::core{
     {
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).on_peer_quit_ret(e,d),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->on_peer_quit_ret(e,d),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -238,7 +238,7 @@ namespace mqas::core{
         bool ret = false;
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).req_quit(curr_tag,d)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->req_quit(curr_tag,d)),...);
         }
         return ret;
     }
@@ -248,7 +248,7 @@ namespace mqas::core{
         bool ret = false;
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && ret = std::get<typename S::STREAM_TYPE>(stream_var_).isWaitPeerChangeRet()),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->isWaitPeerChangeRet()),...);
         }
         return ret;
     }
@@ -257,7 +257,7 @@ namespace mqas::core{
     {
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<typename S::STREAM_TYPE>(stream_var_) && (std::get<typename S::STREAM_TYPE>(stream_var_).setIsWaitPeerChangeRet(v),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->setIsWaitPeerChangeRet(v),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -448,17 +448,17 @@ namespace mqas::core{
     {
         clear_curr_stream();
         stream_tag_ = CS::STREAM_TAG;
-        stream_var_ = typename CS::STREAM_TYPE{};
-        auto& stream = std::get<typename CS::STREAM_TYPE>(stream_var_);
-        stream.setStreamTag(stream_tag_);
-        stream.set_cxt(cxt_);
-        stream.on_init(stream_,connect_cxt_,connect);
-        StreamVariantErrcode res = stream.on_change(change_params,ret_buf);
+        stream_var_ = std::make_shared<typename CS::STREAM_TYPE>();
+        auto stream = std::get<std::shared_ptr<typename CS::STREAM_TYPE>>(stream_var_);
+        stream->setStreamTag(stream_tag_);
+        stream->set_cxt(cxt_);
+        stream->on_init(stream_,connect_cxt_,connect);
+        StreamVariantErrcode res = stream->on_change(change_params,ret_buf);
         if(res != StreamVariantErrcode::ok && res != StreamVariantErrcode::skip_and_manual) {
             clear_curr_stream();
             return res;
         }
-        if(is_req)stream.setIsWaitPeerChangeRet(true);
+        if(is_req)stream->setIsWaitPeerChangeRet(true);
         return res;
     }
 
@@ -501,6 +501,40 @@ namespace mqas::core{
     bool StreamVariant<S...>::req_change_to([[maybe_unused]] const std::span<uint8_t>& change_params)
     {
         return false;
+    }
+
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    void StreamVariant<S...>::try_push_curr_stream()
+    {
+        if (stream_tag_ == 0)
+            return;
+        ((S::STREAM_TAG == stream_tag_ && ((push_stream<S>(std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_))), false)), ...);
+    }
+
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    template<typename SP>
+        requires variability_stream_pair_require<SP>
+    void StreamVariant<S...>::push_stream(std::shared_ptr<typename SP::STREAM_TYPE> stream)
+    {
+        stack.push(std::make_pair(SP::STREAM_TAG,std::dynamic_pointer_cast<IStream>(stream)));
+    }
+
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    void StreamVariant<S...>::try_pop_stream()
+    {
+        if(stack.empty())
+            return;
+        auto top = stack.top();
+        stack.pop();
+        ((S::STREAM_TAG == top.first && ((set_curr_stream<S>(top.second))), false)), ...);
+    }
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    template<typename SP>
+        requires variability_stream_pair_require<SP>
+    void StreamVariant<S...>::set_curr_stream(std::shared_ptr<IStream> stream)
+    {
+        stream_tag_ = SP::STREAM_TAG;
+        stream_var_ = std::dynamic_pointer_cast<typename SP::STREAM_TYPE>(stream);
     }
 }
 
