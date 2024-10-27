@@ -89,9 +89,7 @@ struct RespondRegistePeerDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RespondRegistePeerDefaultTypeInternal _RespondRegistePeer_default_instance_;
 PROTOBUF_CONSTEXPR ReqUnregistePeer::ReqUnregistePeer(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.name_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_._cached_size_)*/{}} {}
+    ::_pbi::ConstantInitialized) {}
 struct ReqUnregistePeerDefaultTypeInternal {
   PROTOBUF_CONSTEXPR ReqUnregistePeerDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -289,7 +287,6 @@ const uint32_t TableStruct_p2p_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqUnregistePeer, _impl_.name_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::RespondUnregistePeer, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -378,16 +375,16 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 21, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqRegistePeer)},
   { 28, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondRegistePeer)},
   { 35, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqUnregistePeer)},
-  { 42, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondUnregistePeer)},
-  { 49, -1, -1, sizeof(::mqas::tools::proto::p2p::ClientIpList)},
-  { 56, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqConnectPeer)},
-  { 64, 72, -1, sizeof(::mqas::tools::proto::p2p::ReqRespondPeerReqConnect)},
-  { 74, -1, -1, sizeof(::mqas::tools::proto::p2p::ConnectPeerData)},
-  { 84, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondConnectPeer)},
-  { 91, -1, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectPeerData)},
-  { 98, 106, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectResult)},
-  { 108, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqConnectPeerSuccessed)},
-  { 115, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondConnectPeerSuccessed)},
+  { 41, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondUnregistePeer)},
+  { 48, -1, -1, sizeof(::mqas::tools::proto::p2p::ClientIpList)},
+  { 55, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqConnectPeer)},
+  { 63, 71, -1, sizeof(::mqas::tools::proto::p2p::ReqRespondPeerReqConnect)},
+  { 73, -1, -1, sizeof(::mqas::tools::proto::p2p::ConnectPeerData)},
+  { 83, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondConnectPeer)},
+  { 90, -1, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectPeerData)},
+  { 97, 105, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectResult)},
+  { 107, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqConnectPeerSuccessed)},
+  { 114, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondConnectPeerSuccessed)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -416,33 +413,33 @@ const char descriptor_table_protodef_p2p_2eproto[] PROTOBUF_SECTION_VARIABLE(pro
   " \003(\0132\036.mqas.tools.proto.p2p.PeerData\"\036\n\016"
   "ReqRegistePeer\022\014\n\004name\030\001 \001(\t\"@\n\022RespondR"
   "egistePeer\022*\n\003ret\030\001 \001(\0162\035.mqas.tools.pro"
-  "to.p2p.RetCode\" \n\020ReqUnregistePeer\022\014\n\004na"
-  "me\030\001 \001(\t\"B\n\024RespondUnregistePeer\022*\n\003ret\030"
-  "\001 \001(\0162\035.mqas.tools.proto.p2p.RetCode\"\037\n\014"
-  "ClientIpList\022\017\n\007ip_list\030\001 \003(\t\"V\n\016ReqConn"
-  "ectPeer\022\017\n\007peer_id\030\001 \001(\r\0223\n\007ip_list\030\002 \001("
-  "\0132\".mqas.tools.proto.p2p.ClientIpList\"o\n"
-  "\030ReqRespondPeerReqConnect\022\r\n\005agree\030\001 \001(\010"
-  "\0228\n\007ip_list\030\002 \001(\0132\".mqas.tools.proto.p2p"
-  ".ClientIpListH\000\210\001\001B\n\n\010_ip_list\"O\n\017Connec"
-  "tPeerData\022\n\n\002ip\030\001 \001(\t\022\014\n\004port\030\002 \001(\r\022\020\n\010s"
-  "elf_key\030\003 \001(\t\022\020\n\010peer_key\030\004 \001(\t\"@\n\022Respo"
-  "ndConnectPeer\022*\n\003ret\030\001 \001(\0162\035.mqas.tools."
-  "proto.p2p.RetCode\"T\n\025NotifyConnectPeerDa"
-  "ta\022;\n\014connect_data\030\001 \001(\0132%.mqas.tools.pr"
-  "oto.p2p.ConnectPeerData\"a\n\023NotifyConnect"
-  "Result\022*\n\003ret\030\001 \001(\0162\035.mqas.tools.proto.p"
-  "2p.RetCode\022\023\n\006reason\030\002 \001(\tH\000\210\001\001B\t\n\007_reas"
-  "on\"*\n\027ReqConnectPeerSuccessed\022\017\n\007peer_id"
-  "\030\001 \001(\r\"I\n\033RespondConnectPeerSuccessed\022*\n"
-  "\003ret\030\001 \001(\0162\035.mqas.tools.proto.p2p.RetCod"
-  "e*T\n\007RetCode\022\006\n\002ok\020\000\022\022\n\016already_exists\020\001"
-  "\022\016\n\nnot_exists\020\002\022\021\n\rpeer_rejected\020\003\022\n\n\006f"
-  "ailed\020\004b\006proto3"
+  "to.p2p.RetCode\"\022\n\020ReqUnregistePeer\"B\n\024Re"
+  "spondUnregistePeer\022*\n\003ret\030\001 \001(\0162\035.mqas.t"
+  "ools.proto.p2p.RetCode\"\037\n\014ClientIpList\022\017"
+  "\n\007ip_list\030\001 \003(\t\"V\n\016ReqConnectPeer\022\017\n\007pee"
+  "r_id\030\001 \001(\r\0223\n\007ip_list\030\002 \001(\0132\".mqas.tools"
+  ".proto.p2p.ClientIpList\"o\n\030ReqRespondPee"
+  "rReqConnect\022\r\n\005agree\030\001 \001(\010\0228\n\007ip_list\030\002 "
+  "\001(\0132\".mqas.tools.proto.p2p.ClientIpListH"
+  "\000\210\001\001B\n\n\010_ip_list\"O\n\017ConnectPeerData\022\n\n\002i"
+  "p\030\001 \001(\t\022\014\n\004port\030\002 \001(\r\022\020\n\010self_key\030\003 \001(\t\022"
+  "\020\n\010peer_key\030\004 \001(\t\"@\n\022RespondConnectPeer\022"
+  "*\n\003ret\030\001 \001(\0162\035.mqas.tools.proto.p2p.RetC"
+  "ode\"T\n\025NotifyConnectPeerData\022;\n\014connect_"
+  "data\030\001 \001(\0132%.mqas.tools.proto.p2p.Connec"
+  "tPeerData\"a\n\023NotifyConnectResult\022*\n\003ret\030"
+  "\001 \001(\0162\035.mqas.tools.proto.p2p.RetCode\022\023\n\006"
+  "reason\030\002 \001(\tH\000\210\001\001B\t\n\007_reason\"*\n\027ReqConne"
+  "ctPeerSuccessed\022\017\n\007peer_id\030\001 \001(\r\"I\n\033Resp"
+  "ondConnectPeerSuccessed\022*\n\003ret\030\001 \001(\0162\035.m"
+  "qas.tools.proto.p2p.RetCode*T\n\007RetCode\022\006"
+  "\n\002ok\020\000\022\022\n\016already_exists\020\001\022\016\n\nnot_exists"
+  "\020\002\022\021\n\rpeer_rejected\020\003\022\n\n\006failed\020\004b\006proto"
+  "3"
   ;
 static ::_pbi::once_flag descriptor_table_p2p_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_p2p_2eproto = {
-    false, false, 1135, descriptor_table_protodef_p2p_2eproto,
+    false, false, 1121, descriptor_table_protodef_p2p_2eproto,
     "p2p.proto",
     &descriptor_table_p2p_2eproto_once, nullptr, 0, 16,
     schemas, file_default_instances, TableStruct_p2p_2eproto::offsets,
@@ -1324,194 +1321,31 @@ class ReqUnregistePeer::_Internal {
 
 ReqUnregistePeer::ReqUnregistePeer(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
+  : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase(arena, is_message_owned) {
   // @@protoc_insertion_point(arena_constructor:mqas.tools.proto.p2p.ReqUnregistePeer)
 }
 ReqUnregistePeer::ReqUnregistePeer(const ReqUnregistePeer& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase() {
   ReqUnregistePeer* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_.name_){}
-    , /*decltype(_impl_._cached_size_)*/{}};
-
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.name_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.name_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_name().empty()) {
-    _this->_impl_.name_.Set(from._internal_name(), 
-      _this->GetArenaForAllocation());
-  }
   // @@protoc_insertion_point(copy_constructor:mqas.tools.proto.p2p.ReqUnregistePeer)
 }
 
-inline void ReqUnregistePeer::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_.name_){}
-    , /*decltype(_impl_._cached_size_)*/{}
-  };
-  _impl_.name_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.name_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-}
 
-ReqUnregistePeer::~ReqUnregistePeer() {
-  // @@protoc_insertion_point(destructor:mqas.tools.proto.p2p.ReqUnregistePeer)
-  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
-  (void)arena;
-    return;
-  }
-  SharedDtor();
-}
 
-inline void ReqUnregistePeer::SharedDtor() {
-  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.name_.Destroy();
-}
 
-void ReqUnregistePeer::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
-}
-
-void ReqUnregistePeer::Clear() {
-// @@protoc_insertion_point(message_clear_start:mqas.tools.proto.p2p.ReqUnregistePeer)
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  _impl_.name_.ClearToEmpty();
-  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
-}
-
-const char* ReqUnregistePeer::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    uint32_t tag;
-    ptr = ::_pbi::ReadTag(ptr, &tag);
-    switch (tag >> 3) {
-      // string name = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
-          auto str = _internal_mutable_name();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "mqas.tools.proto.p2p.ReqUnregistePeer.name"));
-        } else
-          goto handle_unusual;
-        continue;
-      default:
-        goto handle_unusual;
-    }  // switch
-  handle_unusual:
-    if ((tag == 0) || ((tag & 7) == 4)) {
-      CHK_(ptr);
-      ctx->SetLastTag(tag);
-      goto message_done;
-    }
-    ptr = UnknownFieldParse(
-        tag,
-        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
-        ptr, ctx);
-    CHK_(ptr != nullptr);
-  }  // while
-message_done:
-  return ptr;
-failure:
-  ptr = nullptr;
-  goto message_done;
-#undef CHK_
-}
-
-uint8_t* ReqUnregistePeer::_InternalSerialize(
-    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:mqas.tools.proto.p2p.ReqUnregistePeer)
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // string name = 1;
-  if (!this->_internal_name().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_name().data(), static_cast<int>(this->_internal_name().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "mqas.tools.proto.p2p.ReqUnregistePeer.name");
-    target = stream->WriteStringMaybeAliased(
-        1, this->_internal_name(), target);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:mqas.tools.proto.p2p.ReqUnregistePeer)
-  return target;
-}
-
-size_t ReqUnregistePeer::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:mqas.tools.proto.p2p.ReqUnregistePeer)
-  size_t total_size = 0;
-
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  // string name = 1;
-  if (!this->_internal_name().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_name());
-  }
-
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
-}
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ReqUnregistePeer::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    ReqUnregistePeer::MergeImpl
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl,
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl,
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ReqUnregistePeer::GetClassData() const { return &_class_data_; }
 
 
-void ReqUnregistePeer::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<ReqUnregistePeer*>(&to_msg);
-  auto& from = static_cast<const ReqUnregistePeer&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:mqas.tools.proto.p2p.ReqUnregistePeer)
-  GOOGLE_DCHECK_NE(&from, _this);
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
 
-  if (!from._internal_name().empty()) {
-    _this->_internal_set_name(from._internal_name());
-  }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-}
 
-void ReqUnregistePeer::CopyFrom(const ReqUnregistePeer& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:mqas.tools.proto.p2p.ReqUnregistePeer)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
 
-bool ReqUnregistePeer::IsInitialized() const {
-  return true;
-}
 
-void ReqUnregistePeer::InternalSwap(ReqUnregistePeer* other) {
-  using std::swap;
-  auto* lhs_arena = GetArenaForAllocation();
-  auto* rhs_arena = other->GetArenaForAllocation();
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.name_, lhs_arena,
-      &other->_impl_.name_, rhs_arena
-  );
-}
 
 ::PROTOBUF_NAMESPACE_ID::Metadata ReqUnregistePeer::GetMetadata() const {
   return ::_pbi::AssignDescriptors(

@@ -29,9 +29,7 @@ message RespondRegistePeer{
     RetCode ret = 1;
 }
 
-message ReqUnregistePeer{
-    string name = 1;
-}
+message ReqUnregistePeer{}
 
 message RespondUnregistePeer{
     RetCode ret = 1;

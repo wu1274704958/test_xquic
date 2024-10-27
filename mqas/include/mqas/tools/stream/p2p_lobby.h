@@ -24,8 +24,6 @@ namespace mqas::tools::p2p {
 
 		core::StreamVariantErrcode on_read_msg_s(const std::shared_ptr<proto::p2p::ReqPeerList>& msg);
 
-		core::StreamVariantErrcode on_read_msg_s(const std::shared_ptr<proto::p2p::ReqConnectPeer>& msg);
-
 	protected:
 		std::shared_ptr<p2p_model> model;
 	};
