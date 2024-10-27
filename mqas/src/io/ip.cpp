@@ -32,3 +32,15 @@ std::string mqas::io::Ip::addr2str(const sockaddr& addr)
 	uv_ip_name(&addr, buf, sizeof(buf));
 	return { buf };
 }
+
+u_short mqas::io::Ip::addr_get_port(const sockaddr& addr)
+{
+	if (addr.sa_family == AF_INET) {
+		auto* addr_in = (const struct sockaddr_in*)&addr;
+		return ntohs(addr_in->sin_port);
+	}
+	else {
+		auto* addr_in6 = (const struct sockaddr_in6*)&addr;
+		return ntohs(addr_in6->sin6_port);
+	}
+}

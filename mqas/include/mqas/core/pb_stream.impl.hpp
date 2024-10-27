@@ -55,9 +55,9 @@ namespace mqas::core {
             : std::true_type {};
 
     MQAS_PB_STREAM_TEMPLATE_DECL
-    void ProtoBufStream<S,M...>::on_init(::lsquic_stream_t* lsquic_stream,connect_cxt* connect_cxt)
+    void ProtoBufStream<S,M...>::on_init(::lsquic_stream_t* lsquic_stream,connect_cxt* connect_cxt, std::weak_ptr<IConnect> connect)
     {
-        IStream::on_init(lsquic_stream,connect_cxt);
+        IStream::on_init(lsquic_stream,connect_cxt,std::move(connect));
         init_msg_parsers();
     }
     MQAS_PB_STREAM_TEMPLATE_DECL

@@ -452,7 +452,7 @@ namespace mqas::core{
         auto& stream = std::get<typename CS::STREAM_TYPE>(stream_var_);
         stream.setStreamTag(stream_tag_);
         stream.set_cxt(cxt_);
-        stream.on_init(stream_,connect_cxt_);
+        stream.on_init(stream_,connect_cxt_,connect);
         StreamVariantErrcode res = stream.on_change(change_params,ret_buf);
         if(res != StreamVariantErrcode::ok && res != StreamVariantErrcode::skip_and_manual) {
             clear_curr_stream();

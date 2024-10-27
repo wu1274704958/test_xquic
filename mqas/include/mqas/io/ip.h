@@ -11,5 +11,6 @@ namespace mqas::io {
 		static std::string addr2str_ipv4(const sockaddr& addr);
 		static std::string addr2str_ipv6(const sockaddr& addr);
 		static std::string addr2str(const sockaddr& addr);
+		static u_short addr_get_port(const sockaddr& addr);
 	};
 }

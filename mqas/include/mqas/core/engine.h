@@ -67,6 +67,7 @@ namespace mqas::core {
 	{
         EngineFlags engine_flags;
         io::Context* io_cxt;
+		std::weak_ptr<mqas::core::IEngine> engine; 
 		std::function<void()> process_conns;
         std::function<void()> process_conns_lazy;
         std::function<bool(::lsquic_conn_t*,const std::span<uint8_t>&)> write_datagram;
@@ -78,7 +79,7 @@ namespace mqas::core {
 		requires std::is_default_constructible_v<C>;
 		requires std::is_base_of_v<IConnect, C>;
 	}
-	class engine : public mqas::core::IEngine
+	class engine : public mqas::core::IEngine,public std::enable_shared_from_this<engine<C>>
 	{
 	friend C;
 	public:

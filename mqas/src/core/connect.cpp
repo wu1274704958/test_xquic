@@ -3,12 +3,13 @@
 //
 #include <mqas/core/connect.h>
 
-void mqas::core::IStream::on_init(::lsquic_stream_t *lsquic_stream,connect_cxt* connect_cxt) {
+void mqas::core::IStream::on_init(::lsquic_stream_t *lsquic_stream,connect_cxt* connect_cxt, std::weak_ptr<IConnect> connect) {
     stream_ = lsquic_stream;
     connect_cxt_ = connect_cxt;
     reader_.lsqr_ctx = this;
     reader_.lsqr_read = reader_read;
     reader_.lsqr_size = reader_size;
+    this->connect = std::move(connect);
     if(want_read_on_init_) want_read(true);
 }
 

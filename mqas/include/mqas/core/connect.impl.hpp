@@ -35,7 +35,7 @@ namespace mqas::core{
     {
         const auto key = reinterpret_cast<size_t>(lsquic_stream);
         stream_map_.emplace(key,std::make_shared<S>());
-        stream_map_[key]->on_init(lsquic_stream,&connect_cxt_);
+        stream_map_[key]->on_init(lsquic_stream,&connect_cxt_, this->weak_from_this());
         if(on_new_stream_cb_)
         {
             on_new_stream_cb_(stream_map_[key]);

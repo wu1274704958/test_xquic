@@ -18,6 +18,7 @@ void mqas::core::engine<C>::init(void* engine_base_ptr) //override
     engine_cxt_.write_datagram = std::bind_front(&engine<C>::write_datagram,this);
     engine_cxt_.write_stream = std::bind_front(&engine<C>::write_stream,this);
     engine_cxt_.has_stream = std::bind_front(&engine<C>::has_stream,this);
+	engine_cxt_.engine = this->weak_from_this();
 }
 
 ENGINE_TEMPLATE_DECL

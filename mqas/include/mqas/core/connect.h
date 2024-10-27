@@ -15,7 +15,7 @@ namespace mqas::core{
     class MQAS_EXTERN IStream {
     public:
         //interface
-        void on_init(::lsquic_stream_t* lsquic_stream,connect_cxt* connect_cxt);
+        void on_init(::lsquic_stream_t* lsquic_stream,connect_cxt* connect_cxt, std::weak_ptr<IConnect> connect);
         size_t do_read();
         void do_write();
         void on_close();
@@ -61,6 +61,7 @@ namespace mqas::core{
         void* cxt_ = nullptr;
         bool is_closed_:1 = false;
         bool want_read_on_init_:1 = true;
+        std::weak_ptr<IConnect> connect;
     };
     struct connect_cxt{
         engine_cxt* engine_cxt_;
@@ -72,7 +73,7 @@ namespace mqas::core{
         requires std::is_default_constructible_v<S>;
         requires std::is_base_of_v<IStream, S>;
     }
-    class Connect : public IConnect{
+    class Connect : public IConnect,public std::enable_shared_from_this<Connect<S>>{
     public:
         void init(::lsquic_conn_t* conn, engine_cxt* engine_cxt);
         void on_close();

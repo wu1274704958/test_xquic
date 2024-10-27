@@ -19,7 +19,7 @@ namespace mqas::core{
     public:
         using HANDLER_FUN_TY = sigc::signal<void(size_t,const std::shared_ptr<google::protobuf::Message>&)>;
         using PARSER_FUN_TY = std::function<std::shared_ptr<google::protobuf::Message>(const MsgHeader&,MsgOrigin)>;
-        void on_init(::lsquic_stream_t* lsquic_stream,connect_cxt* connect_cxt);
+        void on_init(::lsquic_stream_t* lsquic_stream,connect_cxt* connect_cxt, std::weak_ptr<IConnect> connect);
         sigc::connection add_handler(size_t mid,const HANDLER_FUN_TY::slot_type& f);
         [[nodiscard]] bool has_handler(size_t mid)const;
         [[nodiscard]] size_t get_handlers_count(size_t mid)const;
