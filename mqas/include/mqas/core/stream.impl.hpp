@@ -517,7 +517,7 @@ namespace mqas::core{
                 return false;
             }
             std::vector<uint8_t> ret_buf{}; 
-            auto ret = change_to_uncheck<F>(change_params,ret_buf,true);
+            ret = change_to_uncheck<F>(change_params,ret_buf,true);
             if(ret != StreamVariantErrcode::ok && ret != StreamVariantErrcode::skip_and_manual)
             {
                 LOG(ERROR) << "req_change_to " << F::STREAM_TAG << " change self failed error = " << (size_t)ret;
