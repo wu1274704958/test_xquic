@@ -288,16 +288,23 @@ namespace mqas::core{
                     std::vector<uint8_t> ret_buf{};
                     msg->errcode = StreamVariantErrcode::ok;
                     msg->param3 = 1;
-                    auto change_ret = change_to(static_cast<size_t>(msg->param1),msg->extra_params,ret_buf);
-                    if(change_ret != StreamVariantErrcode::ok && change_ret != StreamVariantErrcode::skip_and_manual) {
-                        LOG(ERROR) << "StreamVariant handle req change to " << msg->param1 << " failed error = " << (int)change_ret;
-                        msg->errcode = change_ret;
-                    }
-                    current_state = variant_stream_state::active;
-                    if (change_ret == StreamVariantErrcode::skip_and_manual)
+                    StreamVariantErrcode change_ret = try_push_curr_stream();
+                    if (change_ret != StreamVariantErrcode::ok)
                     {
-                        current_state = variant_stream_state::half_active;
-                        break;
+                        LOG(ERROR) << "req_change_to by peer " << msg->param1 << " change self failed error = " << (size_t)change_ret;
+                        msg->errcode = change_ret;
+                    }else{
+                        change_ret = change_to(static_cast<size_t>(msg->param1),msg->extra_params,ret_buf);
+                        if(change_ret != StreamVariantErrcode::ok && change_ret != StreamVariantErrcode::skip_and_manual) {
+                            LOG(ERROR) << "StreamVariant handle req change to " << msg->param1 << " failed error = " << (int)change_ret;
+                            msg->errcode = change_ret;
+                        }
+                        current_state = variant_stream_state::active;
+                        if (change_ret == StreamVariantErrcode::skip_and_manual)
+                        {
+                            current_state = variant_stream_state::half_active;
+                            break;
+                        }
                     }
                     if(!ret_buf.empty())
                         msg->extra_params = std::span<uint8_t >({ret_buf});
@@ -359,11 +366,15 @@ namespace mqas::core{
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     void StreamVariant<S...>::clear_curr_stream()
     {
-        if(stream_tag_ != 0)
+        if (!try_pop_stream())
         {
-            stream_tag_ = 0;
-            on_close();
-            stream_var_ = std::monostate{};
+            if (stream_tag_ != 0)
+            {
+                stream_tag_ = 0;
+                on_close();
+                stream_var_ = std::monostate{};
+                current_state = variant_stream_state::none;
+            }
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -499,7 +510,13 @@ namespace mqas::core{
             return false;
         if constexpr(std::is_same_v<typename F::STREAM_TYPE,CS>)
         {
-            std::vector<uint8_t> ret_buf{};
+            auto ret = try_push_curr_stream();
+            if (ret != StreamVariantErrcode::ok)
+            {
+                LOG(ERROR) << "req_change_to " << F::STREAM_TAG << " change self failed error = " << (size_t)ret;
+                return false;
+            }
+            std::vector<uint8_t> ret_buf{}; 
             auto ret = change_to_uncheck<F>(change_params,ret_buf,true);
             if(ret != StreamVariantErrcode::ok && ret != StreamVariantErrcode::skip_and_manual)
             {
@@ -533,11 +550,20 @@ namespace mqas::core{
     }
 
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    void StreamVariant<S...>::try_push_curr_stream()
+    StreamVariantErrcode StreamVariant<S...>::try_push_curr_stream()
     {
+        switch (current_state)
+        {
+            case variant_stream_state::active:
+            case variant_stream_state::none:
+            break;
+            default:
+            return StreamVariantErrcode::incorrect_state;
+        }
         if (stream_tag_ == 0)
-            return;
+            return StreamVariantErrcode::ok;
         ((S::STREAM_TAG == stream_tag_ && ((push_stream<S>(std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_))), false)), ...);
+        return StreamVariantErrcode::ok;
     }
 
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -545,25 +571,29 @@ namespace mqas::core{
         requires variability_stream_pair_require<SP>
     void StreamVariant<S...>::push_stream(std::shared_ptr<typename SP::STREAM_TYPE> stream)
     {
-        stack.push(std::make_pair(SP::STREAM_TAG,std::dynamic_pointer_cast<IStream>(stream)));
+        stack.push(std::make_pair(SP::STREAM_TAG,std::dynamic_pointer_cast<IStreamVariant>(stream)));
+        stream_tag_ = 0;
+        stream_var_ = std::monostate{};
     }
 
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    void StreamVariant<S...>::try_pop_stream()
+    bool StreamVariant<S...>::try_pop_stream()
     {
         if(stack.empty())
-            return;
+            return false;
         auto top = stack.top();
         stack.pop();
-        ((S::STREAM_TAG == top.first && ((set_curr_stream<S>(top.second))), false)), ...);
+        ((S::STREAM_TAG == top.first && ((set_curr_stream<S>(top.second)),false)), ...);
+        return true;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     template<typename SP>
         requires variability_stream_pair_require<SP>
-    void StreamVariant<S...>::set_curr_stream(std::shared_ptr<IStream> stream)
+    void StreamVariant<S...>::set_curr_stream(std::shared_ptr<IStreamVariant> stream)
     {
         stream_tag_ = SP::STREAM_TAG;
         stream_var_ = std::dynamic_pointer_cast<typename SP::STREAM_TYPE>(stream);
+        current_state = variant_stream_state::active;
     }
 
     MQAS_STREAM_IMPL_TEMPLATE_DECL

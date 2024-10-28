@@ -150,22 +150,22 @@ namespace mqas::core {
         template<typename CS>
         requires (std::is_base_of_v<IStream,CS>)
         void hold_stream_unread_moveto_shell(CS& cs);
-        void try_push_curr_stream();
+        StreamVariantErrcode try_push_curr_stream();
         
         template<typename SP>
         requires variability_stream_pair_require<SP>
         void push_stream(std::shared_ptr<typename SP::STREAM_TYPE> stream);
-        void try_pop_stream();
+        bool try_pop_stream();
         template<typename SP>
         requires variability_stream_pair_require<SP>
-        void set_curr_stream(std::shared_ptr<IStream> stream);
+        void set_curr_stream(std::shared_ptr<IStreamVariant> stream);
 
         void on_req_quit() override;
         //-1 error; 0 success; 1 success but not write;2 write but failed
         int on_send_sv_msg(const stream_variant_msg& msg,std::vector<uint8_t>& buf) override;
     protected:
             std::variant<std::monostate,typename std::shared_ptr<typename S::STREAM_TYPE> ...> stream_var_;
-            std::stack<std::pair<size_t,std::shared_ptr<IStream>>> stack;
+            std::stack<std::pair<size_t,std::shared_ptr<IStreamVariant>>> stack;
             size_t stream_tag_ = 0;
             variant_stream_state current_state;
     };

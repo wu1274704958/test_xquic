@@ -36,6 +36,7 @@ namespace mqas::core
         not_support,
         tag_not_eq,
         failed,
+        incorrect_state
     };
     template<typename T>
     concept HasStreamTag = requires {
