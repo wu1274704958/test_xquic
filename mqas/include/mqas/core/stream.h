@@ -14,6 +14,14 @@
 
 namespace mqas::core {
 
+
+    class MQAS_EXTERN IStreamVariantMgr : public IStream {
+    public:
+        virtual void on_req_quit() = 0;
+        //-1 error; 0 success; 1 success but not write;2 write but failed
+        virtual int on_send_sv_msg(const stream_variant_msg& msg, std::vector<uint8_t>& buf) = 0;
+    };
+
     class MQAS_EXTERN IStreamVariant : public IStream {
     public:
         //interface
@@ -28,9 +36,13 @@ namespace mqas::core {
         void setIsWaitPeerChangeRet(bool isWaitPeerChangeRet);
         [[nodiscard]] size_t getStreamTag() const;
         void setStreamTag(size_t streamTag);
+        virtual void on_req_quit();
+        [[nodiscard]] std::shared_ptr<IStreamVariantMgr> get_outer() const;
+        void set_outer(std::weak_ptr<IStreamVariantMgr> outer);
     protected:
         bool is_wait_peer_change_ret_:1 = false;
         size_t stream_tag_ = 0;
+        std::weak_ptr<IStreamVariantMgr> outer;
     };
 
     template<typename T>
@@ -44,11 +56,23 @@ namespace mqas::core {
         requires std::is_default_constructible_v<T>;
         requires std::is_base_of_v<IStreamVariant,T>;
     };
+
+    enum class variant_stream_state : uint8_t
+    {
+        none = 0,
+        req_wait_ack = 1,
+        half_req = 2,
+        active = 3,
+        half_active = 4, // skip and after manual send ack
+        quit_wait_ack = 5,
+        half_quit = 6 // skip and after manual send ack
+    };
+
     template<typename ... S>
     requires requires{
         requires (variability_stream_pair_require<S> && ...);
     }
-    class StreamVariant : public IStream{
+    class StreamVariant : public IStreamVariantMgr,public std::enable_shared_from_this<StreamVariant<S...>> {
     public:
         size_t do_read();
         size_t do_read_shell();
@@ -89,7 +113,7 @@ namespace mqas::core {
 
         template<class CS>
         requires variability_stream_require<CS>
-        CS* get_holds_stream();
+        std::shared_ptr<CS> get_holds_stream();
         [[nodiscard]] bool has_holds_stream() const;
         StreamVariantErrcode on_peer_quit(const std::span<uint8_t> &,std::vector<uint8_t>&);
         void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
@@ -135,10 +159,15 @@ namespace mqas::core {
         template<typename SP>
         requires variability_stream_pair_require<SP>
         void set_curr_stream(std::shared_ptr<IStream> stream);
+
+        void on_req_quit() override;
+        //-1 error; 0 success; 1 success but not write;2 write but failed
+        int on_send_sv_msg(const stream_variant_msg& msg,std::vector<uint8_t>& buf) override;
     protected:
             std::variant<std::monostate,typename std::shared_ptr<typename S::STREAM_TYPE> ...> stream_var_;
             std::stack<std::pair<size_t,std::shared_ptr<IStream>>> stack;
             size_t stream_tag_ = 0;
+            variant_stream_state current_state;
     };
 }
 #include "stream.impl.hpp"

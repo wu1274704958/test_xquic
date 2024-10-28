@@ -367,7 +367,14 @@ namespace mqas::core {
         msg.extra_params = {*buf};
         auto data = msg.generate();
         if(!data)return false;
-        return write({*data});
+        auto out = outer.lock();
+        auto outer_ret = out == nullptr ? -1 : out->on_send_sv_msg(msg, data.value());
+        if (outer_ret == -1)
+        {
+            assert(false);
+            return false;
+        }
+        return (outer_ret == 1 || outer_ret == 2) ? outer_ret == 1 : write({*data});
     }
 }
 

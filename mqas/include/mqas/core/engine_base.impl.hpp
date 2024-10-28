@@ -254,6 +254,7 @@ void mqas::core::engine_base<E>::on_conn_closed_s(lsquic_conn_t* lsquic_conn)
 {
 	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(lsquic_conn));
 	engine->on_conn_closed(lsquic_conn);
+	::lsquic_conn_set_ctx(lsquic_conn, NULL);
 }
 ENGINE_BASE_TEMPLATE_DECL
 lsquic_stream_ctx_t* mqas::core::engine_base<E>::on_new_stream_s(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)

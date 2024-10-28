@@ -8,6 +8,8 @@
 #ifndef MQAS_STREAM_IMPL_HPP
 #define MQAS_STREAM_IMPL_HPP
 
+#include <assert.h>
+
 
 #define MQAS_STREAM_IMPL_TEMPLATE_DECL                                  \
 template<typename ... S>                                                \
@@ -269,10 +271,17 @@ namespace mqas::core{
             case stream_variant_cmd::req_use_stream_tag:
                 if(msg->param3 == 1) // is ack
                 {
-                    if(msg->errcode != StreamVariantErrcode::ok)
+                    assert(current_state == variant_stream_state::req_wait_ack);
+                    if (msg->errcode != StreamVariantErrcode::ok)
+                    {
                         LOG(ERROR) << "StreamVariant peer change to " << msg->param1 << " failed error = " << (int)msg->errcode;
-                    else
+                        current_state = variant_stream_state::none;
+                        clear_curr_stream();
+                    }
+                    else {
+                        current_state = variant_stream_state::active;
                         setIsWaitPeerChangeRet(false);
+                    }
                     on_peer_change_ret(msg->errcode,msg->extra_params);
                 }else // is req
                 {
@@ -284,8 +293,12 @@ namespace mqas::core{
                         LOG(ERROR) << "StreamVariant handle req change to " << msg->param1 << " failed error = " << (int)change_ret;
                         msg->errcode = change_ret;
                     }
-                    if(change_ret == StreamVariantErrcode::skip_and_manual)
+                    current_state = variant_stream_state::active;
+                    if (change_ret == StreamVariantErrcode::skip_and_manual)
+                    {
+                        current_state = variant_stream_state::half_active;
                         break;
+                    }
                     if(!ret_buf.empty())
                         msg->extra_params = std::span<uint8_t >({ret_buf});
                     else
@@ -297,20 +310,31 @@ namespace mqas::core{
             case stream_variant_cmd::req_quit_hold_stream:
                 if(msg->param3 == 1) // is ack
                 {
+                    assert(current_state == variant_stream_state::quit_wait_ack);
                     on_peer_quit_ret(msg->errcode,msg->extra_params);
-                    if(msg->errcode != StreamVariantErrcode::ok)
+                    if (msg->errcode != StreamVariantErrcode::ok)
+                    {
+                        current_state = variant_stream_state::active;
                         LOG(ERROR) << "StreamVariant peer quit hold stream failed error = " << (int)msg->errcode;
+                    }
                     else
+                    {
+                        current_state = variant_stream_state::none;
                         clear_curr_stream();
+                    }
                 }else{
                     std::vector<uint8_t> ret_buf{};
                     msg->param3 = 1;
                     msg->errcode = StreamVariantErrcode::ok;
                     if(msg->param1 != stream_tag_)
                         msg->errcode = StreamVariantErrcode::tag_not_eq;
+                    current_state = variant_stream_state::none;
                     if(msg->errcode == StreamVariantErrcode::ok) {
-                        if((msg->errcode = on_peer_quit(msg->extra_params,ret_buf)) == StreamVariantErrcode::skip_and_manual)
+                        if ((msg->errcode = on_peer_quit(msg->extra_params, ret_buf)) == StreamVariantErrcode::skip_and_manual)
+                        {
+                            current_state = variant_stream_state::half_quit;
                             break;
+                        }
                         clear_curr_stream();
                     }
                     if(!ret_buf.empty())
@@ -371,11 +395,11 @@ namespace mqas::core{
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     template<class CS>
     requires variability_stream_require<CS>
-    CS* StreamVariant<S...>::get_holds_stream()
+    std::shared_ptr<CS> StreamVariant<S...>::get_holds_stream()
     {
-        if(std::holds_alternative<CS>(stream_var_))
+        if(std::holds_alternative<std::shared_ptr<CS>>(stream_var_))
         {
-            return &(std::get<CS>(stream_var_));
+            return std::get<std::shared_ptr<CS>>(stream_var_);
         }
         return nullptr;
     }
@@ -451,6 +475,7 @@ namespace mqas::core{
         stream_var_ = std::make_shared<typename CS::STREAM_TYPE>();
         auto stream = std::get<std::shared_ptr<typename CS::STREAM_TYPE>>(stream_var_);
         stream->setStreamTag(stream_tag_);
+        stream->set_outer(this->weak_from_this());
         stream->set_cxt(cxt_);
         stream->on_init(stream_,connect_cxt_,connect);
         StreamVariantErrcode res = stream->on_change(change_params,ret_buf);
@@ -481,8 +506,12 @@ namespace mqas::core{
                 LOG(ERROR) << "req_change_to " << F::STREAM_TAG << " change self failed error = " << (size_t)ret;
                 return false;
             }
-            if(ret == StreamVariantErrcode::skip_and_manual)
+            current_state = variant_stream_state::req_wait_ack;
+            if (ret == StreamVariantErrcode::skip_and_manual)
+            {
+                current_state = variant_stream_state::half_req;
                 return true;
+            }
             stream_variant_msg msg{};
             msg.cmd = stream_variant_cmd::req_use_stream_tag;
             msg.param1 = static_cast<uint32_t >(F::STREAM_TAG);
@@ -535,6 +564,54 @@ namespace mqas::core{
     {
         stream_tag_ = SP::STREAM_TAG;
         stream_var_ = std::dynamic_pointer_cast<typename SP::STREAM_TYPE>(stream);
+    }
+
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    void StreamVariant<S...>::on_req_quit()
+    {
+        current_state = variant_stream_state::quit_wait_ack;
+    }
+    //-1 error; 0 success; 1 success but not write;2 write but failed
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    int StreamVariant<S...>::on_send_sv_msg(const stream_variant_msg& msg,std::vector<uint8_t>& buf)
+    {
+        bool need_write = false;
+        if (msg.param1 != stream_tag_)
+            return -1;
+        if (msg.cmd == core::stream_variant_cmd::req_use_stream_tag)
+        {
+            if (current_state != variant_stream_state::half_req && current_state != variant_stream_state::half_active)
+                return -1;
+        }
+        if (msg.cmd == core::stream_variant_cmd::req_quit_hold_stream && current_state != variant_stream_state::half_quit)
+            return -1;
+        bool is_ok = msg.errcode == StreamVariantErrcode::ok;
+        switch (current_state)
+        {
+        case variant_stream_state::half_active:
+            current_state = is_ok ? variant_stream_state::active : variant_stream_state::none;
+            need_write = !is_ok;
+            if (!is_ok)
+                clear_curr_stream();
+            break;
+        case variant_stream_state::half_req:
+            current_state = is_ok ? variant_stream_state::req_wait_ack : variant_stream_state::none;
+            need_write = !is_ok;
+            if(!is_ok)
+                clear_curr_stream();
+            break;
+        case variant_stream_state::half_quit:
+            current_state = is_ok ? variant_stream_state::none : variant_stream_state::active;
+            need_write = is_ok;
+            if(is_ok)
+                clear_curr_stream();
+            break;
+        default:
+            break;
+        }
+        if (need_write)
+            return write({ buf }) ? 1 : 2;
+        return need_write ? 1 : 0;
     }
 }
 

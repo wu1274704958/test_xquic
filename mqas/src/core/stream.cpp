@@ -84,7 +84,10 @@ bool mqas::core::IStreamVariant::req_quit(uint32_t curr_tag,const std::span<uint
     auto data = msg.generate();
     if(!data)return false;
     bool ret = write({*data});
-    if(ret) setIsWaitPeerChangeRet(true);
+    if (ret) { 
+        setIsWaitPeerChangeRet(true); 
+        on_req_quit();
+    }
     return ret;
 }
 
@@ -96,6 +99,23 @@ size_t mqas::core::IStreamVariant::getStreamTag() const {
 
 void mqas::core::IStreamVariant::setStreamTag(size_t streamTag) {
     stream_tag_ = streamTag;
+}
+
+
+void mqas::core::IStreamVariant::on_req_quit()
+{
+    auto out = outer.lock();
+    if (out)
+        out->on_req_quit();
+}
+std::shared_ptr<mqas::core::IStreamVariantMgr> mqas::core::IStreamVariant::get_outer() const
+{
+    return outer.lock();
+}
+
+void mqas::core::IStreamVariant::set_outer(std::weak_ptr<mqas::core::IStreamVariantMgr> outer)
+{
+    this->outer = std::move(outer);
 }
 
 std::optional<std::vector<uint8_t>> mqas::core::MsgHeader::generate() const {
