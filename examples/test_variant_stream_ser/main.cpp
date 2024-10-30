@@ -38,8 +38,6 @@ public:
     {
         printf("on_change 1 %s\n", m->name().c_str());
         name = m->name();
-        this->setIsWaitPeerChangeRet(true);
-        send<ChangeNameMsgPair>(*m);
     }
     mqas::core::StreamVariantErrcode on_peer_quit_msg_s(const std::shared_ptr<proto::SayByeMsg>& m,
                                       std::vector<uint8_t>& buf)
@@ -68,8 +66,6 @@ public:
     {
         printf("on_change 2 %s\n", m->name().c_str());
         name = m->name();
-        this->setIsWaitPeerChangeRet(true);
-        send<ChangeNameMsg2Pair>(*m);
     }
     mqas::core::StreamVariantErrcode on_peer_quit_msg_s(const std::shared_ptr<proto::SayByeMsg2>& m,
         std::vector<uint8_t>& buf)

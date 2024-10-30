@@ -20,6 +20,7 @@ namespace mqas::core {
         virtual void on_req_quit() = 0;
         //-1 error; 0 success; 1 success but not write;2 write but failed
         virtual int on_send_sv_msg(const stream_variant_msg& msg, std::vector<uint8_t>& buf) = 0;
+        virtual size_t on_read(const std::span<const uint8_t>& current) = 0;
     };
 
     class MQAS_EXTERN IStreamVariant : public IStream {
@@ -94,7 +95,7 @@ namespace mqas::core {
         [[nodiscard]] std::span<const uint8_t> read_all_not_move() const;
         [[nodiscard]] size_t  unread_size() const;
 
-        size_t on_read(const std::span<const uint8_t>& current);
+        size_t on_read(const std::span<const uint8_t>& current) override;
         void on_peer_change_ret(StreamVariantErrcode code,const std::span<uint8_t>& params);
         StreamVariantErrcode change_to(size_t tag,const std::span<uint8_t>& change_params,
                                        std::vector<uint8_t>& ret_buf);

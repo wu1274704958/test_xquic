@@ -34,19 +34,16 @@ public:
         proto::ChangeNameMsg2 changeMsg;
         changeMsg.set_name("hi2");
         send <ChangeNameMsg2Pair>(changeMsg);
+
+        proto::SayByeMsg2 quit_msg;
+        std::vector<uint8_t> buf;
+        if (core::ProtoBufMsg::write_msg<SayByeMsg2Pair>(buf, quit_msg))
+            assert(req_quit(stream_tag_, buf));
     }
     mqas::core::StreamVariantErrcode on_peer_quit_ret_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<proto::RespSayByeMsg2>& m)
     {
         printf("stream2 on_peer_quit  %s\n", m->name().c_str());
         return mqas::core::StreamVariantErrcode::ok;
-    }
-
-    void on_read_msg_s(const std::shared_ptr<proto::ChangeNameMsg2>& m)
-    {
-        proto::SayByeMsg2 quit_msg;
-        std::vector<uint8_t> buf;
-        if (core::ProtoBufMsg::write_msg<SayByeMsg2Pair>(buf, quit_msg))
-            assert(req_quit(stream_tag_, buf));
     }
 };
 
@@ -62,8 +59,6 @@ public:
     }
 
     void on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<proto::SayHelloMsg>& m);
-
-    void on_read_msg_s(const std::shared_ptr<proto::ChangeNameMsg>& m);
     
     mqas::core::StreamVariantErrcode on_peer_quit_ret_msg_s(mqas::core::StreamVariantErrcode code,const std::shared_ptr<proto::RespSayByeMsg>& m)
     {
@@ -94,10 +89,7 @@ void Stream::on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code, con
     proto::ChangeNameMsg changeMsg;
     changeMsg.set_name("hello1");
     send <ChangeNameMsgPair>(changeMsg);
-}
 
-void Stream::on_read_msg_s(const std::shared_ptr<proto::ChangeNameMsg>& m)
-{
     auto out = outer.lock();
     auto stream_out = std::dynamic_pointer_cast<StreamType>(out);
     proto::SayHelloMsg2 msg;

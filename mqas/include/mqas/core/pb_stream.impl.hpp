@@ -230,11 +230,17 @@ namespace mqas::core {
     {
         auto msg_wrap = parse_base_msg(std::span<uint8_t>(const_cast<uint8_t*>(current.data()),current.size()));
         if(!msg_wrap) {
+            //parse failed try parse use outer stream
+            auto ret = try_parse_outer(current);
+            if (ret > 0) return ret;
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_read";
             return 0;
         }
         size_t mid = msg_wrap->msg_id;
         if(!msg_parsers_.contains(mid)){
+            //parse failed try parse use outer stream
+            auto ret = try_parse_outer(current);
+            if (ret > 0) return ret;
             LOG(ERROR) << "Not support msg "<< mid <<" on_read";
             return msg_wrap->use_len;
         }
@@ -375,6 +381,14 @@ namespace mqas::core {
             return false;
         }
         return (outer_ret == 1 || outer_ret == 2) ? outer_ret == 1 : write({*data});
+    }
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    size_t ProtoBufStream<S, M...>::try_parse_outer(const std::span<const uint8_t>& current)
+    {
+        auto out_stream = outer.lock();
+        if (!out_stream)
+            return -1;
+        return out_stream->on_read(current);
     }
 }
 
