@@ -17,6 +17,21 @@ requires requires{                                                      \
     requires (variability_stream_pair_require<S> && ...);                    \
 }
 
+
+template<typename T, typename = std::void_t<>>
+struct has_member_function_on_resume : std::false_type {};
+
+template<typename T>
+struct has_member_function_on_resume<T,std::void_t<decltype(std::declval<T>().on_resume())>>
+    : std::true_type {};
+
+template<typename T, typename = std::void_t<>>
+struct has_member_function_on_pause : std::false_type {};
+
+template<typename T>
+struct has_member_function_on_pause<T, std::void_t<decltype(std::declval<T>().on_pause())>>
+    : std::true_type {};
+
 namespace mqas::core{
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     size_t StreamVariant<S...>::do_read() {
@@ -481,7 +496,9 @@ namespace mqas::core{
     StreamVariantErrcode StreamVariant<S...>::change_to_uncheck(const std::span<uint8_t>& change_params,
                                            std::vector<uint8_t>& ret_buf,bool is_req)
     {
-        clear_curr_stream();
+        //checked it earlier
+        //clear_curr_stream();
+        assert(stream_tag_ == 0);
         stream_tag_ = CS::STREAM_TAG;
         stream_var_ = std::make_shared<typename CS::STREAM_TYPE>();
         auto stream = std::get<std::shared_ptr<typename CS::STREAM_TYPE>>(stream_var_);
@@ -571,6 +588,10 @@ namespace mqas::core{
         requires variability_stream_pair_require<SP>
     void StreamVariant<S...>::push_stream(std::shared_ptr<typename SP::STREAM_TYPE> stream)
     {
+        if constexpr (has_member_function_on_pause<typename SP::STREAM_TYPE>::value)
+        {
+            stream->on_pause();
+        }
         stack.push(std::make_pair(SP::STREAM_TAG,std::dynamic_pointer_cast<IStreamVariant>(stream)));
         stream_tag_ = 0;
         stream_var_ = std::monostate{};
@@ -594,6 +615,11 @@ namespace mqas::core{
         stream_tag_ = SP::STREAM_TAG;
         stream_var_ = std::dynamic_pointer_cast<typename SP::STREAM_TYPE>(stream);
         current_state = variant_stream_state::active;
+
+        if constexpr (has_member_function_on_resume<typename SP::STREAM_TYPE>::value)
+        {
+            std::dynamic_pointer_cast<typename SP::STREAM_TYPE>(stream)->on_resume();
+        }
     }
 
     MQAS_STREAM_IMPL_TEMPLATE_DECL
