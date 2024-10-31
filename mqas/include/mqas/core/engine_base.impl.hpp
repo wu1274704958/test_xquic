@@ -76,6 +76,33 @@ void mqas::core::engine_base<E>::init(const char* conf_file,core::EngineFlags en
 }
 
 ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<io::UdpSocket> socket)
+{
+	engine_flags_ = engine_flags;
+	//parse config 
+	const auto conf_data = toml::parse(conf_file);
+	conf_ = std::make_shared<engine_config>(toml::find<engine_config>(conf_data, "engine_config"));
+
+	init_extern_engine();
+	//init logger
+	init_logger();
+
+	init_setting(conf_data);
+	engine_extern_->on_init_config(std::make_shared<toml::value>(conf_data));
+	//init socket
+	socket_ = std::move(socket);
+	socket_->get_sock_addr(this->local_addr_);
+	engine_extern_->on_init_socket(socket_);
+	// init timer
+	proc_conns_timer_ = cxt.make_handle<io::Timer>();
+
+	//init ssl
+	if (contain<uint32_t>(engine_flags, EngineFlags::Server) && !conf_->ssl_cert_path.empty() && !conf_->ssl_key_path.empty())
+		init_ssl(conf_->ssl_cert_path.c_str(), conf_->ssl_key_path.c_str());
+	init_lsquic();
+}
+
+ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::init_setting(const toml::value& conf_data)
 {
 	::lsquic_engine_init_settings(&conf_->lsquic_settings, static_cast<unsigned>(engine_flags_));
