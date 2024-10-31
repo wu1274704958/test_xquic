@@ -16,7 +16,7 @@ namespace mqas::tools::p2p {
 		sockaddr local,peer;
 		conn->get_sockaddr(local,peer);
 
-		const auto id = model.value().get().registe_client(msg->name(),io::Ip::addr2str(peer),io::Ip::addr_get_port(peer));
+		id = model.value().get().registe_client(msg->name(),io::Ip::addr2str(peer),io::Ip::addr_get_port(peer));
 		proto::p2p::RespondRegistePeer ret_msg;
 		if (id == 0)
 		{ 
@@ -70,6 +70,16 @@ namespace mqas::tools::p2p {
 		send<RespondPeerListPair>(ret_msg);
 
 		return core::StreamVariantErrcode::ok;
+	}
+
+	void P2PLobbyStream::on_close()
+	{
+		auto model = comm::locator::inst()->get<p2p_model>();
+		if (id > 0 && model)
+		{
+			model.value().get().unregiste_client(id);
+		}
+		IStream::on_close();
 	}
 
 }

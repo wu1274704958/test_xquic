@@ -58,10 +58,9 @@ int main(int argc,const char** argv)
 			if (s && s->has_holds_stream())
 			{
 				s->get_holds_stream<LobbyStream>()->req_peer_list();
-				t->stop();
 			}
 			
-		},1000,1000);
+		},1000,5000);
 	}catch (std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;
