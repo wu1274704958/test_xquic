@@ -15,3 +15,5 @@ log_config="""
 alpn="echo"
 ssl_cert_path="cert-def.pem"
 ssl_key_path="key-def.pem"
+[p2p]
+name="client_a"

@@ -46,7 +46,7 @@ const mqas::tools::p2p::peer_data* mqas::tools::p2p::p2p_model::operator[](uint3
 
 uint32_t mqas::tools::p2p::p2p_model::next_id()
 {
-	if (min_id - 1 > 0)
+	if (min_id > 0 && min_id - 1 > 0)
 		return min_id - 1;
 	if (max_id + 1 == std::numeric_limits<uint32_t>::max())
 		return 0;

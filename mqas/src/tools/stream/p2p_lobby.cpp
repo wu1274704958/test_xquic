@@ -8,7 +8,7 @@ namespace mqas::tools::p2p {
 	core::StreamVariantErrcode P2PLobbyStream::on_change_msg_s(const std::shared_ptr<proto::p2p::ReqRegistePeer>& msg,
 		std::vector<uint8_t>& ret)
 	{
-		auto model = comm::locator::inst()->get<p2p_model>(this->connect_cxt_);
+		auto model = comm::locator::inst()->get<p2p_model>();
 		const auto conn = connect.lock();
 		if (!model || !conn || msg->name().empty())
 			return core::StreamVariantErrcode::failed;
@@ -23,7 +23,7 @@ namespace mqas::tools::p2p {
 			ret_msg.set_ret(proto::p2p::peer_rejected);
 			return core::StreamVariantErrcode::failed;
 		}
-		if(core::ProtoBufMsg::write_msg<RespondRegistePeerPair>(ret, ret_msg))
+		if(!core::ProtoBufMsg::write_msg<RespondRegistePeerPair>(ret, ret_msg))
 			return core::StreamVariantErrcode::parse_failed;
 		comm::locator::inst()->deposit_cxt<uint32_t>(*this,id);
 		return core::StreamVariantErrcode::ok;
@@ -32,7 +32,7 @@ namespace mqas::tools::p2p {
 	core::StreamVariantErrcode P2PLobbyStream::on_peer_quit_msg_s(const std::shared_ptr<proto::p2p::ReqUnregistePeer>& msg,
 		std::vector<uint8_t>& ret)
 	{
-		auto model = comm::locator::inst()->get<p2p_model>(this->connect_cxt_);
+		auto model = comm::locator::inst()->get<p2p_model>();
 		auto id = comm::locator::inst()->get<uint32_t>(*this);
 		if (!model || !id)
 			return core::StreamVariantErrcode::failed;
@@ -45,14 +45,14 @@ namespace mqas::tools::p2p {
 			return core::StreamVariantErrcode::failed;
 		}
 		comm::locator::inst()->clear_by_context(*this);
-		if (core::ProtoBufMsg::write_msg<RespondUnregistePeerPair>(ret, ret_msg))
+		if (!core::ProtoBufMsg::write_msg<RespondUnregistePeerPair>(ret, ret_msg))
 			return core::StreamVariantErrcode::parse_failed;
 		return core::StreamVariantErrcode::ok;
 	}
 
 	core::StreamVariantErrcode P2PLobbyStream::on_read_msg_s(const std::shared_ptr<proto::p2p::ReqPeerList>& msg)
 	{
-		auto model = comm::locator::inst()->get<p2p_model>(this->connect_cxt_);
+		auto model = comm::locator::inst()->get<p2p_model>();
 		auto id = comm::locator::inst()->get<uint32_t>(*this);
 		if (!model || !id)
 			return core::StreamVariantErrcode::failed;

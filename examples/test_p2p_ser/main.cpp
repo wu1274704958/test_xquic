@@ -7,6 +7,7 @@
 #include <mqas/core/pb_stream.h>
 #include <mqas/comm/locator.h>
 #include <mqas/tools/stream/p2p_lobby.h>
+#include <mqas/tools/model/p2p_model.h>
 
 using namespace mqas;
 MQAS_SHARE_EASYLOGGINGPP
@@ -16,9 +17,12 @@ int main(int argc,const char** argv)
 {
 	Context<core::InitFlags::GLOBAL_SERVER> context;
 	io::Context io_cxt;
+
 	core::engine_base<core::engine<core::Connect<core::StreamVariant<
 		core::StreamVariantPair<1,mqas::tools::p2p::P2PLobbyStream>
 		>>>> e(io_cxt);
+
+	comm::locator::inst()->deposit<mqas::tools::p2p::p2p_model>();
 	try{
 		e.init("conf.txt",core::EngineFlags::Server);
 		e.start_recv();

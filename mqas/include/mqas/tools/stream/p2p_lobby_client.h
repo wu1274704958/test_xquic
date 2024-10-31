@@ -16,11 +16,12 @@ namespace mqas::tools::p2p {
 			std::vector<uint8_t>& ret);
 
 		core::StreamVariantErrcode on_read_msg_s(const std::shared_ptr<proto::p2p::RespondPeerList>& msg);
+		
 	
 		bool req_connect(uint32_t peer_id);
 		void req_peer_list();
-		void print_peer_list() const;
-		P2PLobbyClientStream();
+	protected:
+			virtual void on_get_peer_list();
 	protected:
 		std::string name;
 		std::shared_ptr<proto::p2p::RespondPeerList> peer_list;

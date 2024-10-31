@@ -9,8 +9,28 @@
 using namespace mqas;
 MQAS_SHARE_EASYLOGGINGPP
 
+
+class LobbyStream : public tools::p2p::P2PLobbyClientStream {
+protected:
+	void on_get_peer_list() override
+	{
+		print_peer_list();
+	}
+	void print_peer_list() const
+	{
+		printf("peer list:\n");
+		if (peer_list == nullptr)
+			return;
+		for (int i = 0; i < peer_list->peer_list_size(); ++i)
+		{
+			auto it = peer_list->peer_list().Get(i);
+			std::cout << it.id() << "\t------\t" << it.name() << std::endl;
+		}
+	}
+};
+
 using StreamType = core::StreamVariant<
-    core::StreamVariantPair<1, tools::p2p::P2PLobbyClientStream>>;
+    core::StreamVariantPair<1, LobbyStream>>;
 
 int main(int argc,const char** argv)
 {
@@ -31,8 +51,17 @@ int main(int argc,const char** argv)
             stream_out = stream;
             auto s = stream.lock();
 			mqas::tools::proto::p2p::ReqRegistePeer msg;
-			s->req_change<tools::p2p::P2PLobbyClientStream, mqas::tools::p2p::ReqRegistePeerPair>(msg);
+			s->req_change<LobbyStream, mqas::tools::p2p::ReqRegistePeerPair>(msg);
         });
+		t->start([&stream_out](mqas::io::Timer* t) {
+			auto s = stream_out.lock();
+			if (s && s->has_holds_stream())
+			{
+				s->get_holds_stream<LobbyStream>()->req_peer_list();
+				t->stop();
+			}
+			
+		},1000,1000);
 	}catch (std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;
