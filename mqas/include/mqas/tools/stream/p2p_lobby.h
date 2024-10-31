@@ -9,12 +9,12 @@ namespace mqas::tools::p2p {
 
 	class p2p_model;
 
-	class MQAS_EXTERN P2PLobbyStream : public core::ProtoBufStream<
+	class MQAS_EXTERN P2PLobbyStream : public core::ProtoBufStream<P2PLobbyStream,
 		ReqRegistePeerPair,RespondRegistePeerPair,
 		ReqUnregistePeerPair,RespondUnregistePeerPair,
 		ReqPeerListPair,RespondPeerListPair
 	> {
-
+	public:
 		core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::p2p::ReqRegistePeer>& msg,
 			std::vector<uint8_t>& ret);
 

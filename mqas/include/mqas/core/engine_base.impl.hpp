@@ -58,6 +58,7 @@ void mqas::core::engine_base<E>::init(const char* conf_file,core::EngineFlags en
 	init_logger();
 	
 	init_setting(conf_data);
+	engine_extern_->on_init_config(std::make_shared<toml::value>(conf_data));
 	//init socket
 	socket_ = cxt.make_handle<io::UdpSocket>();
 	sockaddr addr{};

@@ -32,6 +32,7 @@ namespace mqas::core
 			void init(void* engine_base_ptr);
 			void on_new_lsquic_engine(::lsquic_engine_api&, EngineFlags);
 			void on_init_socket(io::UdpSocket*);
+			void on_init_config(std::shared_ptr<toml::value> config);
 			void on_init_logger();
 			bool on_recv(const std::optional<std::span<uint8_t>>& buf, ssize_t nread, const sockaddr* addr, unsigned flags);
 
@@ -50,8 +51,10 @@ namespace mqas::core
 			void on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size);
 			void on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how);
 			void on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len);
+			const std::shared_ptr<toml::value> get_config() const;
 	protected:
 			void* engine_base_ptr_ = nullptr;
+			std::shared_ptr<toml::value> config;
 	};
 
 	template<typename E>
