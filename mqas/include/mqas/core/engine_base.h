@@ -31,7 +31,7 @@ namespace mqas::core
 	public:
 			void init(void* engine_base_ptr);
 			void on_new_lsquic_engine(::lsquic_engine_api&, EngineFlags);
-			void on_init_socket(io::UdpSocket*);
+			void on_init_socket(std::shared_ptr<io::UdpSocket> socket);
 			void on_init_config(std::shared_ptr<toml::value> config);
 			void on_init_logger();
 			bool on_recv(const std::optional<std::span<uint8_t>>& buf, ssize_t nread, const sockaddr* addr, unsigned flags);
@@ -52,9 +52,11 @@ namespace mqas::core
 			void on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how);
 			void on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len);
 			const std::shared_ptr<toml::value> get_config() const;
+			const std::shared_ptr<io::UdpSocket> get_socket() const;
 	protected:
 			void* engine_base_ptr_ = nullptr;
 			std::shared_ptr<toml::value> config;
+			std::shared_ptr<io::UdpSocket> socket_;
 	};
 
 	template<typename E>
@@ -121,7 +123,7 @@ namespace mqas::core
 	public:
 		io::Context& cxt;
 	protected:
-		io::UdpSocket* socket_;
+		std::shared_ptr<io::UdpSocket> socket_;
 		io::Timer* proc_conns_timer_;
 		std::shared_ptr<engine_config> conf_;
 		::lsquic_engine* engine_ = nullptr;

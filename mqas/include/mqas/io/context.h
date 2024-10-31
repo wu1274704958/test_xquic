@@ -30,33 +30,38 @@ namespace mqas::io
 		void run_until(std::atomic_bool&) ;
 		void stop() const;
 		[[nodiscard]] std::shared_ptr<uv_loop_t> get_loop() const;
-		template<typename H>
-		requires requires(H h)
-		{
-			new H();
-			h.init(std::declval<const Context&>());
-		}
-		H* make_handle()
-		{
-			std::list<H>* arr_ptr = get_handle_arr<H>();
-			arr_ptr->emplace_back();
-			H* h = &arr_ptr->back();
-			h->init(*this);
-			return h;
-		}
 		template<typename H,typename ...Args>
 		requires requires(H h)
 		{
 			new H();
 			h.init(std::declval<const Context&>(),std::declval<Args>()...);
 		}
-		H* make_handle_ex(Args&& ...args)
+		H* make_handle(Args&& ...args)
 		{
 			std::list<H>* arr_ptr = get_handle_arr<H>();
 			arr_ptr->emplace_back();
 			H* h = &arr_ptr->back();
 			h->init(*this,std::forward<Args>(args)...);
 			return h;
+		}
+
+		template<typename H, typename ...Args>
+			requires requires(H h)
+		{
+			new H();
+			h.init(std::declval<const Context&>(), std::declval<Args>()...);
+		}
+		std::shared_ptr<H> make_shared(Args&& ...args)
+		{
+			std::list<H>* arr_ptr = get_handle_arr<H>();
+			arr_ptr->emplace_back();
+			H* h = &arr_ptr->back();
+			h->init(*this, std::forward<Args>(args)...);
+			auto deleter = [this](H* ptr) {
+				this->del_handle(ptr);
+			};
+
+			return std::shared_ptr<H>(h,deleter);
 		}
 		template<typename H>
 		std::list<H>* get_handle_arr()

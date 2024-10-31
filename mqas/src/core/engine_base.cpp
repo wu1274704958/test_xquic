@@ -17,7 +17,9 @@ void mqas::core::IEngine::init(void* engine_base_ptr)
 
 void mqas::core::IEngine::on_new_lsquic_engine(lsquic_engine_api&, EngineFlags){}
 
-void mqas::core::IEngine::on_init_socket(io::UdpSocket*){}
+void mqas::core::IEngine::on_init_socket(std::shared_ptr<io::UdpSocket> socket){
+	socket_ = std::move(socket);
+}
 
 void mqas::core::IEngine::on_init_config(std::shared_ptr<toml::value> config){
 	this->config = std::move(config);
@@ -120,6 +122,11 @@ void mqas::core::IEngine::on_conncloseframe_received(lsquic_conn_t* c, int app_e
 const std::shared_ptr<toml::value> mqas::core::IEngine::get_config() const
 {
 	return config;
+}
+
+const std::shared_ptr<mqas::io::UdpSocket> mqas::core::IEngine::get_socket() const
+{
+	return socket_;
 }
 
 void mqas::core::IEngine::close() {}

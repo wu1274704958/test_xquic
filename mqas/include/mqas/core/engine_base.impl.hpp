@@ -60,7 +60,7 @@ void mqas::core::engine_base<E>::init(const char* conf_file,core::EngineFlags en
 	init_setting(conf_data);
 	engine_extern_->on_init_config(std::make_shared<toml::value>(conf_data));
 	//init socket
-	socket_ = cxt.make_handle<io::UdpSocket>();
+	socket_ = cxt.make_shared<io::UdpSocket>();
 	sockaddr addr{};
 	io::Ip::str2addr_ipv4(conf_->bind_ip.c_str(),conf_->port, addr);
 	socket_->bind(addr,UV_UDP_REUSEADDR);
@@ -136,7 +136,7 @@ void mqas::core::engine_base<E>::init_lsquic() noexcept(false)
 	
 	lsquic_engine_api_.ea_settings = &conf_->lsquic_settings;
 	lsquic_engine_api_.ea_packets_out = on_packets_out;
-	lsquic_engine_api_.ea_packets_out_ctx = socket_;
+	lsquic_engine_api_.ea_packets_out_ctx = socket_.get();
 	lsquic_engine_api_.ea_stream_if = &lsquic_stream_if_;
 	lsquic_engine_api_.ea_stream_if_ctx = engine_extern_.get();
 	if(contain<uint32_t>(engine_flags_,EngineFlags::Server))
@@ -194,11 +194,7 @@ ENGINE_BASE_TEMPLATE_DECL
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::close_socket()
 {
-	if(socket_)
-	{
-		cxt.del_handle(socket_);
-		socket_ = nullptr;
-	}
+	
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::close_timer()
