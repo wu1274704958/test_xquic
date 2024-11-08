@@ -4,7 +4,14 @@
 #include <map>
 #include <functional>
 #include <unordered_set>
+#include <array>
+#include "mqas/tools/proto/p2p.pb.h"
+#include <uv.h>
+#include <optional>
 
+namespace mqas::core {
+	class MQAS_EXTERN IStreamVariant;
+}
 namespace mqas::tools::p2p {
 
 	enum class PeerState : uint32_t
@@ -22,31 +29,118 @@ namespace mqas::tools::p2p {
 		uint16_t port;
 		uint16_t connect_success_count;
 		std::unordered_set<uint32_t> connected_set;
+		std::weak_ptr<mqas::core::IStreamVariant> stream;
 
 		peer_data(uint32_t id,const std::string& name, const std::string& ip,
-			uint16_t port) : id(id), name(name), state(PeerState::Idle),
-			ip(ip),port(port), connect_success_count(0)
+			uint16_t port, std::weak_ptr<mqas::core::IStreamVariant> stream) : id(id), name(name), state(PeerState::Idle),
+			ip(ip),port(port), connect_success_count(0),stream(stream)
 		{}
 		peer_data(const peer_data&) = default;
 		peer_data(peer_data&&) = default;
 	};
 
+	enum class ConnectState : uint16_t
+	{
+		Idle = 0,
+		TryInternal,
+		ChangeToExternal,
+		TryExternal,
+		Success,
+		Wait,
+		Failed
+	};
+
+	enum class StepResult : uint32_t
+	{
+		None = 0,
+		Success = 1,
+		Failed = 2,
+		End = 4
+	};
+
+	struct connect_cxt {
+		uint64_t id;
+		std::array<uint32_t, 2> pid;
+		std::array<std::vector<std::string>, 2> ip_list;
+		std::array<uint16_t, 2> port_list;
+		ConnectState state;
+		int8_t stage_1;//who active
+		std::array<int8_t, 2> stage_2;
+		int8_t tag;// success count
+		bool is_same_external;
+		std::array<uint32_t,2> verify_code;
+		connect_cxt(){}
+	};
+
+	/*template<typename T, typename = std::void_t<>>
+	struct has_static_function_next_step_connect_context : std::false_type {};
+
+	template<typename T>
+	struct has_static_function_next_step_connect_context<T, std::void_t<decltype(T::next_step_connect_context(std::declval<connect_cxt&>()))>>
+		: std::is_same<decltype(T::next_step_connect_context(std::declval<connect_cxt&>())), StepResult > {};
+
+
+	struct def_step_connect_context {
+		static StepResult next_step_connect_context(connect_cxt&);
+	};
+
+	template<typename T = def_step_connect_context>
+	requires requires{
+		requires has_static_function_next_step_connect_context<T>::value;
+	}*/
 	class p2p_model
 	{
 
 	public:
-		uint32_t registe_client(const std::string& name, const std::string& ip, uint16_t port);
+		//lobby
+		uint32_t registe_client(const std::string& name, const std::string& ip, uint16_t port,std::weak_ptr<mqas::core::IStreamVariant> stream);
 		bool unregiste_client(uint32_t id);
 		void visit_client(std::function<void(const peer_data&)> f) const;
 		const peer_data* operator[](uint32_t id) const;
+		template <typename T>
+		bool visit_client_stream(uint32_t id,std::function<bool(std::shared_ptr<T>)> f) const
+		{
+			auto client = (*this)[id];
+			auto shared_ptr = client->stream.lock();
+			if(client == nullptr || !shared_ptr)
+				return false;
+			auto ptr = std::dynamic_pointer_cast<T>(shared_ptr);
+			if (!ptr)
+				return false;
+			return f(ptr);
+		}
+		//helper
+		uint64_t create_context(uint32_t a, uint32_t b,const proto::p2p::ClientIpList& a_ip,
+			const proto::p2p::ClientIpList& b_ip, const connect_cxt** out);
+		const connect_cxt* get_context(uint64_t id) const;
+		const connect_cxt* get_context(uint32_t a, uint32_t b) const;
+		std::pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>> next_cxt(uint64_t id, uint32_t self);
+		std::pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>> current_cxt(uint64_t id, uint32_t self) const;
+		std::optional<proto::p2p::NotifyConnectPeerData> generate_connect_data(const connect_cxt& cxt, uint32_t self) const;
+		#ifndef NDEBUG  
+		void test_step_cxt();
+		#endif
 
 	protected:
+		//lobby
 		inline void update_min_id() { min_id = client_map.empty() ? 0 : (client_map.begin()->second.id); }
 		inline void update_max_id() { max_id = client_map.empty() ? 0 : ((--client_map.end())->second.id); }
 		uint32_t next_id();
+		//helper
+		uint64_t merge_id(uint32_t a, uint32_t b) const;
+		bool init_cxt(connect_cxt& cxt,const peer_data& a, const peer_data& b, const proto::p2p::ClientIpList& a_ip,
+			const proto::p2p::ClientIpList& b_ip) const;
+		StepResult next_cxt(connect_cxt& cxt) const;
+		void generate_verify_code(std::array<uint32_t, 2>& cxt) const;
+		
+		const peer_data& first_peer(const peer_data& a, const peer_data& b) const;
+		const peer_data& second_peer(const peer_data& a, const peer_data& b) const;
+		connect_cxt* get_context(uint64_t id);
+		connect_cxt* get_context(uint32_t a, uint32_t b);
 
 	protected:
 		std::map<uint32_t, peer_data> client_map;
+		std::map<uint64_t, connect_cxt> cxt_map;
 		
 	private:
 		uint32_t min_id = 0;

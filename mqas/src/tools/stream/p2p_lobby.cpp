@@ -16,7 +16,7 @@ namespace mqas::tools::p2p {
 		sockaddr local,peer;
 		conn->get_sockaddr(local,peer);
 
-		id = model.value().get().registe_client(msg->name(),io::Ip::addr2str(peer),io::Ip::addr_get_port(peer));
+		id = model.value().get().registe_client(msg->name(),io::Ip::addr2str(peer),io::Ip::addr_get_port(peer),this->weak_from_this());
 		proto::p2p::RespondRegistePeer ret_msg;
 		if (id == 0)
 		{ 
@@ -50,12 +50,12 @@ namespace mqas::tools::p2p {
 		return core::StreamVariantErrcode::ok;
 	}
 
-	core::StreamVariantErrcode P2PLobbyStream::on_read_msg_s(const std::shared_ptr<proto::p2p::ReqPeerList>& msg)
+	void P2PLobbyStream::on_read_msg_s(const std::shared_ptr<proto::p2p::ReqPeerList>& msg)
 	{
 		auto model = comm::locator::inst()->get<p2p_model>();
 		auto id = comm::locator::inst()->get<uint32_t>(*this);
 		if (!model || !id)
-			return core::StreamVariantErrcode::failed;
+			return;
 		proto::p2p::RespondPeerList ret_msg;
 
 		model.value().get().visit_client([&ret_msg,id](const p2p::peer_data& d)
@@ -68,8 +68,6 @@ namespace mqas::tools::p2p {
 		});
 
 		send<RespondPeerListPair>(ret_msg);
-
-		return core::StreamVariantErrcode::ok;
 	}
 
 	void P2PLobbyStream::on_close()
@@ -80,6 +78,52 @@ namespace mqas::tools::p2p {
 			model.value().get().unregiste_client(id);
 		}
 		IStream::on_close();
+	}
+
+	void P2PLobbyStream::on_read_msg_s(const std::shared_ptr<proto::p2p::ReqConnectPeer>& msg)
+	{
+		auto model = comm::locator::inst()->get<p2p_model>();
+		if (!model)return;
+		auto self = model.value().get()[id];
+		auto res = model.value().get().visit_client_stream<P2PLobbyStream>(msg->peer_id(), [&self,this](std::shared_ptr<P2PLobbyStream> ptr)->bool {
+			proto::p2p::NotifyPeerWantConnect m2;
+			proto::p2p::PeerData peer;
+			peer.set_id(id);
+			peer.set_name(self->name);
+			m2.set_allocated_peer(&peer);
+			ptr->send<NotifyPeerWantConnectPair>(m2);
+			return true;
+		});
+		if (!res)
+		{
+			proto::p2p::RespondConnectPeer ret;
+			ret.set_ret(proto::p2p::not_exists);
+			send<RespondConnectPeerPair>(ret);
+		}
+	}
+
+	void P2PLobbyStream::on_read_msg_s(const std::shared_ptr<proto::p2p::ReqRespondPeerReqConnect>& msg)
+	{
+		auto model = comm::locator::inst()->get<p2p_model>();
+		if (!model)return;
+		if (msg->agree())
+		{
+			LOG(ERROR) << "p2p lobby ReqRespondPeerReqConnect request agree must change to p2p helper!!!";
+		}
+		else {
+			model.value().get().visit_client_stream<P2PLobbyStream>(msg->peer_id(), [msg, this](std::shared_ptr<P2PLobbyStream> ptr)->bool {
+				ptr->send_respond_for_req_connect(id, proto::p2p::RetCode::peer_rejected);
+				return true;
+			});
+		}
+	}
+
+	bool P2PLobbyStream::send_respond_for_req_connect(uint32_t id, proto::p2p::RetCode code)
+	{
+		proto::p2p::RespondConnectPeer ret;
+		ret.set_peer_id(id);
+		ret.set_ret(code);
+		return send<RespondConnectPeerPair>(ret);
 	}
 
 }

@@ -10,12 +10,13 @@
 #include <mqas/macro.h>
 #include <mqas/core/stream.h>
 #include <sigc++/sigc++.h>
+#include <memory>
 
 namespace mqas::core{
 
     template<class S,class ... M>
     requires requires{ requires (IsProtoBufMsgConf<M> && ...);}
-    class ProtoBufStream : public IStreamVariant {
+    class ProtoBufStream : public IStreamVariant , public std::enable_shared_from_this<ProtoBufStream<S,M...>> {
     public:
         using HANDLER_FUN_TY = sigc::signal<void(size_t,const std::shared_ptr<google::protobuf::Message>&)>;
         using PARSER_FUN_TY = std::function<std::shared_ptr<google::protobuf::Message>(const MsgHeader&,MsgOrigin)>;

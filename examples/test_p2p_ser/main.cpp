@@ -15,22 +15,7 @@ MQAS_SHARE_EASYLOGGINGPP
 
 int main(int argc,const char** argv)
 {
-	Context<core::InitFlags::GLOBAL_SERVER> context;
-	io::Context io_cxt;
-
-	core::engine_base<core::engine<core::Connect<core::StreamVariant<
-		core::StreamVariantPair<1,mqas::tools::p2p::P2PLobbyStream>
-		>>>> e(io_cxt);
-
-	comm::locator::inst()->deposit<mqas::tools::p2p::p2p_model>();
-	try{
-		e.init("conf.txt",core::EngineFlags::Server);
-		e.start_recv();
-		e.process_conns();
-	}catch (std::exception& e)
-	{
-		std::cerr << e.what() << std::endl;
-	}
-	io_cxt.run_until(IsRunning());
+	mqas::tools::p2p::p2p_model model;
+	model.test_step_cxt();
 	return 0;
 }

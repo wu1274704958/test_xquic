@@ -2,8 +2,7 @@ syntax = "proto3";
 
 package mqas.tools.proto.p2p;
 
-message ReqPeerList{}
-
+//data
 message PeerData {
     uint32 id = 1;
     string name = 2;
@@ -16,6 +15,15 @@ enum RetCode{
     peer_rejected = 3;
     failed = 4;
 }
+
+message ClientIpList{
+    repeated string ip_list = 1;
+    uint32 port = 2;
+}
+//--------------------------------
+
+//lobby 
+message ReqPeerList{}
 
 message RespondPeerList{
     repeated PeerData peer_list = 1;
@@ -35,33 +43,36 @@ message RespondUnregistePeer{
     RetCode ret = 1;
 }
 
-message ClientIpList{
-    repeated string ip_list = 1;
-}
-
-message ReqConnectPeer{
-    uint32 peer_id = 1;
-    ClientIpList ip_list = 2;
-}
-
-message ReqRespondPeerReqConnect{
-    bool agree = 1;
-    optional ClientIpList ip_list = 2;
-}
+//-------------------------------------
 
 message ConnectPeerData{
     string ip = 1;
     uint32 port = 2;
-    string self_key = 3;
-    string peer_key = 4;
+    uint32 verify_code = 3;
+    uint32 send_times = 4; 
+    uint32 send_delay = 5;
+}
+
+//helper
+message ReqConnectPeer{
+    uint32 peer_id = 1;
+    optional ClientIpList ip_list = 2;
+}
+
+message ReqRespondPeerReqConnect{
+    uint32 peer_id = 1;
+    bool agree = 2;
+    optional ClientIpList ip_list = 3;
 }
 
 message RespondConnectPeer{
-    RetCode ret = 1;
+    uint32 peer_id = 1;
+    RetCode ret = 2;
 }
 
 message NotifyConnectPeerData{
-    ConnectPeerData connect_data = 1;
+    uint32 peer_id = 1;
+    ConnectPeerData connect_data = 2;
 }
 
 message NotifyConnectResult{
@@ -69,10 +80,12 @@ message NotifyConnectResult{
     optional string reason = 2;
 }
 
-message ReqConnectPeerSuccessed{
-    uint32 peer_id = 1;
+message NotifyPeerWantConnect{
+    PeerData peer = 1;
 }
 
-message RespondConnectPeerSuccessed{
-    RetCode ret = 1;
+message ReqSubmitRecvPeerKeyCode{
+    uint32 peer_id = 2;
+    RetCode result = 3;
 }
+//--------------------------------------------

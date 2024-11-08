@@ -2,6 +2,7 @@
 #include <mqas/macro.h>
 #include <string>
 #include <uv.h>
+#include <vector>
 
 namespace mqas::io {
 	class MQAS_EXTERN Ip {
@@ -12,5 +13,7 @@ namespace mqas::io {
 		static std::string addr2str_ipv6(const sockaddr& addr);
 		static std::string addr2str(const sockaddr& addr);
 		static u_short addr_get_port(const sockaddr& addr);
+
+		static void collect_local_ip(std::vector<sockaddr>& res);
 	};
 }

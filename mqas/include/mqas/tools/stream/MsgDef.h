@@ -21,7 +21,14 @@ namespace mqas::tools::p2p {
     using RespondUnregistePeerPair = core::PBMsgPair<7, proto::p2p::RespondUnregistePeer>;
     using ReqPeerListPair = core::PBMsgPair<8, proto::p2p::ReqPeerList>;
     using RespondPeerListPair = core::PBMsgPair<9, proto::p2p::RespondPeerList>;
-    using ReqConnectPeerPair = core::PBMsgPair<10, proto::p2p::ReqConnectPeer>;
-    using RespondConnectPeerPair = core::PBMsgPair<11, proto::p2p::RespondConnectPeer>;
+    //p2p helper
+    using ReqConnectPeerPair = core::PBMsgPair<12, proto::p2p::ReqConnectPeer>;
+    using ReqRespondPeerReqConnectPair = core::PBMsgPair<13, proto::p2p::ReqRespondPeerReqConnect>;
+    using NotifyPeerWantConnectPair = core::PBMsgPair<14, proto::p2p::NotifyPeerWantConnect>;
+    using RespondConnectPeerPair = core::PBMsgPair<15, proto::p2p::RespondConnectPeer>;
+    using NotifyConnectPeerDataPair = core::PBMsgPair<16, proto::p2p::NotifyConnectPeerData>;
+    using ReqSubmitRecvPeerKeyCodePair = core::PBMsgPair<17, proto::p2p::ReqSubmitRecvPeerKeyCode>;
+    using NotifyConnectResultPair = core::PBMsgPair<18, proto::p2p::NotifyConnectResult>;
+
 }
 #endif //MQAS_TOOL_STREAM_MSG_DEF_H

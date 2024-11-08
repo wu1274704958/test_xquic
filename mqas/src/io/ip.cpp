@@ -44,3 +44,8 @@ u_short mqas::io::Ip::addr_get_port(const sockaddr& addr)
 		return ntohs(addr_in6->sin6_port);
 	}
 }
+
+void mqas::io::Ip::collect_local_ip(std::vector<sockaddr>& res)
+{
+
+}
