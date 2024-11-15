@@ -3,6 +3,10 @@ get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(CUR_TARGET_NAME ${CURRENT_DIR_NAME})
 add_executable(${CUR_TARGET_NAME} ${CUR_SRC_FILES})
 add_dependencies(${CUR_TARGET_NAME} mqas)
+
+
+find_package(unofficial-pdcurses CONFIG REQUIRED)
+
 target_include_directories(${CUR_TARGET_NAME} PRIVATE 
     ${boringssl_INCLUDE_DIR}
 )
@@ -16,6 +20,7 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
         ${easyloggingpp_LIBRARY}
         protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
         sigc-3.0
+        unofficial::pdcurses::pdcurses
 )
 
 get_target_property(mqas_TARGET_TYPE mqas TYPE)

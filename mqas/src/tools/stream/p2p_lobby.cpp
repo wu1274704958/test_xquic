@@ -25,7 +25,6 @@ namespace mqas::tools::p2p {
 		}
 		if(!core::ProtoBufMsg::write_msg<RespondRegistePeerPair>(ret, ret_msg))
 			return core::StreamVariantErrcode::parse_failed;
-		comm::locator::inst()->deposit_cxt<uint32_t>(*this,id);
 		return core::StreamVariantErrcode::ok;
 	}
 
@@ -33,18 +32,17 @@ namespace mqas::tools::p2p {
 		std::vector<uint8_t>& ret)
 	{
 		auto model = comm::locator::inst()->get<p2p_model>();
-		auto id = comm::locator::inst()->get<uint32_t>(*this);
-		if (!model || !id)
+		if (!model)
 			return core::StreamVariantErrcode::failed;
 
-		const auto res = model.value().get().unregiste_client(id.value());
+		const auto res = model.value().get().unregiste_client(id);
 		proto::p2p::RespondUnregistePeer ret_msg;
 		if (!res)
 		{
 			ret_msg.set_ret(proto::p2p::peer_rejected);
 			return core::StreamVariantErrcode::failed;
 		}
-		comm::locator::inst()->clear_by_context(*this);
+		id = 0;
 		if (!core::ProtoBufMsg::write_msg<RespondUnregistePeerPair>(ret, ret_msg))
 			return core::StreamVariantErrcode::parse_failed;
 		return core::StreamVariantErrcode::ok;
@@ -53,14 +51,13 @@ namespace mqas::tools::p2p {
 	void P2PLobbyStream::on_read_msg_s(const std::shared_ptr<proto::p2p::ReqPeerList>& msg)
 	{
 		auto model = comm::locator::inst()->get<p2p_model>();
-		auto id = comm::locator::inst()->get<uint32_t>(*this);
-		if (!model || !id)
+		if (!model)
 			return;
 		proto::p2p::RespondPeerList ret_msg;
 
-		model.value().get().visit_client([&ret_msg,id](const p2p::peer_data& d)
+		model.value().get().visit_client([&ret_msg,this](const p2p::peer_data& d)
 		{
-			if(id && *id == d.id)
+			if(id == d.id)
 				return;
 			auto peer = ret_msg.add_peer_list();
 			peer->set_id(d.id);
@@ -87,10 +84,9 @@ namespace mqas::tools::p2p {
 		auto self = model.value().get()[id];
 		auto res = model.value().get().visit_client_stream<P2PLobbyStream>(msg->peer_id(), [&self,this](std::shared_ptr<P2PLobbyStream> ptr)->bool {
 			proto::p2p::NotifyPeerWantConnect m2;
-			proto::p2p::PeerData peer;
-			peer.set_id(id);
-			peer.set_name(self->name);
-			m2.set_allocated_peer(&peer);
+			auto peer = m2.mutable_peer();
+			peer->set_id(id);
+			peer->set_name(self->name);
 			ptr->send<NotifyPeerWantConnectPair>(m2);
 			return true;
 		});

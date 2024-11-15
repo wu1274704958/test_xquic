@@ -46,47 +46,31 @@ namespace mqas::tools::p2p {
 
 	void P2PLobbyClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyPeerWantConnect>& msg)
 	{
-		proto::p2p::ReqRespondPeerReqConnect ret;
-
-		auto want = on_want_connect.emit(msg->peer());
-
-		ret.set_peer_id(msg->peer().id()); 
-		ret.set_agree(want);
-		proto::p2p::ClientIpList ip_list;
-		if(want)
-		{ 
-			if (get_ip_list(ip_list))
-				ret.set_allocated_ip_list(&ip_list);
-			else
-				want = false;
-		}
-		if(!want)
-			send<ReqRespondPeerReqConnectPair>(ret);
-		else {
-			if (on_change_helper)
-				on_change_helper(ret);
-			else
-				LOG(ERROR) << "p2p lobby client on_change_helper not set";
-		}
+		on_want_connect.emit(msg->peer());	
+		waiting_respond.insert(msg->peer().id());
 		return;
 	}
 
 	void P2PLobbyClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::RespondConnectPeer>& msg)
 	{
-		proto::p2p::ReqConnectPeer req_msg;
-		req_msg.set_peer_id(msg->peer_id());
-		proto::p2p::ClientIpList ip_list;
-		if (get_ip_list(ip_list))
-			req_msg.set_allocated_ip_list(&ip_list);
-		else
-		{
-			LOG(ERROR) << "p2p lobby client ReqConnectPeer get ip failed";
-			return;
+		on_get_respond.emit(msg);
+		if(msg->ret() == proto::p2p::RetCode::ok)
+		{ 
+			proto::p2p::ReqConnectPeer req_msg;
+			req_msg.set_peer_id(msg->peer_id());
+			proto::p2p::ClientIpList ip_list;
+			if (get_ip_list(ip_list))
+				req_msg.set_allocated_ip_list(&ip_list);
+			else
+			{
+				LOG(ERROR) << "p2p lobby client ReqConnectPeer get ip failed";
+				return;
+			}
+			if (on_change_helper_by_req)
+				on_change_helper_by_req(req_msg);
+			else
+				LOG(ERROR) << "p2p lobby client on_change_helper_by_req not set";
 		}
-		if (on_change_helper_by_req)
-			on_change_helper_by_req(req_msg);
-		else
-			LOG(ERROR) << "p2p lobby client on_change_helper_by_req not set";
 	}
 
 	bool P2PLobbyClientStream::get_ip_list(proto::p2p::ClientIpList& res) const
@@ -104,6 +88,32 @@ namespace mqas::tools::p2p {
 		
 		res.set_port(mqas::io::Ip::addr_get_port(local));
 		return true;
+	}
+
+	void P2PLobbyClientStream::req_respond(uint32_t id, bool agree)
+	{
+		if (waiting_respond.find(id) == waiting_respond.end())
+			return;
+
+		proto::p2p::ReqRespondPeerReqConnect ret;
+		ret.set_peer_id(id);
+		proto::p2p::ClientIpList ip_list;
+		if (agree)
+		{
+			if (get_ip_list(ip_list))
+				ret.set_allocated_ip_list(&ip_list);
+			else
+				agree = false;
+		}
+		ret.set_agree(agree);
+		if (!agree)
+			send<ReqRespondPeerReqConnectPair>(ret);
+		else {
+			if (on_change_helper)
+				on_change_helper(ret);
+			else
+				LOG(ERROR) << "p2p lobby client on_change_helper not set";
+		}
 	}
 
 }
