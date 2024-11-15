@@ -347,6 +347,17 @@ namespace mqas::core {
         return write({*buf});
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
+        template<class SM>
+        requires IsProtoBufMsgConf<SM>
+    bool ProtoBufStream<S, M...>::send_lazy(const typename SM::PB_MSG_TYPE& m)
+    {
+        auto buf = ProtoBufMsg::write_msg<SM>(m);
+        if (!buf)
+            return false;
+        write_lazy({ *buf });
+        return true;
+    }
+    MQAS_PB_STREAM_TEMPLATE_DECL
     template<class SM>
     requires IsProtoBufMsgConf<SM>
     bool ProtoBufStream<S,M...>::send_req_quit(uint32_t curr_tag,const typename SM::PB_MSG_TYPE& m)

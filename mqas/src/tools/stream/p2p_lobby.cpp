@@ -87,7 +87,7 @@ namespace mqas::tools::p2p {
 			auto peer = m2.mutable_peer();
 			peer->set_id(id);
 			peer->set_name(self->name);
-			ptr->send<NotifyPeerWantConnectPair>(m2);
+			ptr->send_lazy<NotifyPeerWantConnectPair>(m2);
 			return true;
 		});
 		if (!res)
@@ -119,7 +119,7 @@ namespace mqas::tools::p2p {
 		proto::p2p::RespondConnectPeer ret;
 		ret.set_peer_id(id);
 		ret.set_ret(code);
-		return send<RespondConnectPeerPair>(ret);
+		return send_lazy<RespondConnectPeerPair>(ret);
 	}
 
 }

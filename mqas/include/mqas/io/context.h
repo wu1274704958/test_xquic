@@ -2,7 +2,7 @@
 #include <uv.h>
 #include <memory>
 #include <mqas/macro.h>
-#include <list>
+#include <unordered_map>
 #include <atomic>
 #include <cassert>
 
@@ -38,11 +38,12 @@ namespace mqas::io
 		}
 		H* make_handle(Args&& ...args)
 		{
-			std::list<H>* arr_ptr = get_handle_arr<H>();
-			arr_ptr->emplace_back();
-			H* h = &arr_ptr->back();
-			h->init(*this,std::forward<Args>(args)...);
-			return h;
+			std::unordered_map<void*, H>* arr_ptr = get_handle_arr<H>();
+			auto t = H();
+			void* key = t.get_ptr();
+			t.init(*this, std::forward<Args>(args)...);
+			arr_ptr->insert(std::make_pair(key,std::move(t)));
+			return &(*arr_ptr)[key];
 		}
 
 		template<typename H, typename ...Args>
@@ -53,20 +54,14 @@ namespace mqas::io
 		}
 		std::shared_ptr<H> make_shared(Args&& ...args)
 		{
-			std::list<H>* arr_ptr = get_handle_arr<H>();
-			arr_ptr->emplace_back();
-			H* h = &arr_ptr->back();
+			auto h = std::make_shared<H>();
 			h->init(*this, std::forward<Args>(args)...);
-			auto deleter = [this](H* ptr) {
-				this->del_handle(ptr);
-			};
-
-			return std::shared_ptr<H>(h,deleter);
+			return h;
 		}
 		template<typename H>
-		std::list<H>* get_handle_arr()
+		std::unordered_map<void*,H>* get_handle_arr()
 		{
-			std::list<H>* arr_ptr = nullptr;
+			std::unordered_map<void*, H>* arr_ptr = nullptr;
 			if constexpr (std::is_same_v<H, Idle>)
 			{
 				arr_ptr = &idle_arr_;
@@ -90,23 +85,15 @@ namespace mqas::io
 			uv_close(reinterpret_cast<uv_handle_t*>(ptr->get_ptr()), [](uv_handle_t* h)
 			{
 				auto p = static_cast<H*>(h->data);
-				auto arr = static_cast<std::list<H>*>(p->data);
-				for (auto it = arr->begin(); it != arr->end(); )
-				{
-					if (it->get_ptr() == p->get_ptr())
-					{
-						it = arr->erase(it);
-						break;
-					}
-					++it;
-				}
+				auto arr = static_cast<std::unordered_map<void*, H>*>(p->data);
+				arr->erase(p->get_ptr());
 			});
 		}
 	protected:
 		std::shared_ptr<uv_loop_t> loop;
-		std::list<Idle> idle_arr_;
-		std::list<Timer> timer_arr_;
-		std::list<UdpSocket> udp_arr_;
+		std::unordered_map<void*,Idle> idle_arr_;
+		std::unordered_map<void*,Timer> timer_arr_;
+		std::unordered_map<void*,UdpSocket> udp_arr_;
 	};
 	
 }

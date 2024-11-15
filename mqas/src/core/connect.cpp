@@ -11,6 +11,7 @@ void mqas::core::IStream::on_init(::lsquic_stream_t *lsquic_stream,connect_cxt* 
     reader_.lsqr_size = reader_size;
     this->connect = std::move(connect);
     if(want_read_on_init_) want_read(true);
+    lazy_timer = connect_cxt_->engine_cxt_->io_cxt->make_handle<io::Timer>();
 }
 
 size_t mqas::core::IStream::do_read() {
@@ -57,13 +58,16 @@ void mqas::core::IStream::do_write() {
     {
         buf_.clear();
         buf_write_pos = 0;
-        lsquic_stream_wantwrite(stream_,0);
+        want_write(false);
         flush();
     }
 }
 
 void mqas::core::IStream::on_close() {
     is_closed_ = true;
+    if(lazy_timer)
+        connect_cxt_->engine_cxt_->io_cxt->del_handle(lazy_timer);
+    lazy_timer = nullptr;
 }
 
 void mqas::core::IStream::on_reset(StreamAspect how) {
@@ -79,6 +83,34 @@ bool mqas::core::IStream::write(const std::span<uint8_t> &data) {
     std::memcpy(&buf_[old_len],data.data(),data.size());
     connect_cxt_->engine_cxt_->process_conns_lazy();
     return true;
+}
+
+void mqas::core::IStream::write_buf(const std::span<uint8_t>& data)
+{
+    if (data.empty()) return;
+    const size_t old_len = buf_.size();
+    buf_.resize(old_len + data.size());
+    std::memcpy(&buf_[old_len], data.data(), data.size());
+}
+
+void mqas::core::IStream::want_write_lazy(bool v)
+{
+    if (buf_.empty()) return;
+    if(lazy_timer_started) return;
+    lazy_timer_started = true;
+    lazy_timer->start([this,v](io::Timer* t){
+        lazy_timer_started = false;
+        t->stop();
+        if (v && buf_.empty()) return;
+        want_write(v);
+    },0,0);
+}
+
+void mqas::core::IStream::write_lazy(const std::span<uint8_t>& data)
+{
+    write_buf(data);
+    want_write_lazy(true);
+    connect_cxt_->engine_cxt_->process_conns_lazy();
 }
 
 size_t mqas::core::IStream::reader_read(void *lsqr_ctx, void *buf, size_t count) {

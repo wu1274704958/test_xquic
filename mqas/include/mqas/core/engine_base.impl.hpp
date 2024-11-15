@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <mqas/io/udp.h>
 #include <mqas/io/timer.h>
+#include <mqas/io/idle.h>
 #include "easylogging++.h"
 #include <lsquic.h>
 #include <mqas/log.h>

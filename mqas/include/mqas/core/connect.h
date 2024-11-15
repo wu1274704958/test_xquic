@@ -8,6 +8,7 @@
 
 #include <mqas/macro.h>
 #include <mqas/core/engine.h>
+#include <mqas/io/timer.h>
 
 namespace mqas::core{
 
@@ -22,6 +23,9 @@ namespace mqas::core{
         void on_reset(StreamAspect how);
         //operator functions
         bool write(const std::span<uint8_t>&);
+        void write_buf(const std::span<uint8_t>&);
+        void want_write_lazy(bool);
+        void write_lazy(const std::span<uint8_t>&);
         bool want_read(bool) const;
         bool want_write(bool) const;
         bool flush() const;
@@ -60,8 +64,10 @@ namespace mqas::core{
         connect_cxt* connect_cxt_ = nullptr;
         void* cxt_ = nullptr;
         bool is_closed_:1 = false;
+        bool lazy_timer_started : 1 = false;
         bool want_read_on_init_:1 = true;
         std::weak_ptr<IConnect> connect;
+        mqas::io::Timer* lazy_timer;
     };
     struct connect_cxt{
         engine_cxt* engine_cxt_;

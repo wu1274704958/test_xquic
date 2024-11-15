@@ -46,6 +46,9 @@ namespace mqas::core{
         bool send(const typename SM::PB_MSG_TYPE&);
         template<class SM>
         requires IsProtoBufMsgConf<SM>
+        bool send_lazy(const typename SM::PB_MSG_TYPE&);
+        template<class SM>
+        requires IsProtoBufMsgConf<SM>
         bool send_req_quit(uint32_t curr_tag,const typename SM::PB_MSG_TYPE&);
         template<class SM,stream_variant_cmd C>
         requires IsProtoBufMsgConf<SM>
