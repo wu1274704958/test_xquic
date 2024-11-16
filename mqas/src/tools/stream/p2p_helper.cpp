@@ -8,4 +8,10 @@ namespace mqas::tools::p2p {
         return core::StreamVariantErrcode::ok;
     }
 
+
+    core::StreamVariantErrcode P2PHelperStream::on_change_msg_s(const std::shared_ptr<proto::p2p::ReqRespondPeerReqConnect>& msg,
+        std::vector<uint8_t>& ret)
+    {
+        return core::StreamVariantErrcode::ok;
+    }
 }

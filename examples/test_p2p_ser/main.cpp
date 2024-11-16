@@ -7,6 +7,7 @@
 #include <mqas/core/pb_stream.h>
 #include <mqas/comm/locator.h>
 #include <mqas/tools/stream/p2p_lobby.h>
+#include <mqas/tools/stream/p2p_helper.h>
 #include <mqas/tools/model/p2p_model.h>
 
 using namespace mqas;
@@ -19,7 +20,8 @@ int main(int argc,const char** argv)
 	io::Context io_cxt;
 
 	core::engine_base<core::engine<core::Connect<core::StreamVariant<
-		core::StreamVariantPair<1, mqas::tools::p2p::P2PLobbyStream>
+		core::StreamVariantPair<1, mqas::tools::p2p::P2PLobbyStream>,
+		core::StreamVariantPair<2, mqas::tools::p2p::P2PHelperStream>
 		>>>> e(io_cxt);
 
 	comm::locator::inst()->deposit<mqas::tools::p2p::p2p_model>();

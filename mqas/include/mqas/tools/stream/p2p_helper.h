@@ -12,7 +12,11 @@ namespace mqas::tools::p2p {
 		NotifyConnectPeerDataPair, ReqSubmitRecvPeerKeyCodePair,
 		NotifyConnectResultPair
 	> {
+		//active
 		core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::p2p::ReqConnectPeer>& msg,
+			std::vector<uint8_t>& ret);
+		
+		core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::p2p::ReqRespondPeerReqConnect>& msg,
 			std::vector<uint8_t>& ret);
 	};
 }

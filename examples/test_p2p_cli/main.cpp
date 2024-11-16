@@ -9,6 +9,7 @@
 #include <curses.h>
 #include <stack>
 #include <mqas/io/idle.h>
+#include <mqas/tools/stream/p2p_helper.h>
 using namespace mqas;
 MQAS_SHARE_EASYLOGGINGPP
 
@@ -18,7 +19,8 @@ protected:
 };
 
 using StreamType = core::StreamVariant<
-	core::StreamVariantPair<1, LobbyStream>>;
+	core::StreamVariantPair<1, LobbyStream>,
+	core::StreamVariantPair<2, mqas::tools::p2p::P2PHelperStream>>;
 
 enum class ui_state {
 	none = 0,
@@ -80,12 +82,12 @@ int main(int argc, const char** argv)
 			lobby_stream->on_change_helper = [stream](const mqas::tools::proto::p2p::ReqRespondPeerReqConnect& msg)
 			{
 				auto s = stream.lock();
-				//todo
+				s->req_change<mqas::tools::p2p::P2PHelperStream, mqas::tools::p2p::ReqRespondPeerReqConnectPair>(msg);
 			};
 			lobby_stream->on_change_helper_by_req = [stream](const mqas::tools::proto::p2p::ReqConnectPeer& msg)
 			{
 				auto s = stream.lock();
-				//todo
+				s->req_change<mqas::tools::p2p::P2PHelperStream, mqas::tools::p2p::ReqConnectPeerPair>(msg);
 			};
 			ui.init_stream(lobby_stream);
 		});
@@ -193,7 +195,7 @@ void tui::draw()
 			wprintw(win, "%u ----- %s",it.id(),it.name().c_str());
 		}
 		wmove(win, y++, 1);
-		wprintw(win, "Input peer id to request connect! current = %u,input E end",input_peer_id);
+		wprintw(win, "Input peer id to request connect! current = %u,input Enter end",input_peer_id);
 	}
 		break;
 	case ui_state::select_peer_not_find:
@@ -232,7 +234,7 @@ void tui::handle_input()
 			input_peer_id = (input_peer_id * 10) + (c - '0');
 		if (c == 8) //backspace
 			input_peer_id = input_peer_id / 10;
-		if (c == 'e')
+		if (c == 10) //enter
 		{
 			if (has_peer(input_peer_id))
 				stream->req_connect(input_peer_id);
@@ -264,7 +266,7 @@ void tui::handle_input()
 	default:
 		break;
 	}
-	if (c == 'q')
+	if (c == 27)
 	{
 		pop_state();
 		if (stack.empty())

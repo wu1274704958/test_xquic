@@ -97,12 +97,10 @@ namespace mqas::tools::p2p {
 
 		proto::p2p::ReqRespondPeerReqConnect ret;
 		ret.set_peer_id(id);
-		proto::p2p::ClientIpList ip_list;
+		auto ip_list = ret.mutable_ip_list();
 		if (agree)
 		{
-			if (get_ip_list(ip_list))
-				ret.set_allocated_ip_list(&ip_list);
-			else
+			if(!get_ip_list(*ip_list))
 				agree = false;
 		}
 		ret.set_agree(agree);
