@@ -13,6 +13,7 @@ namespace mqas::io
 
 	Context::~Context()
 	{
+		delete_hold_handle_ptr<Idle,Timer,UdpSocket>();
 		close_loop();
 	}
 

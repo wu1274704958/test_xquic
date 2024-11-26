@@ -20,8 +20,8 @@ int main(int argc,const char** argv)
 	io::Context io_cxt;
 
 	core::engine_base<core::engine<core::Connect<core::StreamVariant<
-		core::StreamVariantPair<1, mqas::tools::p2p::P2PLobbyStream>,
-		core::StreamVariantPair<2, mqas::tools::p2p::P2PHelperStream>
+		core::StreamVariantPair<1, mqas::tools::p2p::P2PLobbyStream>//,
+		//core::StreamVariantPair<2, mqas::tools::p2p::P2PHelperStream>
 		>>>> e(io_cxt);
 
 	comm::locator::inst()->deposit<mqas::tools::p2p::p2p_model>();

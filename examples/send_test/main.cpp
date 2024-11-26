@@ -3,6 +3,7 @@
 #include "mqas/io/timer.h"
 #include <mqas/io/udp.h>
 #include <mqas/io/ip.h>
+#include <mqas/io/idle.h>
 using namespace mqas;
 
 int main(int argc,const char** argv)
@@ -10,7 +11,7 @@ int main(int argc,const char** argv)
 	Context<mqas::core::InitFlags::GLOBAL_CLIENT> context;
 	io::Context io_cxt;
 
-	auto udp = io_cxt.make_handle<io::UdpSocket>();
+	auto udp = io_cxt.make_shared<io::UdpSocket>();
 	sockaddr local,peer;
 	io::Ip::str2addr_ipv4("0.0.0.0",8084,local);
 	io::Ip::str2addr_ipv4("127.0.0.1", 8083, peer);

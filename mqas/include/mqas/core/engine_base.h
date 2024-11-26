@@ -94,7 +94,8 @@ namespace mqas::core
 		void close_ssl_ctx();
 		~engine_base()
 		{
-            engine_extern_->close();
+            if(engine_extern_)
+				engine_extern_->close();
 			close_socket();
 			close_timer();
 			close_ssl_ctx();

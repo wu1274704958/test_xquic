@@ -3,14 +3,14 @@
 #include <utility>
 #include "mqas/io/exception.h"
 
-void mqas::io::UdpOp::init(std::shared_ptr<uv_udp_t> h, std::shared_ptr<uv_loop_t> l)
+void mqas::io::UdpOp::init(uv_udp_t* h, std::shared_ptr<uv_loop_t> l)
 {
-	if(const int ret = uv_udp_init(l.get(),h.get()); ret != 0)throw Exception(ret);
+	if(const int ret = uv_udp_init(l.get(),h); ret != 0)throw Exception(ret);
 }
 
-void mqas::io::UdpOp::init(std::shared_ptr<uv_udp_t> h, std::shared_ptr<uv_loop_t> l, unsigned flags)
+void mqas::io::UdpOp::init(uv_udp_t* h, std::shared_ptr<uv_loop_t> l, unsigned flags)
 {
-	if (const int ret = uv_udp_init_ex(l.get(), h.get(),flags); ret != 0)throw Exception(ret);
+	if (const int ret = uv_udp_init_ex(l.get(), h,flags); ret != 0)throw Exception(ret);
 }
 
 mqas::io::UdpSocket::UdpSocket() : buffer_(1500)
@@ -18,41 +18,47 @@ mqas::io::UdpSocket::UdpSocket() : buffer_(1500)
 
 }
 
+mqas::io::UdpSocket::~UdpSocket()
+{
+	if (is_receiving())
+		recv_stop();
+}
+
 void mqas::io::UdpSocket::open(OsSocket sock) const
 {
-	if (const int ret = uv_udp_open(handle_.get(),sock); ret != 0)throw Exception(ret);
+	if (const int ret = uv_udp_open(handle_,sock); ret != 0)throw Exception(ret);
 }
 
 void mqas::io::UdpSocket::bind(const sockaddr& addr, unsigned flags) const
 {
-	if (const int ret = uv_udp_bind(handle_.get(), &addr,flags); ret != 0)throw Exception(ret);
+	if (const int ret = uv_udp_bind(handle_, &addr,flags); ret != 0)throw Exception(ret);
 }
 
 void mqas::io::UdpSocket::connect(const sockaddr& addr) const
 {
-	if (const int ret = uv_udp_connect(handle_.get(), &addr); ret != 0)throw Exception(ret);
+	if (const int ret = uv_udp_connect(handle_, &addr); ret != 0)throw Exception(ret);
 }
 
 void mqas::io::UdpSocket::get_peer_addr(sockaddr& name) const
 {
 	int addrlen = sizeof(sockaddr);
-	if (const int ret = uv_udp_getpeername(handle_.get(), &name,&addrlen); ret != 0)throw Exception(ret);
+	if (const int ret = uv_udp_getpeername(handle_, &name,&addrlen); ret != 0)throw Exception(ret);
 }
 
 void mqas::io::UdpSocket::get_sock_addr(sockaddr& name) const
 {
 	int addrlen = sizeof(sockaddr);
-	if (const int ret = uv_udp_getsockname(handle_.get(), &name, &addrlen); ret != 0)throw Exception(ret);
+	if (const int ret = uv_udp_getsockname(handle_, &name, &addrlen); ret != 0)throw Exception(ret);
 }
 
 void mqas::io::UdpSocket::set_broadcast(int on) const
 {
-	if (const int ret = uv_udp_set_broadcast(handle_.get(), on); ret != 0)throw Exception(ret);
+	if (const int ret = uv_udp_set_broadcast(handle_, on); ret != 0)throw Exception(ret);
 }
 
 void mqas::io::UdpSocket::set_ttl(int ttl) const
 {
-	if (const int ret = uv_udp_set_ttl(handle_.get(), ttl); ret != 0)throw Exception(ret);
+	if (const int ret = uv_udp_set_ttl(handle_, ttl); ret != 0)throw Exception(ret);
 }
 
 void mqas::io::UdpSocket::send(const std::vector<std::span<uint8_t>>& d, const sockaddr& addr,
@@ -67,7 +73,7 @@ void mqas::io::UdpSocket::send(const std::vector<std::span<uint8_t>>& d, const s
 		buf[i].base = reinterpret_cast<char*>(d[i].data());
 		buf[i].len = static_cast<size_t>(d[i].size());
 	}
-	const int ret = uv_udp_send(&cxt.req, handle_.get(), buf.data(),
+	const int ret = uv_udp_send(&cxt.req, handle_, buf.data(),
 		static_cast<unsigned>(buf.size()), &addr, on_send_callback);
 	if (ret != 0)
 	{
@@ -85,7 +91,7 @@ int mqas::io::UdpSocket::try_send(const std::vector<std::span<uint8_t>>& d, cons
 		buf[i].base = reinterpret_cast<char*>(d[i].data());
 		buf[i].len = static_cast<size_t>(d[i].size());
 	}
-	const int ret = uv_udp_try_send(handle_.get(), buf.data(), static_cast<unsigned>(buf.size()),&addr);
+	const int ret = uv_udp_try_send(handle_, buf.data(), static_cast<unsigned>(buf.size()),&addr);
 	if (ret < 0)
 		throw Exception(ret);
 	return ret;
@@ -100,7 +106,7 @@ void mqas::io::UdpSocket::send(const std::span<uint8_t>& d, const sockaddr& addr
 	uv_buf_t buf = {};
 	buf.base = reinterpret_cast<char*>(d.data());
 	buf.len = static_cast<size_t>(d.size());
-	const int ret = uv_udp_send(&cxt.req, handle_.get(), &buf,1,&addr,on_send_callback);
+	const int ret = uv_udp_send(&cxt.req, handle_, &buf,1,&addr,on_send_callback);
 	if (ret != 0)
 	{
 		send_cxts_.pop_back();
@@ -113,7 +119,7 @@ int mqas::io::UdpSocket::try_send(const std::span<uint8_t>& d, const sockaddr& a
 	uv_buf_t buf = {};
 	buf.base = reinterpret_cast<char*>(d.data());
 	buf.len = static_cast<size_t>(d.size());
-	const int ret = uv_udp_try_send(handle_.get(), &buf, 1, &addr);
+	const int ret = uv_udp_try_send(handle_, &buf, 1, &addr);
 	if (ret < 0)
 		throw Exception(ret);
 	return ret;
@@ -122,7 +128,7 @@ int mqas::io::UdpSocket::try_send(const std::span<uint8_t>& d, const sockaddr& a
 void mqas::io::UdpSocket::recv_start(
 	std::function<void(UdpSocket*,const std::optional<std::span<uint8_t>>&,ssize_t nread,const sockaddr*, unsigned)> recv_cb)
 {
-	const int ret = uv_udp_recv_start(handle_.get(), buf_alloc_cb,[](uv_udp_t* handle,
+	const int ret = uv_udp_recv_start(handle_, buf_alloc_cb,[](uv_udp_t* handle,
 		ssize_t nread,
 		const uv_buf_t* buf,
 		const struct sockaddr* addr,
@@ -142,23 +148,28 @@ void mqas::io::UdpSocket::recv_start(
 
 int mqas::io::UdpSocket::using_recvmmsg() const
 {
-	return uv_udp_using_recvmmsg(handle_.get());
+	return uv_udp_using_recvmmsg(handle_);
+}
+
+bool mqas::io::UdpSocket::is_receiving() const
+{
+	return (bool)recv_cb_;
 }
 
 void mqas::io::UdpSocket::recv_stop()
 {
-	if (const int ret = uv_udp_recv_stop(handle_.get()); ret != 0)throw Exception(ret);
+	if (const int ret = uv_udp_recv_stop(handle_); ret != 0)throw Exception(ret);
 	recv_cb_ = nullptr;
 }
 
 size_t mqas::io::UdpSocket::get_send_queue_size() const
 {
-	return uv_udp_get_send_queue_size(handle_.get());
+	return uv_udp_get_send_queue_size(handle_);
 }
 
 size_t mqas::io::UdpSocket::get_send_queue_count() const
 {
-	return uv_udp_get_send_queue_count(handle_.get());
+	return uv_udp_get_send_queue_count(handle_);
 }
 
 void mqas::io::UdpSocket::buf_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf)

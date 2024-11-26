@@ -48,8 +48,8 @@ namespace mqas::core {
 
     template<typename T>
     concept variability_stream_pair_require = requires {
-        //requires std::is_default_constructible_v<typename T::STREAM_TYPE>;
-        //requires std::is_base_of_v<IStreamVariant,typename T::STREAM_TYPE>;
+        requires std::is_default_constructible_v<typename T::STREAM_TYPE>;
+        requires std::is_base_of_v<IStreamVariant,typename T::STREAM_TYPE>;
         requires HasStreamTag<T>;
     };
     template<typename T>

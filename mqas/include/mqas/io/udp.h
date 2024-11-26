@@ -14,8 +14,8 @@ namespace mqas::io
 	class MQAS_EXTERN UdpOp
 	{
 	public:
-		static void init(std::shared_ptr<uv_udp_t>, std::shared_ptr<uv_loop_t>);
-		static void init(std::shared_ptr<uv_udp_t>, std::shared_ptr<uv_loop_t>, unsigned int flags);
+		static void init(uv_udp_t*, std::shared_ptr<uv_loop_t>);
+		static void init(uv_udp_t*, std::shared_ptr<uv_loop_t>, unsigned int flags);
 	};
 
 	struct UdpSendReqCxt;
@@ -24,6 +24,7 @@ namespace mqas::io
 		using OsSocket = uv_os_sock_t;
 	public:
 		UdpSocket();
+		~UdpSocket();
 		UdpSocket(UdpSocket&&) = default;
 		UdpSocket(const UdpSocket&) = delete;
 		UdpSocket& operator=(UdpSocket&&) = default;
@@ -42,6 +43,7 @@ namespace mqas::io
 		int try_send(const std::span<uint8_t>& d, const sockaddr& addr) const;
 		void recv_start(std::function<void(UdpSocket*,const std::optional<std::span<uint8_t>>&,ssize_t nread,const sockaddr*, unsigned)> recv_cb);
 		int using_recvmmsg() const;
+		bool is_receiving() const;
 		void recv_stop();
 		size_t get_send_queue_size() const;
 		size_t get_send_queue_count() const;

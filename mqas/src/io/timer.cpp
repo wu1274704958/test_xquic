@@ -3,43 +3,43 @@
 
 
 
-void mqas::io::TimerOp::init(const std::shared_ptr<uv_timer_t>& h, const std::shared_ptr<uv_loop_t>& l)
+void mqas::io::TimerOp::init(uv_timer_t* h, const std::shared_ptr<uv_loop_t>& l)
 {
-	if(const int ret = uv_timer_init(l.get(),h.get()); ret != 0)
+	if(const int ret = uv_timer_init(l.get(),h); ret != 0)
 		throw Exception(ret);
 }
 
 void mqas::io::Timer::start(std::function<void(Timer*)> f, uint64_t timeout, uint64_t repeat)
 {
-	if(const int ret = uv_timer_start(handle_.get(),timer_cb_static,timeout,repeat); ret!=0)throw Exception(ret);
+	if(const int ret = uv_timer_start(handle_,timer_cb_static,timeout,repeat); ret!=0)throw Exception(ret);
 	cb_func_ = std::move(f);
 }
 
 void mqas::io::Timer::stop()
 {
 	cb_func_ = nullptr;
-	if (const int ret = uv_timer_stop(handle_.get()); ret != 0)
+	if (const int ret = uv_timer_stop(handle_); ret != 0)
 		throw Exception(ret);
 }
 
 void mqas::io::Timer::set_repeat(uint64_t repeat) const
 {
-	uv_timer_set_repeat(handle_.get(),repeat);
+	uv_timer_set_repeat(handle_,repeat);
 }
 
 uint64_t mqas::io::Timer::get_repeat() const
 {
-	return uv_timer_get_repeat(handle_.get());
+	return uv_timer_get_repeat(handle_);
 }
 
 uint64_t mqas::io::Timer::get_due_in() const
 {
-	return uv_timer_get_due_in(handle_.get());
+	return uv_timer_get_due_in(handle_);
 }
 
 void mqas::io::Timer::again() const
 {
-	if (const int ret = uv_timer_again(handle_.get()); ret != 0)
+	if (const int ret = uv_timer_again(handle_); ret != 0)
 		throw Exception(ret);
 }
 

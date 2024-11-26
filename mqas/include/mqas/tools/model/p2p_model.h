@@ -14,6 +14,34 @@ namespace mqas::core {
 }
 namespace mqas::tools::p2p {
 
+	template<typename I, typename T>
+	T& min(I a, I b, T& av, T& bv)
+	{
+		auto min = std::min(a, b);
+		return min == a ? av : bv;
+	}
+	template<typename I, typename T>
+	T& max(I a, I b, T& av, T& bv)
+	{
+		auto max = std::max(a, b);
+		return max == a ? av : bv;
+	}
+	template<typename I>
+	I other(std::array<I, 2> arr, I x)
+	{
+		return x == arr[0] ? arr[1] : arr[0];
+	}
+	template<typename I>
+	I oth_idx(std::array<I, 2> arr, I x)
+	{
+		return x == arr[0] ? 1 : 0;
+	}
+	template<typename I>
+	I self_idx(std::array<I, 2> arr, I x)
+	{
+		return x == arr[0] ? 0 : 1;
+	}
+
 	enum class PeerState : uint32_t
 	{
 		Idle = 0,
@@ -42,19 +70,18 @@ namespace mqas::tools::p2p {
 	enum class ConnectState : uint16_t
 	{
 		Idle = 0,
+		Ready,
 		TryInternal,
 		ChangeToExternal,
 		TryExternal,
 		Success,
-		Wait,
-		Failed
+		Wait
 	};
 
 	enum class StepResult : uint32_t
 	{
 		None = 0,
 		Success = 1,
-		Failed = 2,
 		End = 4
 	};
 
@@ -69,7 +96,9 @@ namespace mqas::tools::p2p {
 		int8_t tag;// success count
 		bool is_same_external;
 		std::array<uint32_t,2> verify_code;
-		connect_cxt(){}
+		connect_cxt() : port_list({0,0}) {}
+		operator bool() const { return tag == 3; }
+		bool is_receive(uint32_t id) const;
 	};
 
 	/*template<typename T, typename = std::void_t<>>
@@ -110,16 +139,18 @@ namespace mqas::tools::p2p {
 			return f(ptr);
 		}
 		//helper
-		uint64_t create_context(uint32_t a, uint32_t b,const proto::p2p::ClientIpList& a_ip,
-			const proto::p2p::ClientIpList& b_ip, const connect_cxt** out);
-		const connect_cxt* get_context(uint64_t id) const;
-		const connect_cxt* get_context(uint32_t a, uint32_t b) const;
+		uint64_t reg_context(uint32_t self, uint32_t oth,const proto::p2p::ClientIpList& self_ip,const connect_cxt** out);
+		ConnectState context_state(uint64_t id) const;
+		const connect_cxt* get_context_const(uint64_t id) const;
+		const connect_cxt* get_context_const(uint32_t a, uint32_t b) const;
 		std::pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>> next_cxt(uint64_t id, uint32_t self);
 		std::pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>> current_cxt(uint64_t id, uint32_t self) const;
 		std::optional<proto::p2p::NotifyConnectPeerData> generate_connect_data(const connect_cxt& cxt, uint32_t self) const;
+		bool submit_verify_code(uint64_t id, uint32_t who, uint32_t code);
 		#ifndef NDEBUG  
 		void test_step_cxt();
 		#endif
+		static uint64_t merge_id(uint32_t a, uint32_t b);
 
 	protected:
 		//lobby
@@ -127,9 +158,9 @@ namespace mqas::tools::p2p {
 		inline void update_max_id() { max_id = client_map.empty() ? 0 : ((--client_map.end())->second.id); }
 		uint32_t next_id();
 		//helper
-		uint64_t merge_id(uint32_t a, uint32_t b) const;
 		bool init_cxt(connect_cxt& cxt,const peer_data& a, const peer_data& b, const proto::p2p::ClientIpList& a_ip,
 			const proto::p2p::ClientIpList& b_ip) const;
+		bool set_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b,uint32_t id,const proto::p2p::ClientIpList& ip) const;
 		StepResult next_cxt(connect_cxt& cxt) const;
 		void generate_verify_code(std::array<uint32_t, 2>& cxt) const;
 		

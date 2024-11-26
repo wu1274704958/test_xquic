@@ -10,7 +10,7 @@ namespace mqas::io
 	template<typename H,typename HandleOp>
 	requires requires(H h){
 		H();
-		HandleOp::init(std::declval<std::shared_ptr<H>>(), std::declval<std::shared_ptr<uv_loop_t>>());
+		HandleOp::init(std::declval<H*>(), std::declval<std::shared_ptr<uv_loop_t>>());
 		std::is_same_v<decltype(h.data),void*> == true;
 	}
 	class MQAS_EXTERN Handle
@@ -18,9 +18,11 @@ namespace mqas::io
 	public:
 		void init(const Context& cxt)
 		{
+			handle_ = new H();
 			HandleOp::init(handle_,cxt.get_loop());
 			handle_->data = this;
 		}
+		
 		template<typename ... Args>
 		requires requires() {
 			HandleOp::init(std::declval<std::shared_ptr<H>>(),
@@ -34,33 +36,61 @@ namespace mqas::io
 		}
 		Handle()
 		{
-			handle_ = std::make_shared<H>();
+			handle_ = nullptr;
+		}
+		~Handle()
+		{
+			deinit();
 		}
 		Handle(const Handle&)=delete;
 		Handle(Handle&& oth) noexcept
 		{
-			handle_.swap(oth.handle_);
+			handle_ = oth.handle_;
 			data = oth.data;
 			oth.data = nullptr;
-			if(handle_)
+			oth.handle_ = nullptr;
+			if(handle_ != nullptr)
 				handle_->data=this;
 		}
 		Handle& operator=(const Handle&) = delete;
 		Handle& operator=(Handle&& oth) noexcept
 		{
-			handle_ = std::move(oth.handle_);
+			deinit();
+			handle_ = oth.handle_;
 			data = oth.data;
 			oth.data = nullptr;
-			if (handle_)
+			oth.handle_ = nullptr;
+			if (handle_ != nullptr)
 				handle_->data = this;
 			return *this;
 		}
 		H* get_ptr()
 		{
-			return handle_.get();
+			return handle_;
 		}
+	protected:
+		void deinit()
+		{
+			if (handle_ != nullptr && will_close_ == false)
+			{
+				will_close_ = true;
+				::uv_close((::uv_handle_t*)handle_, on_close);
+			}
+		}
+		static void on_close(uv_handle_t* handle)
+		{
+			H* p = (H*)handle;
+			assert(p->data != nullptr);
+			auto* outer = reinterpret_cast<Handle<H, HandleOp>*>(p->data);
+			assert(outer->will_close_);
+			delete outer->handle_;
+			outer->handle_ = nullptr;
+			outer->will_close_ = false;
+		}
+	public:
 		void *data = nullptr;
 	protected:
-		std::shared_ptr<H> handle_;
+		H* handle_;
+		bool will_close_:1 = false;
 	};
 }

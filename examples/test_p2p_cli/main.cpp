@@ -19,8 +19,7 @@ protected:
 };
 
 using StreamType = core::StreamVariant<
-	core::StreamVariantPair<1, LobbyStream>,
-	core::StreamVariantPair<2, mqas::tools::p2p::P2PHelperStream>>;
+	core::StreamVariantPair<1, LobbyStream>>;
 
 enum class ui_state {
 	none = 0,
@@ -82,12 +81,12 @@ int main(int argc, const char** argv)
 			lobby_stream->on_change_helper = [stream](const mqas::tools::proto::p2p::ReqRespondPeerReqConnect& msg)
 			{
 				auto s = stream.lock();
-				s->req_change<mqas::tools::p2p::P2PHelperStream, mqas::tools::p2p::ReqRespondPeerReqConnectPair>(msg);
+				
 			};
 			lobby_stream->on_change_helper_by_req = [stream](const mqas::tools::proto::p2p::ReqConnectPeer& msg)
 			{
 				auto s = stream.lock();
-				s->req_change<mqas::tools::p2p::P2PHelperStream, mqas::tools::p2p::ReqConnectPeerPair>(msg);
+
 			};
 			ui.init_stream(lobby_stream);
 		});

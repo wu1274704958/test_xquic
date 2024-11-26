@@ -60,58 +60,34 @@ uint32_t mqas::tools::p2p::p2p_model::next_id()
 // helper
 namespace mqas::tools::p2p {
 
-	template<typename I,typename T>
-	T& min(I a,I b,T& av,T& bv)
+	uint64_t p2p_model::reg_context(uint32_t self, uint32_t oth, const proto::p2p::ClientIpList& self_ip, const connect_cxt** out)
 	{
-		auto min = std::min(a, b);
-		return min == a ? av : bv;
-	}
-	template<typename I, typename T>
-	T& max(I a, I b, T& av, T& bv)
-	{
-		auto max = std::max(a, b);
-		return max == a ? av : bv;
-	}
-	template<typename I>
-	I other(std::array<I,2> arr,I x)
-	{
-		return x == arr[0] ? arr[1] : arr[0];
-	}
-	template<typename I>
-	I oth_idx(std::array<I, 2> arr, I x)
-	{
-		return x == arr[0] ? 1 : 0;
-	}
-
-	uint64_t p2p_model::create_context(uint32_t a, uint32_t b,const proto::p2p::ClientIpList& a_ip,
-		const proto::p2p::ClientIpList& b_ip, const connect_cxt** out)
-	{
-		auto client_a = (*this)[a];
-		auto client_b = (*this)[b];
+		auto client_self = (*this)[self];
+		auto client_oth = (*this)[oth];
 		*out = nullptr;
-		if (client_a == nullptr || client_b == nullptr)
+		if (client_self == nullptr || client_oth == nullptr)
 			return 0;
-		auto id = merge_id(a, b);
+		auto id = merge_id(self, oth);
 		cxt_map.emplace(id, connect_cxt{});
 		auto& cxt = cxt_map[id];
 		cxt.id = id;
-		init_cxt(cxt, first_peer(*client_a, *client_b), second_peer(*client_a, *client_b),
-			min(a,b,a_ip,b_ip),max(a,b,a_ip,b_ip));
+		set_cxt(cxt, first_peer(*client_self, *client_oth), second_peer(*client_self, *client_oth),
+			self,self_ip);
 		*out = &cxt;
 		return id;
 	}
-	const connect_cxt* p2p_model::get_context(uint64_t id) const
+	const connect_cxt* p2p_model::get_context_const(uint64_t id) const
 	{
 		auto it = cxt_map.find(id);
 		if (it != cxt_map.end())
 			return &(it->second);
 		return nullptr;
 	}
-	const connect_cxt* p2p_model::get_context(uint32_t a, uint32_t b) const
+	const connect_cxt* p2p_model::get_context_const(uint32_t a, uint32_t b) const
 	{
-		return get_context(merge_id(a, b));
+		return get_context_const(merge_id(a, b));
 	}
-	uint64_t p2p_model::merge_id(uint32_t a, uint32_t b) const
+	uint64_t p2p_model::merge_id(uint32_t a, uint32_t b)
 	{
 		auto min = std::min(a,b);
 		auto max = std::max(a,b);
@@ -135,6 +111,21 @@ namespace mqas::tools::p2p {
 		cxt.state = ConnectState::Idle;
 		cxt.stage_1 = cxt.stage_2[0] = cxt.stage_2[1] =  -1;
 		cxt.tag = 0;
+		return true;
+	}
+
+	bool p2p_model::set_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b, uint32_t id, const proto::p2p::ClientIpList& ip) const
+	{
+		cxt.is_same_external = a.ip == b.ip;
+		cxt.pid[0] = a.id;
+		cxt.pid[1] = b.id;
+		const auto idx = a.id == id ? 0 : 1;
+		cxt.port_list[idx] = ip.port();
+		for (int i = 0; i < ip.ip_list_size(); ++i)
+			cxt.ip_list[idx].push_back(ip.ip_list().Get(i));
+		cxt.stage_1 = cxt.stage_2[idx] = -1;
+		cxt.tag = 0;
+		cxt.state =  (cxt.port_list[0] > 0 && cxt.port_list[1] > 0) ? ConnectState::Ready : ConnectState::Idle;
 		return true;
 	}
 
@@ -174,19 +165,19 @@ namespace mqas::tools::p2p {
 
 	std::pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>> p2p_model::current_cxt(uint64_t id, uint32_t self) const
 	{
-		auto cxt = get_context(id);
+		auto cxt = get_context_const(id);
 		if (cxt == nullptr)
 			return std::make_pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>>(StepResult::None, {});
 		switch (cxt->state)
 		{
 		case ConnectState::Idle:
 		case ConnectState::ChangeToExternal:
+		case ConnectState::Ready:
 			return { StepResult::None,{} };
 		case ConnectState::TryInternal:
 		case ConnectState::TryExternal:
 			return { StepResult::Success,generate_connect_data(*cxt,self) };
 		case ConnectState::Success:
-		case ConnectState::Failed:
 		case ConnectState::Wait:
 			return {StepResult::End,{}};
 		}
@@ -202,6 +193,8 @@ namespace mqas::tools::p2p {
 		switch (cxt.state)
 		{
 		case ConnectState::Idle:
+			return StepResult::None;
+		case ConnectState::Ready:
 		case ConnectState::ChangeToExternal:
 			cxt.stage_1 = 0;
 			cxt.stage_2[0] = cxt.stage_2[1] = 0;
@@ -250,7 +243,6 @@ namespace mqas::tools::p2p {
 			return next_cxt(cxt);
 			break;
 		case ConnectState::Success:
-		case ConnectState::Failed:
 		case ConnectState::Wait:
 			return StepResult::End;
 			break;
@@ -289,6 +281,25 @@ namespace mqas::tools::p2p {
 
 		arr[0] = dist(gen);
 		arr[1] = dist(gen);
+	}
+
+	bool p2p_model::submit_verify_code(uint64_t id, uint32_t who, uint32_t code)
+	{
+		auto cxt = get_context(id);
+		if (!(cxt->state == ConnectState::TryInternal || cxt->state == ConnectState::TryExternal))
+			return false;
+		auto idx_oth = oth_idx(cxt->pid, who);
+		if (cxt->verify_code[idx_oth] == code)
+		{
+			cxt->tag |= (1 << self_idx(cxt->pid, who));
+		}
+		return *cxt;
+	}
+
+	bool connect_cxt::is_receive(uint32_t id) const
+	{
+		auto idx = self_idx(pid, id);
+		return ((tag >> idx) & 1) > 0;
 	}
 
 

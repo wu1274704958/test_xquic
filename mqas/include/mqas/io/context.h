@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <atomic>
 #include <cassert>
+#include <typeindex>
 
 namespace mqas::io
 {
@@ -38,12 +39,11 @@ namespace mqas::io
 		}
 		H* make_handle(Args&& ...args)
 		{
-			std::unordered_map<void*, H>* arr_ptr = get_handle_arr<H>();
-			auto t = H();
-			void* key = t.get_ptr();
-			t.init(*this, std::forward<Args>(args)...);
-			arr_ptr->insert(std::make_pair(key,std::move(t)));
-			return &(*arr_ptr)[key];
+			auto t = new H();
+			t->init(*this, std::forward<Args>(args) ...);
+			const auto key = (size_t)t->get_ptr();
+			handle_map.insert({ key, std::make_pair<void*,std::type_index>((void*)t,std::type_index(typeid(H)))});
+			return t;
 		}
 
 		template<typename H, typename ...Args>
@@ -58,42 +58,37 @@ namespace mqas::io
 			h->init(*this, std::forward<Args>(args)...);
 			return h;
 		}
-		template<typename H>
-		std::unordered_map<void*,H>* get_handle_arr()
-		{
-			std::unordered_map<void*, H>* arr_ptr = nullptr;
-			if constexpr (std::is_same_v<H, Idle>)
-			{
-				arr_ptr = &idle_arr_;
-			}
-			if constexpr (std::is_same_v<H, Timer>)
-			{
-				arr_ptr = &timer_arr_;
-			}
-			if constexpr (std::is_same_v<H, UdpSocket>)
-			{
-				arr_ptr = &udp_arr_;
-			}
-			assert(arr_ptr != nullptr);
-			return arr_ptr;
-		}
 		template <typename H>
 		void del_handle(H* ptr)
 		{
-			auto arr = get_handle_arr<H>();
-			ptr->data = arr;
-			uv_close(reinterpret_cast<uv_handle_t*>(ptr->get_ptr()), [](uv_handle_t* h)
+			const auto key = (size_t)ptr->get_ptr();
+			if (handle_map.find(key) != handle_map.end())
 			{
-				auto p = static_cast<H*>(h->data);
-				auto arr = static_cast<std::unordered_map<void*, H>*>(p->data);
-				arr->erase(p->get_ptr());
-			});
+				handle_map.erase(key);
+				delete ptr;
+			}
+		}
+	protected:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-value"
+		template<typename ...HS>
+		void delete_hold_handle_ptr()
+		{
+			for (const auto& it : handle_map)
+			{
+				((it.second.second == std::type_index(typeid(HS)) && (delete_hold_handle_ptr_by_type<HS>(reinterpret_cast<HS*>(it.second.first),it.first),false)),...);
+			}
+			handle_map.clear();
+		}
+#pragma GCC diagnostic pop
+		template<typename H>
+		void delete_hold_handle_ptr_by_type(H* ptr,size_t key)
+		{
+			delete ptr;
 		}
 	protected:
 		std::shared_ptr<uv_loop_t> loop;
-		std::unordered_map<void*,Idle> idle_arr_;
-		std::unordered_map<void*,Timer> timer_arr_;
-		std::unordered_map<void*,UdpSocket> udp_arr_;
+		std::unordered_map<size_t,std::pair<void*,std::type_index>> handle_map;
 	};
 	
 }
