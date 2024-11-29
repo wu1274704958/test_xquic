@@ -12,11 +12,16 @@ namespace mqas::tools::p2p {
 		NotifyConnectPeerDataPair, ReqSubmitRecvPeerKeyCodePair,
 		NotifyConnectResultPair
 	> {
+		static_assert(sizeof(size_t) == sizeof(int*) && sizeof(int*) == sizeof(uint64_t),"not support!!!");
 		//second
 		core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::p2p::ReqConnectPeer>& msg,
 			std::vector<uint8_t>& ret);
 		//first 
 		core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::p2p::ReqRespondPeerReqConnect>& msg,
 			std::vector<uint8_t>& ret);
+	protected:
+		core::StreamVariantErrcode on_peer_connect(uint32_t id,const proto::p2p::ClientIpList& ip);
+	protected:
+
 	};
 }
