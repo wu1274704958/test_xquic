@@ -25,6 +25,8 @@ namespace mqas::tools::p2p {
 		}
 		if(!core::ProtoBufMsg::write_msg<RespondRegistePeerPair>(ret, ret_msg))
 			return core::StreamVariantErrcode::parse_failed;
+
+		connect_cxt_->set_cxt(model.value().get()[id]);
 		return core::StreamVariantErrcode::ok;
 	}
 

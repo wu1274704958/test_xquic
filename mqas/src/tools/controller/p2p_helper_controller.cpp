@@ -129,8 +129,8 @@ namespace mqas::tools::controller {
 			_notify_connect_signal[1](*res.second);
 	}
 
-	void p2p_helper_controller::register_event(uint32_t id, std::function<void(proto::p2p::NotifyConnectPeerData)> notify_connect,
-		std::function<void(proto::p2p::NotifyConnectResult)> notify_result)
+	void p2p_helper_controller::register_event(uint32_t id, std::function<void(const proto::p2p::NotifyConnectPeerData&)> notify_connect,
+		std::function<void(const proto::p2p::NotifyConnectResult&)> notify_result)
 	{
 		if (!*this)
 			return;
@@ -171,5 +171,9 @@ namespace mqas::tools::controller {
 	void p2p_helper_controller::set_reason(const std::string& s)
 	{
 		_reason = { std::move(s) };
+	}
+	void p2p_helper_controller::stop(std::optional<std::string> reason)
+	{
+
 	}
 }

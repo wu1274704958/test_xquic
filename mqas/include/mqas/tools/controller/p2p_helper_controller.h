@@ -18,10 +18,11 @@ namespace mqas::tools::controller {
 		void submit_verify_code(uint64_t id, uint32_t who, uint32_t code);
 		void on_verify_success() const;
 		void on_timeout() const;
-		void register_event(uint32_t id, std::function<void(proto::p2p::NotifyConnectPeerData)> notify_connect,
-			std::function<void(proto::p2p::NotifyConnectResult)> notify_result);
-		void stop_step();
+		void register_event(uint32_t id, std::function<void(const proto::p2p::NotifyConnectPeerData&)> notify_connect,
+			std::function<void(const proto::p2p::NotifyConnectResult&)> notify_result);
+		void stop(std::optional<std::string> reason);
 	protected:
+		void stop_step();
 		void on_step(io::Timer*);
 		void notify_success(uint32_t id) const;
 		void notify_failed(uint32_t id,const std::optional<std::string>& reason) const;
@@ -30,8 +31,8 @@ namespace mqas::tools::controller {
 		const p2p::connect_cxt* _cxt;
 		io::Context* _io_cxt;
 		std::array<const p2p::peer_data*, 2> _peer_list;
-		std::array<std::function<void(proto::p2p::NotifyConnectPeerData)>, 2> _notify_connect_signal;
-		std::array<std::function<void(proto::p2p::NotifyConnectResult)>, 2> _notify_connect_result;
+		std::array<std::function<void(const proto::p2p::NotifyConnectPeerData&)>, 2> _notify_connect_signal;
+		std::array<std::function<void(const proto::p2p::NotifyConnectResult&)>, 2> _notify_connect_result;
 		std::shared_ptr<io::Timer> _timer;
 		bool _is_start : 1;
 		std::optional<std::string> _reason;

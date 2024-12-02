@@ -96,6 +96,7 @@ namespace mqas::tools::p2p {
 		int8_t tag;// success count
 		bool is_same_external;
 		std::array<uint32_t,2> verify_code;
+		std::array<std::weak_ptr<mqas::core::IStreamVariant>, 2> stream;
 		connect_cxt() : port_list({0,0}) {}
 		operator bool() const { return tag == 3; }
 		bool is_receive(uint32_t id) const;
@@ -139,8 +140,20 @@ namespace mqas::tools::p2p {
 			return f(ptr);
 		}
 		//helper
-		uint64_t reg_context(uint32_t self, uint32_t oth,const proto::p2p::ClientIpList& self_ip,const connect_cxt** out);
-		ConnectState context_state(uint64_t id) const;
+		template <typename T>
+		std::shared_ptr<T> get_helper_stream(uint64_t mid,uint32_t id) const
+		{
+			const auto cxt = get_context_const(mid);
+			if(cxt == nullptr)
+				return nullptr;
+			const auto idx = self_idx(cxt->pid,id);
+			auto ptr = cxt->stream[idx];
+			auto shared_ptr = ptr.lock();
+			if (!shared_ptr) return nullptr;
+			return std::dynamic_pointer_cast<T>(shared_ptr);
+		}
+		uint64_t reg_context(uint32_t self, uint32_t oth,const proto::p2p::ClientIpList& self_ip, std::weak_ptr<mqas::core::IStreamVariant> stream,const connect_cxt** out);
+		void clear_context(uint64_t mid);
 		const connect_cxt* get_context_const(uint64_t id) const;
 		const connect_cxt* get_context_const(uint32_t a, uint32_t b) const;
 		std::pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>> next_cxt(uint64_t id, uint32_t self);
@@ -160,7 +173,8 @@ namespace mqas::tools::p2p {
 		//helper
 		bool init_cxt(connect_cxt& cxt,const peer_data& a, const peer_data& b, const proto::p2p::ClientIpList& a_ip,
 			const proto::p2p::ClientIpList& b_ip) const;
-		bool set_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b,uint32_t id,const proto::p2p::ClientIpList& ip) const;
+		bool set_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b,uint32_t id,const proto::p2p::ClientIpList& ip,
+			std::weak_ptr<mqas::core::IStreamVariant> stream) const;
 		StepResult next_cxt(connect_cxt& cxt) const;
 		void generate_verify_code(std::array<uint32_t, 2>& cxt) const;
 		

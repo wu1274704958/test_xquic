@@ -60,7 +60,8 @@ uint32_t mqas::tools::p2p::p2p_model::next_id()
 // helper
 namespace mqas::tools::p2p {
 
-	uint64_t p2p_model::reg_context(uint32_t self, uint32_t oth, const proto::p2p::ClientIpList& self_ip, const connect_cxt** out)
+	uint64_t p2p_model::reg_context(uint32_t self, uint32_t oth, const proto::p2p::ClientIpList& self_ip, 
+		std::weak_ptr<mqas::core::IStreamVariant> stream, const connect_cxt** out)
 	{
 		auto client_self = (*this)[self];
 		auto client_oth = (*this)[oth];
@@ -72,7 +73,7 @@ namespace mqas::tools::p2p {
 		auto& cxt = cxt_map[id];
 		cxt.id = id;
 		set_cxt(cxt, first_peer(*client_self, *client_oth), second_peer(*client_self, *client_oth),
-			self,self_ip);
+			self,self_ip,std::move(stream));
 		*out = &cxt;
 		return id;
 	}
@@ -114,7 +115,8 @@ namespace mqas::tools::p2p {
 		return true;
 	}
 
-	bool p2p_model::set_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b, uint32_t id, const proto::p2p::ClientIpList& ip) const
+	bool p2p_model::set_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b, uint32_t id, const proto::p2p::ClientIpList& ip,
+		std::weak_ptr<mqas::core::IStreamVariant> stream) const
 	{
 		cxt.is_same_external = a.ip == b.ip;
 		cxt.pid[0] = a.id;
@@ -126,7 +128,13 @@ namespace mqas::tools::p2p {
 		cxt.stage_1 = cxt.stage_2[idx] = -1;
 		cxt.tag = 0;
 		cxt.state =  (cxt.port_list[0] > 0 && cxt.port_list[1] > 0) ? ConnectState::Ready : ConnectState::Idle;
+		cxt.stream[idx] = std::move(stream);
 		return true;
+	}
+
+	void p2p_model::clear_context(uint64_t mid)
+	{
+		cxt_map.erase(mid);
 	}
 
 	const peer_data& p2p_model::first_peer(const peer_data& a, const peer_data& b) const

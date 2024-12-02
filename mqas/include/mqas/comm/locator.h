@@ -40,7 +40,7 @@ namespace mqas::comm {
 			template<typename T, typename O>
 			std::optional<std::reference_wrapper<T>> get(const O& obj)
 			{
-				auto pool = get_pool(obj);
+				auto pool = get_pool(get_key(obj));
 				if(!pool)
 					return {};
 				T* p = try_get_from_pool<T>(*pool);
