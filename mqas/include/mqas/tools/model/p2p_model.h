@@ -153,6 +153,9 @@ namespace mqas::tools::p2p {
 			return std::dynamic_pointer_cast<T>(shared_ptr);
 		}
 		uint64_t reg_context(uint32_t self, uint32_t oth,const proto::p2p::ClientIpList& self_ip, std::weak_ptr<mqas::core::IStreamVariant> stream,const connect_cxt** out);
+		void unreg_context(uint32_t self, uint32_t oth);
+		bool exist_context_peer(uint64_t mid, uint32_t id) const;
+		
 		void clear_context(uint64_t mid);
 		const connect_cxt* get_context_const(uint64_t id) const;
 		const connect_cxt* get_context_const(uint32_t a, uint32_t b) const;

@@ -77,7 +77,8 @@ message NotifyConnectPeerData{
 
 message NotifyConnectResult{
     RetCode ret = 1;
-    optional string reason = 2;
+    uint32 peer_id = 2;
+    optional string reason = 3;
 }
 
 message NotifyPeerWantConnect{
@@ -85,7 +86,7 @@ message NotifyPeerWantConnect{
 }
 
 message ReqSubmitRecvPeerKeyCode{
-    uint32 peer_id = 2;
-    RetCode result = 3;
+    uint32 peer_id = 1;
+    uint32 verify_code = 2;
 }
 //--------------------------------------------

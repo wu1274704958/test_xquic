@@ -77,6 +77,26 @@ namespace mqas::tools::p2p {
 		*out = &cxt;
 		return id;
 	}
+	void p2p_model::unreg_context(uint32_t self, uint32_t oth)
+	{
+		auto id = merge_id(self, oth);
+		auto cxt = get_context(id);
+		if (cxt == nullptr)
+			return;
+		auto idx = self_idx(cxt->pid, self);
+		cxt->stream[idx].reset();
+		if (!exist_context_peer(id, oth))
+			clear_context(id);
+	}
+	bool p2p_model::exist_context_peer(uint64_t mid, uint32_t id) const
+	{
+		auto cxt = get_context_const(id);
+		if (cxt == nullptr)
+			return false;
+		auto idx = self_idx(cxt->pid, id);
+		auto ptr = cxt->stream[idx].lock();
+		return (bool)ptr;
+	}
 	const connect_cxt* p2p_model::get_context_const(uint64_t id) const
 	{
 		auto it = cxt_map.find(id);

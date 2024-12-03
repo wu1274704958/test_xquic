@@ -13,6 +13,43 @@ namespace mqas::tools::p2p {
         _self = connect_cxt_->get_cxt<p2p::peer_data>();
     }
 
+    P2PHelperStream::~P2PHelperStream()
+    {
+        stop_check_timeout();
+        on_leave();
+    }
+
+    void P2PHelperStream::stop_check_timeout()
+    {
+        if (_timeout_timer)
+            _timeout_timer->stop();
+        _timeout_timer.reset();
+    }
+
+    void P2PHelperStream::on_close()
+    {
+        on_leave();
+    }
+
+    void P2PHelperStream::on_leave()
+    {
+        if (!_notified_result && _merge_id > 0 && _other_id > 0 && _self != nullptr)
+        {
+            auto model = locator::inst()->get<p2p::p2p_model>();
+            if (model)
+                model->get().unreg_context(_self->id, _other_id);
+            stop(std::format("peer {} leave!", _self->id));
+        }
+    }
+
+    void P2PHelperStream::on_timeout(io::Timer* t)
+    {
+        if (!_notified_result && _merge_id > 0 && _other_id > 0 && _self != nullptr)
+        {
+            stop(std::format("wating peer {} timeout!", _other_id));
+        }
+    }
+
     P2PHelperStream::operator bool() const
     {
         return _self != nullptr;
@@ -39,6 +76,7 @@ namespace mqas::tools::p2p {
 
         const p2p::connect_cxt* cxt;
         _merge_id = model.value().get().reg_context(id, _self->id, ip,this->weak_from_this(), &cxt);
+        _other_id = id;
         if (cxt->state == p2p::ConnectState::Ready)
         {
             locator->deposit_cxt<tools::controller::p2p_helper_controller>((size_t)_merge_id, _self->id, id, connect_cxt_->engine_cxt_->io_cxt);
@@ -51,6 +89,7 @@ namespace mqas::tools::p2p {
                 stop(std::format("P2P helper controller peer stream {} not found!", oth_id));
                 return core::StreamVariantErrcode::failed;
             }
+            oth_stream->stop_check_timeout();
             oth_stream->setup_event(*controller);
             if (controller->get().ready())
                 controller->get().start();
@@ -58,6 +97,10 @@ namespace mqas::tools::p2p {
                 stop("P2P helper controller not ready!");
                 return core::StreamVariantErrcode::failed;
             }
+        }
+        else {
+            _timeout_timer = connect_cxt_->engine_cxt_->io_cxt->make_shared<io::Timer>();
+            _timeout_timer->start(std::bind(&P2PHelperStream::on_timeout,this,std::placeholders::_1),1000 * 30, 0);
         }
         return core::StreamVariantErrcode::ok;
     }
@@ -81,14 +124,25 @@ namespace mqas::tools::p2p {
             model->get().clear_context(_merge_id);
         _self = nullptr;
         _merge_id = 0;
+        _other_id = 0;
     }
 
     void P2PHelperStream::send_connect(const proto::p2p::NotifyConnectPeerData& msg)
     {
         send<NotifyConnectPeerDataPair>(msg);
     }
+
     void P2PHelperStream::send_result(const proto::p2p::NotifyConnectResult& msg)
     {
-        send<NotifyConnectResultPair>(msg);
+        _notified_result = true;
+        send_req_quit<NotifyConnectResultPair>(stream_tag_, msg);
+    }
+
+    void P2PHelperStream::on_read_msg_s(const std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>& msg)
+    {
+        if (!*this || _merge_id <= 0) return;
+        auto controller = locator::inst()->get<tools::controller::p2p_helper_controller>((size_t)_merge_id);
+        if (controller && _self->id == msg->peer_id())
+            controller->get().submit_verify_code(_merge_id, _self->id, msg->verify_code());
     }
 }

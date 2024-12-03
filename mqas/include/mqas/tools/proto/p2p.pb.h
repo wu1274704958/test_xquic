@@ -2330,10 +2330,11 @@ class MQAS_EXTERN NotifyConnectResult final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kReasonFieldNumber = 2,
+    kReasonFieldNumber = 3,
     kRetFieldNumber = 1,
+    kPeerIdFieldNumber = 2,
   };
-  // optional string reason = 2;
+  // optional string reason = 3;
   bool has_reason() const;
   private:
   bool _internal_has_reason() const;
@@ -2360,6 +2361,15 @@ class MQAS_EXTERN NotifyConnectResult final :
   void _internal_set_ret(::mqas::tools::proto::p2p::RetCode value);
   public:
 
+  // uint32 peer_id = 2;
+  void clear_peer_id();
+  uint32_t peer_id() const;
+  void set_peer_id(uint32_t value);
+  private:
+  uint32_t _internal_peer_id() const;
+  void _internal_set_peer_id(uint32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.NotifyConnectResult)
  private:
   class _Internal;
@@ -2372,6 +2382,7 @@ class MQAS_EXTERN NotifyConnectResult final :
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr reason_;
     int ret_;
+    uint32_t peer_id_;
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_p2p_2eproto;
@@ -2656,10 +2667,10 @@ class MQAS_EXTERN ReqSubmitRecvPeerKeyCode final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kPeerIdFieldNumber = 2,
-    kResultFieldNumber = 3,
+    kPeerIdFieldNumber = 1,
+    kVerifyCodeFieldNumber = 2,
   };
-  // uint32 peer_id = 2;
+  // uint32 peer_id = 1;
   void clear_peer_id();
   uint32_t peer_id() const;
   void set_peer_id(uint32_t value);
@@ -2668,13 +2679,13 @@ class MQAS_EXTERN ReqSubmitRecvPeerKeyCode final :
   void _internal_set_peer_id(uint32_t value);
   public:
 
-  // .mqas.tools.proto.p2p.RetCode result = 3;
-  void clear_result();
-  ::mqas::tools::proto::p2p::RetCode result() const;
-  void set_result(::mqas::tools::proto::p2p::RetCode value);
+  // uint32 verify_code = 2;
+  void clear_verify_code();
+  uint32_t verify_code() const;
+  void set_verify_code(uint32_t value);
   private:
-  ::mqas::tools::proto::p2p::RetCode _internal_result() const;
-  void _internal_set_result(::mqas::tools::proto::p2p::RetCode value);
+  uint32_t _internal_verify_code() const;
+  void _internal_set_verify_code(uint32_t value);
   public:
 
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.ReqSubmitRecvPeerKeyCode)
@@ -2686,7 +2697,7 @@ class MQAS_EXTERN ReqSubmitRecvPeerKeyCode final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     uint32_t peer_id_;
-    int result_;
+    uint32_t verify_code_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -3590,7 +3601,27 @@ inline void NotifyConnectResult::set_ret(::mqas::tools::proto::p2p::RetCode valu
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.ret)
 }
 
-// optional string reason = 2;
+// uint32 peer_id = 2;
+inline void NotifyConnectResult::clear_peer_id() {
+  _impl_.peer_id_ = 0u;
+}
+inline uint32_t NotifyConnectResult::_internal_peer_id() const {
+  return _impl_.peer_id_;
+}
+inline uint32_t NotifyConnectResult::peer_id() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.peer_id)
+  return _internal_peer_id();
+}
+inline void NotifyConnectResult::_internal_set_peer_id(uint32_t value) {
+  
+  _impl_.peer_id_ = value;
+}
+inline void NotifyConnectResult::set_peer_id(uint32_t value) {
+  _internal_set_peer_id(value);
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.peer_id)
+}
+
+// optional string reason = 3;
 inline bool NotifyConnectResult::_internal_has_reason() const {
   bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
   return value;
@@ -3756,7 +3787,7 @@ inline void NotifyPeerWantConnect::set_allocated_peer(::mqas::tools::proto::p2p:
 
 // ReqSubmitRecvPeerKeyCode
 
-// uint32 peer_id = 2;
+// uint32 peer_id = 1;
 inline void ReqSubmitRecvPeerKeyCode::clear_peer_id() {
   _impl_.peer_id_ = 0u;
 }
@@ -3776,24 +3807,24 @@ inline void ReqSubmitRecvPeerKeyCode::set_peer_id(uint32_t value) {
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ReqSubmitRecvPeerKeyCode.peer_id)
 }
 
-// .mqas.tools.proto.p2p.RetCode result = 3;
-inline void ReqSubmitRecvPeerKeyCode::clear_result() {
-  _impl_.result_ = 0;
+// uint32 verify_code = 2;
+inline void ReqSubmitRecvPeerKeyCode::clear_verify_code() {
+  _impl_.verify_code_ = 0u;
 }
-inline ::mqas::tools::proto::p2p::RetCode ReqSubmitRecvPeerKeyCode::_internal_result() const {
-  return static_cast< ::mqas::tools::proto::p2p::RetCode >(_impl_.result_);
+inline uint32_t ReqSubmitRecvPeerKeyCode::_internal_verify_code() const {
+  return _impl_.verify_code_;
 }
-inline ::mqas::tools::proto::p2p::RetCode ReqSubmitRecvPeerKeyCode::result() const {
-  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.ReqSubmitRecvPeerKeyCode.result)
-  return _internal_result();
+inline uint32_t ReqSubmitRecvPeerKeyCode::verify_code() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.ReqSubmitRecvPeerKeyCode.verify_code)
+  return _internal_verify_code();
 }
-inline void ReqSubmitRecvPeerKeyCode::_internal_set_result(::mqas::tools::proto::p2p::RetCode value) {
+inline void ReqSubmitRecvPeerKeyCode::_internal_set_verify_code(uint32_t value) {
   
-  _impl_.result_ = value;
+  _impl_.verify_code_ = value;
 }
-inline void ReqSubmitRecvPeerKeyCode::set_result(::mqas::tools::proto::p2p::RetCode value) {
-  _internal_set_result(value);
-  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ReqSubmitRecvPeerKeyCode.result)
+inline void ReqSubmitRecvPeerKeyCode::set_verify_code(uint32_t value) {
+  _internal_set_verify_code(value);
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ReqSubmitRecvPeerKeyCode.verify_code)
 }
 
 #ifdef __GNUC__

@@ -145,6 +145,7 @@ namespace mqas::tools::controller {
 			return;
 		const auto idx = p2p::self_idx(_cxt->pid, id);
 		mqas::tools::proto::p2p::NotifyConnectResult msg;
+		msg.set_peer_id(tools::p2p::other(_cxt->pid, id));
 		msg.set_ret(mqas::tools::proto::p2p::RetCode::ok);
 		_notify_connect_result[idx](msg);
 	}
@@ -154,6 +155,7 @@ namespace mqas::tools::controller {
 			return;
 		const auto idx = p2p::self_idx(_cxt->pid, id);
 		mqas::tools::proto::p2p::NotifyConnectResult msg;
+		msg.set_peer_id(tools::p2p::other(_cxt->pid, id));
 		msg.set_ret(mqas::tools::proto::p2p::RetCode::failed);
 		if (reason)
 			msg.set_reason(reason.value());
@@ -164,9 +166,9 @@ namespace mqas::tools::controller {
 		if (!ready())
 			return false;
 		auto model = comm::locator::inst()->get<p2p::p2p_model>();
-		if (!model)
+		if (!model || model->get().get_context_const(_cxt->id) != nullptr)
 			return false;
-		return model.value().get()[id] != nullptr;
+		return model.value().get()[id] != nullptr && model->get().exist_context_peer(_cxt->id,id);
 	}
 	void p2p_helper_controller::set_reason(const std::string& s)
 	{
@@ -174,6 +176,11 @@ namespace mqas::tools::controller {
 	}
 	void p2p_helper_controller::stop(std::optional<std::string> reason)
 	{
-
+		if (!ready() || !is_start())
+			return;
+		stop_step();
+		if(reason)
+			set_reason(reason.value());
+		on_timeout();
 	}
 }
