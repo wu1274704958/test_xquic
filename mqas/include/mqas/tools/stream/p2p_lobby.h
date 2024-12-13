@@ -18,6 +18,7 @@ namespace mqas::tools::p2p {
 		ReqRespondPeerReqConnectPair
 	> {
 	public:
+		~P2PLobbyStream();
 		core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::p2p::ReqRegistePeer>& msg,
 			std::vector<uint8_t>& ret);
 
@@ -29,6 +30,7 @@ namespace mqas::tools::p2p {
 		void on_read_msg_s(const std::shared_ptr<proto::p2p::ReqRespondPeerReqConnect>& msg);
 		void on_close();
 	protected:
+		void try_unregiste();
 		bool send_respond_for_req_connect(uint32_t id, proto::p2p::RetCode code);
 	protected:
 

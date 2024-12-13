@@ -506,8 +506,8 @@ namespace mqas::core{
         stream->set_outer(this->weak_from_this());
         stream->set_cxt(cxt_);
         stream->on_init(stream_,connect_cxt_,connect);
-        StreamVariantErrcode res = stream->on_change(change_params,ret_buf);
-        if(res != StreamVariantErrcode::ok && res != StreamVariantErrcode::skip_and_manual) {
+        StreamVariantErrcode res = stream->on_change(change_params,ret_buf);                  //request change by self can be not support
+        if(res != StreamVariantErrcode::ok && res != StreamVariantErrcode::skip_and_manual && (!is_req || res != StreamVariantErrcode::not_support)) {
             clear_curr_stream();
             return res;
         }
@@ -534,12 +534,13 @@ namespace mqas::core{
                 return false;
             }
             std::vector<uint8_t> ret_buf{}; 
-            ret = change_to_uncheck<F>(change_params,ret_buf,true);
-            if(ret != StreamVariantErrcode::ok && ret != StreamVariantErrcode::skip_and_manual)
+            ret = change_to_uncheck<F>(change_params,ret_buf,true);                               //request change by self can be not support
+            if(ret != StreamVariantErrcode::ok && ret != StreamVariantErrcode::skip_and_manual && ret != StreamVariantErrcode::not_support)
             {
                 LOG(ERROR) << "req_change_to " << F::STREAM_TAG << " change self failed error = " << (size_t)ret;
                 return false;
             }
+            const auto use_input_data = ret == StreamVariantErrcode::not_support;
             current_state = variant_stream_state::req_wait_ack;
             if (ret == StreamVariantErrcode::skip_and_manual)
             {
@@ -549,8 +550,10 @@ namespace mqas::core{
             stream_variant_msg msg{};
             msg.cmd = stream_variant_cmd::req_use_stream_tag;
             msg.param1 = static_cast<uint32_t >(F::STREAM_TAG);
-            if(!ret_buf.empty())
-                msg.extra_params = {ret_buf};
+            if (!ret_buf.empty())
+                msg.extra_params = { ret_buf };
+            else if (use_input_data)
+                msg.extra_params = change_params;
             auto data = msg.generate();
             return write({*data});
         }else{

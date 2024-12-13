@@ -13,10 +13,10 @@ namespace mqas::tools::p2p {
 		if (!model || !conn || msg->name().empty())
 			return core::StreamVariantErrcode::failed;
 
-		sockaddr local,peer;
-		conn->get_sockaddr(local,peer);
+		const sockaddr *local,*peer;
+		conn->get_sockaddr(&local,&peer);
 
-		id = model.value().get().registe_client(msg->name(),io::Ip::addr2str(peer),io::Ip::addr_get_port(peer),this->weak_from_this());
+		id = model.value().get().registe_client(msg->name(),io::Ip::addr2str(*peer),io::Ip::addr_get_port(*peer),this->weak_from_this());
 		proto::p2p::RespondRegistePeer ret_msg;
 		if (id == 0)
 		{ 
@@ -71,12 +71,23 @@ namespace mqas::tools::p2p {
 
 	void P2PLobbyStream::on_close()
 	{
+		try_unregiste();
+		IStream::on_close();
+	}
+
+	void P2PLobbyStream::try_unregiste()
+	{
 		auto model = comm::locator::inst()->get<p2p_model>();
 		if (id > 0 && model)
 		{
 			model.value().get().unregiste_client(id);
+			id = 0;
 		}
-		IStream::on_close();
+	}
+
+	P2PLobbyStream::~P2PLobbyStream()
+	{
+		try_unregiste();
 	}
 
 	void P2PLobbyStream::on_read_msg_s(const std::shared_ptr<proto::p2p::ReqConnectPeer>& msg)

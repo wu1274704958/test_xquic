@@ -79,13 +79,7 @@ namespace mqas::io
 		}
 		static void on_close(uv_handle_t* handle)
 		{
-			H* p = (H*)handle;
-			assert(p->data != nullptr);
-			auto* outer = reinterpret_cast<Handle<H, HandleOp>*>(p->data);
-			assert(outer->will_close_);
-			delete outer->handle_;
-			outer->handle_ = nullptr;
-			outer->will_close_ = false;
+			delete handle;
 		}
 	public:
 		void *data = nullptr;

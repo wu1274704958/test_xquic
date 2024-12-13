@@ -43,7 +43,7 @@ void mqas::tools::p2p::p2p_model::visit_client(std::function<void(const peer_dat
 
 const mqas::tools::p2p::peer_data* mqas::tools::p2p::p2p_model::operator[](uint32_t id) const
 {
-	if(client_map.find(id) != client_map.end())
+	if(client_map.contains(id))
 		return &client_map.at(id);
 	return nullptr;
 }
@@ -60,8 +60,8 @@ uint32_t mqas::tools::p2p::p2p_model::next_id()
 // helper
 namespace mqas::tools::p2p {
 
-	uint64_t p2p_model::reg_context(uint32_t self, uint32_t oth, const proto::p2p::ClientIpList& self_ip, 
-		std::weak_ptr<mqas::core::IStreamVariant> stream, const connect_cxt** out)
+	uint64_t p2p_model::reg_context(uint32_t self, uint32_t oth, const proto::p2p::ClientIpList& oth_ip, 
+		std::weak_ptr<mqas::core::IStreamVariant> self_stream, const connect_cxt** out)
 	{
 		auto client_self = (*this)[self];
 		auto client_oth = (*this)[oth];
@@ -73,20 +73,24 @@ namespace mqas::tools::p2p {
 		auto& cxt = cxt_map[id];
 		cxt.id = id;
 		set_cxt(cxt, first_peer(*client_self, *client_oth), second_peer(*client_self, *client_oth),
-			self,self_ip,std::move(stream));
+			self,oth_ip,std::move(self_stream));
 		*out = &cxt;
 		return id;
 	}
-	void p2p_model::unreg_context(uint32_t self, uint32_t oth)
+	int p2p_model::unreg_context(uint32_t self, uint32_t oth)
 	{
 		auto id = merge_id(self, oth);
 		auto cxt = get_context(id);
 		if (cxt == nullptr)
-			return;
+			return -1;
 		auto idx = self_idx(cxt->pid, self);
 		cxt->stream[idx].reset();
 		if (!exist_context_peer(id, oth))
+		{
 			clear_context(id);
+			return 0;
+		}
+		return 1;
 	}
 	bool p2p_model::exist_context_peer(uint64_t mid, uint32_t id) const
 	{
@@ -99,9 +103,8 @@ namespace mqas::tools::p2p {
 	}
 	const connect_cxt* p2p_model::get_context_const(uint64_t id) const
 	{
-		auto it = cxt_map.find(id);
-		if (it != cxt_map.end())
-			return &(it->second);
+		if (cxt_map.contains(id))
+			return &(cxt_map.at(id));
 		return nullptr;
 	}
 	const connect_cxt* p2p_model::get_context_const(uint32_t a, uint32_t b) const
@@ -126,29 +129,33 @@ namespace mqas::tools::p2p {
 		cxt.pid[0] = a.id;
 		cxt.pid[1] = b.id;
 		for (int i = 0; i < a_ip.ip_list_size(); ++i)
-			cxt.ip_list[0].push_back(a_ip.ip_list().Get(i));
+			if (mqas::io::Ip::valid_ip(a_ip.ip_list().Get(i).c_str(), a_ip.port()))
+				cxt.ip_list[0].push_back(a_ip.ip_list().Get(i));
 		for (int i = 0; i < b_ip.ip_list_size(); ++i)
-			cxt.ip_list[1].push_back(b_ip.ip_list().Get(i));
+			if (mqas::io::Ip::valid_ip(b_ip.ip_list().Get(i).c_str(), b_ip.port()))
+				cxt.ip_list[1].push_back(b_ip.ip_list().Get(i));
 		cxt.state = ConnectState::Idle;
 		cxt.stage_1 = cxt.stage_2[0] = cxt.stage_2[1] =  -1;
 		cxt.tag = 0;
 		return true;
 	}
 
-	bool p2p_model::set_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b, uint32_t id, const proto::p2p::ClientIpList& ip,
-		std::weak_ptr<mqas::core::IStreamVariant> stream) const
+	bool p2p_model::set_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b, uint32_t id, const proto::p2p::ClientIpList& oth_ip,
+		std::weak_ptr<mqas::core::IStreamVariant> self_stream) const
 	{
 		cxt.is_same_external = a.ip == b.ip;
 		cxt.pid[0] = a.id;
 		cxt.pid[1] = b.id;
 		const auto idx = a.id == id ? 0 : 1;
-		cxt.port_list[idx] = ip.port();
-		for (int i = 0; i < ip.ip_list_size(); ++i)
-			cxt.ip_list[idx].push_back(ip.ip_list().Get(i));
+		const auto oth_idx = idx == 0 ? 1 : 0;
+		cxt.port_list[oth_idx] = oth_ip.port();
+		for (int i = 0; i < oth_ip.ip_list_size(); ++i)
+			if(mqas::io::Ip::valid_ip(oth_ip.ip_list().Get(i).c_str(), oth_ip.port()))
+				cxt.ip_list[oth_idx].push_back(oth_ip.ip_list().Get(i));
 		cxt.stage_1 = cxt.stage_2[idx] = -1;
 		cxt.tag = 0;
 		cxt.state =  (cxt.port_list[0] > 0 && cxt.port_list[1] > 0) ? ConnectState::Ready : ConnectState::Idle;
-		cxt.stream[idx] = std::move(stream);
+		cxt.stream[idx] = std::move(self_stream);
 		return true;
 	}
 
@@ -164,7 +171,7 @@ namespace mqas::tools::p2p {
 	}
 	const peer_data& p2p_model::second_peer(const peer_data& a, const peer_data& b) const
 	{
-		auto max = std::min(a.id, b.id);
+		auto max = std::max(a.id, b.id);
 		return max == a.id ? a : b;
 	}
 
@@ -226,9 +233,8 @@ namespace mqas::tools::p2p {
 		case ConnectState::ChangeToExternal:
 			cxt.stage_1 = 0;
 			cxt.stage_2[0] = cxt.stage_2[1] = 0;
-			cxt.state = cxt.state == ConnectState::Idle ? ConnectState::TryInternal : ConnectState::TryExternal;
-			generate_verify_code(cxt.verify_code);
-			break;
+			cxt.state = cxt.state == ConnectState::Ready ? ConnectState::TryInternal : ConnectState::TryExternal;
+			return StepResult::Success;
 		case ConnectState::TryInternal:
 		{
 			if (cxt.stage_2[0] + 1 >= cxt.ip_list[0].size() && cxt.stage_2[1] + 1 >= cxt.ip_list[1].size())
@@ -290,13 +296,12 @@ namespace mqas::tools::p2p {
 			return {};
 		proto::p2p::NotifyConnectPeerData data;
 		data.set_peer_id(oth);
-		proto::p2p::ConnectPeerData d;
-		d.set_ip( cxt.state == ConnectState::TryInternal ? cxt.ip_list[idx_oth][cxt.stage_2[idx_oth]] : oth_data->ip);
-		d.set_port( cxt.state == ConnectState::TryInternal ? cxt.port_list[idx_oth] : oth_data->port);
-		d.set_verify_code( cxt.verify_code[idx_oth]);
-		d.set_send_times(3);
-		d.set_send_delay(200);
-		data.set_allocated_connect_data(&d);
+		proto::p2p::ConnectPeerData* d = data.mutable_connect_data();
+		d->set_ip( cxt.state == ConnectState::TryInternal ? cxt.ip_list[idx_oth][cxt.stage_2[idx_oth]] : oth_data->ip);
+		d->set_port( cxt.state == ConnectState::TryInternal ? cxt.port_list[idx_oth] : oth_data->port);
+		d->set_verify_code( cxt.verify_code[idx_oth]);
+		d->set_send_times(3);
+		d->set_send_delay(200);
 		
 		return {data};
 	}

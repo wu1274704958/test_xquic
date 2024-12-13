@@ -153,7 +153,13 @@ namespace mqas::tools::p2p {
 			return std::dynamic_pointer_cast<T>(shared_ptr);
 		}
 		uint64_t reg_context(uint32_t self, uint32_t oth,const proto::p2p::ClientIpList& self_ip, std::weak_ptr<mqas::core::IStreamVariant> stream,const connect_cxt** out);
-		void unreg_context(uint32_t self, uint32_t oth);
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="self">self id</param>
+		/// <param name="oth">other id</param>
+		/// <returns>-1:context not exist,0:the two peers have been unregistered and context removed,1:other peer still</returns>
+		int unreg_context(uint32_t self, uint32_t oth);
 		bool exist_context_peer(uint64_t mid, uint32_t id) const;
 		
 		void clear_context(uint64_t mid);
@@ -176,8 +182,8 @@ namespace mqas::tools::p2p {
 		//helper
 		bool init_cxt(connect_cxt& cxt,const peer_data& a, const peer_data& b, const proto::p2p::ClientIpList& a_ip,
 			const proto::p2p::ClientIpList& b_ip) const;
-		bool set_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b,uint32_t id,const proto::p2p::ClientIpList& ip,
-			std::weak_ptr<mqas::core::IStreamVariant> stream) const;
+		bool set_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b,uint32_t id,const proto::p2p::ClientIpList& oth_ip,
+			std::weak_ptr<mqas::core::IStreamVariant> self_stream) const;
 		StepResult next_cxt(connect_cxt& cxt) const;
 		void generate_verify_code(std::array<uint32_t, 2>& cxt) const;
 		

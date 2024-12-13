@@ -58,10 +58,8 @@ namespace mqas::tools::p2p {
 		{ 
 			proto::p2p::ReqConnectPeer req_msg;
 			req_msg.set_peer_id(msg->peer_id());
-			proto::p2p::ClientIpList ip_list;
-			if (get_ip_list(ip_list))
-				req_msg.set_allocated_ip_list(&ip_list);
-			else
+			proto::p2p::ClientIpList* ip_list = req_msg.mutable_ip_list();
+			if (!get_ip_list(*ip_list))
 			{
 				LOG(ERROR) << "p2p lobby client ReqConnectPeer get ip failed";
 				return;
@@ -79,14 +77,17 @@ namespace mqas::tools::p2p {
 		if (!conn)
 			return false;
 
-		sockaddr local, peer;
-		conn->get_sockaddr(local, peer);
+		std::vector<std::string> list;
+		mqas::io::Ip::collect_local_ip(list);
 
-		auto ip = res.add_ip_list();
-		auto str = mqas::io::Ip::addr2str(local);
-		ip->assign(str.c_str());
-		
-		res.set_port(mqas::io::Ip::addr_get_port(local));
+		for (auto& it : list)
+		{
+			auto ip = res.add_ip_list();
+			ip->assign(it.c_str());
+		}
+		const sockaddr *local, *peer;
+		conn->get_sockaddr(&local, &peer);
+		res.set_port(mqas::io::Ip::addr_get_port(*local));
 		return true;
 	}
 

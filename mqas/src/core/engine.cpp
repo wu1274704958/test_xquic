@@ -106,10 +106,8 @@ namespace mqas::core{
         return lsquic_conn_get_sni(conn_);
     }
 
-    bool IConnect::get_sockaddr(sockaddr &local, sockaddr &peer) const {
-        const sockaddr* loc = &local;
-        const sockaddr* peer_ = &peer;
-        const int ret = lsquic_conn_get_sockaddr(conn_,&loc,&peer_);
+    bool IConnect::get_sockaddr(const sockaddr** local, const sockaddr** peer) const {
+        const int ret = lsquic_conn_get_sockaddr(conn_,local,peer);
         if(ret == -1) LOG(ERROR) << "Connect "<< conn_ <<" get socket address got error " << errno;
         return ret != -1;
     }

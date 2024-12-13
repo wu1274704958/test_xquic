@@ -34,7 +34,7 @@ namespace mqas::core {
         void abort() const;
         void going_away() const;
         [[nodiscard]] const char*get_sni() const;
-        bool get_sockaddr(sockaddr& local,sockaddr& peer) const;
+        bool get_sockaddr(const sockaddr** local,const sockaddr** peer) const;
         [[nodiscard]] size_t get_min_datagram_size() const;
         bool set_min_datagram_size(size_t sz) const;
         unsigned int cancel_pending_streams(unsigned int n) const;

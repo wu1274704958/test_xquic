@@ -14,6 +14,9 @@ namespace mqas::io {
 		static std::string addr2str(const sockaddr& addr);
 		static u_short addr_get_port(const sockaddr& addr);
 
-		static void collect_local_ip(std::vector<sockaddr>& res);
+		static void collect_local_ip(std::vector<std::string>& res);
+		static bool valid_ipv4(const char* str, int port);
+		static bool valid_ipv6(const char* str, int port);
+		static bool valid_ip(const char* str, int port);
 	};
 }

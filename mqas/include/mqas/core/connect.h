@@ -75,7 +75,9 @@ namespace mqas::core{
         std::function<bool(lsquic_stream_t*,const std::span<uint8_t>&)> write_stream;
         void* cxt;
         template<typename T>
-        void set_cxt(const T& t){ cxt = reinterpret_cast<void*>(const_cast<T*>(&t));}
+        void set_cxt(const T* t){ cxt = reinterpret_cast<void*>(const_cast<T*>(t));}
+        template<typename T>
+        void set_cxt(const T& t) { cxt = reinterpret_cast<void*>(const_cast<T*>(&t)); }
         template<typename T>
         [[nodiscard]] T* get_cxt() { return reinterpret_cast<T*>(cxt); }
     };

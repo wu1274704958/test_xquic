@@ -2,6 +2,7 @@
 #include "mqas/tools/model/p2p_model.h"
 #include "mqas/comm/locator.h"
 #include "mqas/tools/controller/p2p_helper_controller.h"
+#include "mqas/tools/stream/p2p_lobby.h"
 
 using namespace mqas::comm;
 
@@ -10,7 +11,7 @@ namespace mqas::tools::p2p {
 
     P2PHelperStream::P2PHelperStream()
     {
-        _self = connect_cxt_->get_cxt<p2p::peer_data>();
+        
     }
 
     P2PHelperStream::~P2PHelperStream()
@@ -37,8 +38,13 @@ namespace mqas::tools::p2p {
         {
             auto model = locator::inst()->get<p2p::p2p_model>();
             if (model)
-                model->get().unreg_context(_self->id, _other_id);
-            stop(std::format("peer {} leave!", _self->id));
+            {
+                const auto res = model->get().unreg_context(_self->id, _other_id);
+                if (res == 0)
+                    locator::inst()->remove<tools::controller::p2p_helper_controller>((size_t)_merge_id);
+                else if(res == 1)
+                    stop(std::format("peer {} leave!", _self->id));
+            }
         }
     }
 
@@ -57,25 +63,52 @@ namespace mqas::tools::p2p {
 
     core::StreamVariantErrcode P2PHelperStream::on_change_msg_s(const std::shared_ptr<proto::p2p::ReqConnectPeer>& msg, std::vector<uint8_t>& ret)
     {
-        return on_peer_connect(msg->peer_id(),msg->ip_list());
+        const auto res = on_peer_connect(msg->peer_id(),msg->ip_list());
+        proto::p2p::RespondConnectPeer ret_msg;
+        ret_msg.set_peer_id(msg->peer_id());
+        ret_msg.set_ret(res == core::StreamVariantErrcode::ok ? proto::p2p::RetCode::ok : proto::p2p::RetCode::failed);
+        core::ProtoBufMsg::write_msg<RespondConnectPeerPair>(ret, ret_msg);
+        return res;
     }
 
 
     core::StreamVariantErrcode P2PHelperStream::on_change_msg_s(const std::shared_ptr<proto::p2p::ReqRespondPeerReqConnect>& msg,
         std::vector<uint8_t>& ret)
     {
-        return on_peer_connect(msg->peer_id(), msg->ip_list());
+		auto model = comm::locator::inst()->get<p2p_model>();
+		if (!model)return core::StreamVariantErrcode::failed;
+
+		const auto res = on_peer_connect(msg->peer_id(), msg->ip_list());
+		proto::p2p::RetCode ret_code = res == core::StreamVariantErrcode::ok ? proto::p2p::RetCode::ok : proto::p2p::RetCode::failed;
+		//send RespondConnectPeer to peer
+		if (ret_code == proto::p2p::RetCode::ok)
+		{
+			if (!model.value().get().visit_client_stream<P2PLobbyStream>(msg->peer_id(), [msg, this](std::shared_ptr<P2PLobbyStream> ptr)->bool {
+				proto::p2p::RespondConnectPeer msg;
+				msg.set_peer_id(_self->id);
+				msg.set_ret(proto::p2p::RetCode::ok);
+				ptr->send_lazy<RespondConnectPeerPair>(msg);
+				return true;
+				}))
+				ret_code = proto::p2p::not_exists;
+		}
+		proto::p2p::RespondConnectPeer ret_msg;
+		ret_msg.set_peer_id(msg->peer_id());
+		ret_msg.set_ret(ret_code);
+		core::ProtoBufMsg::write_msg<RespondConnectPeerPair>(ret, ret_msg);
+        return res;
     }
 
     core::StreamVariantErrcode P2PHelperStream::on_peer_connect(uint32_t id, const proto::p2p::ClientIpList & ip)
     {
+        _self = connect_cxt_->get_cxt<p2p::peer_data>();
         auto locator = locator::inst();
         auto model = locator->get<p2p::p2p_model>();
         if (!*this || !model)
             return core::StreamVariantErrcode::failed;
 
         const p2p::connect_cxt* cxt;
-        _merge_id = model.value().get().reg_context(id, _self->id, ip,this->weak_from_this(), &cxt);
+        _merge_id = model.value().get().reg_context(_self->id, id, ip,this->weak_from_this(), &cxt);
         _other_id = id;
         if (cxt->state == p2p::ConnectState::Ready)
         {

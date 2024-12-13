@@ -8,7 +8,7 @@ namespace mqas::tools::p2p {
 	class p2p_model;
 	class peer_data;
 
-	class MQAS_EXTERN P2PHelperStream : public core::ProtoBufStream<
+	class MQAS_EXTERN P2PHelperStream : public core::ProtoBufStream<P2PHelperStream,
 		ReqConnectPeerPair, RespondConnectPeerPair,
 		ReqRespondPeerReqConnectPair,
 		NotifyConnectPeerDataPair, ReqSubmitRecvPeerKeyCodePair,
