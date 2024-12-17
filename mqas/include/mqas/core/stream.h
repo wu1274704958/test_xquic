@@ -32,7 +32,7 @@ namespace mqas::core {
         void on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params);
         StreamVariantErrcode on_peer_quit(const std::span<uint8_t>&,std::vector<uint8_t>&);
         void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
-        bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={});
+        bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={},bool lazy = false);
         [[nodiscard]] bool isWaitPeerChangeRet() const;
         void setIsWaitPeerChangeRet(bool isWaitPeerChangeRet);
         [[nodiscard]] size_t getStreamTag() const;
@@ -118,7 +118,7 @@ namespace mqas::core {
         [[nodiscard]] bool has_holds_stream() const;
         StreamVariantErrcode on_peer_quit(const std::span<uint8_t> &,std::vector<uint8_t>&);
         void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
-        bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={});
+        bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={},bool lazy = false);
         [[nodiscard]] bool isWaitPeerChangeRet() const;
         void setIsWaitPeerChangeRet(bool isWaitPeerChangeRet);
     protected:

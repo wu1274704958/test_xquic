@@ -30,6 +30,7 @@ namespace mqas::tools::p2p {
 			std::vector<uint8_t>& ret);
 
 		void on_read_msg_s(const std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>& msg);
+		core::StreamVariantErrcode on_peer_quit(const std::span<uint8_t>& d, std::vector<uint8_t>& buf);
 	protected:
 		void on_leave();
 		void on_timeout(io::Timer* t);
@@ -38,7 +39,7 @@ namespace mqas::tools::p2p {
 		void setup_event(mqas::tools::controller::p2p_helper_controller& controller) ;
 		void stop(std::optional<std::string> reason);
 		void send_connect(const proto::p2p::NotifyConnectPeerData& msg);
-		void send_result(const proto::p2p::NotifyConnectResult& msg);
+		void send_result(const proto::p2p::NotifyConnectResult& msg); 
 	protected:
 		p2p::peer_data* _self = nullptr;
 		uint64_t _merge_id = 0;

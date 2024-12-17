@@ -34,7 +34,7 @@ namespace mqas::tools::p2p {
 
     void P2PHelperStream::on_leave()
     {
-        if (!_notified_result && _merge_id > 0 && _other_id > 0 && _self != nullptr)
+        if (_merge_id > 0 && _other_id > 0 && _self != nullptr)
         {
             auto model = locator::inst()->get<p2p::p2p_model>();
             if (model)
@@ -42,7 +42,7 @@ namespace mqas::tools::p2p {
                 const auto res = model->get().unreg_context(_self->id, _other_id);
                 if (res == 0)
                     locator::inst()->remove<tools::controller::p2p_helper_controller>((size_t)_merge_id);
-                else if(res == 1)
+                else if(!_notified_result && res == 1)
                     stop(std::format("peer {} leave!", _self->id));
             }
         }
@@ -149,12 +149,9 @@ namespace mqas::tools::p2p {
     {
         if (!*this || _merge_id <= 0) return;
         auto locator = locator::inst();
-        auto model = locator->get<p2p::p2p_model>();
         auto controller = locator->get<tools::controller::p2p_helper_controller>((size_t)_merge_id);
         if(controller)
             controller->get().stop(std::move(reason));
-        if (model)
-            model->get().clear_context(_merge_id);
         _self = nullptr;
         _merge_id = 0;
         _other_id = 0;
@@ -168,7 +165,7 @@ namespace mqas::tools::p2p {
     void P2PHelperStream::send_result(const proto::p2p::NotifyConnectResult& msg)
     {
         _notified_result = true;
-        send_req_quit<NotifyConnectResultPair>(stream_tag_, msg);
+        send_req_quit<NotifyConnectResultPair>(stream_tag_, msg,true);
     }
 
     void P2PHelperStream::on_read_msg_s(const std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>& msg)
@@ -177,5 +174,10 @@ namespace mqas::tools::p2p {
         auto controller = locator::inst()->get<tools::controller::p2p_helper_controller>((size_t)_merge_id);
         if (controller && _self->id == msg->peer_id())
             controller->get().submit_verify_code(_merge_id, _self->id, msg->verify_code());
+    }
+
+    core::StreamVariantErrcode P2PHelperStream::on_peer_quit(const std::span<uint8_t>& d, std::vector<uint8_t>& buf)
+    {
+        return core::StreamVariantErrcode::ok;
     }
 }

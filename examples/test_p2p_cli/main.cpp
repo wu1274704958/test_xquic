@@ -19,6 +19,7 @@ MQAS_SHARE_EASYLOGGINGPP
 #define KEY_Enter 10
 
 const std::string none_str = "none";
+const int zero = 0;
 
 class LobbyStream : public tools::p2p::P2PLobbyClientStream {
 protected:
@@ -36,6 +37,8 @@ enum class ui_state {
 	select_peer_not_find = 4,
 	get_respond = 5,
 	helper_main = 6,
+	helper_result_failed = 7,
+	p2p_main = 8
 };
 
 struct tui
@@ -47,13 +50,14 @@ struct tui
 	void handle_input();
 	void destroy();
 	bool has_peer(uint32_t id);
-	const std::string& get_peer_name(uint32_t id) const;
+	std::optional<mqas::tools::proto::p2p::PeerData> get_peer(uint32_t id) const;
 protected:
 	void on_change_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::RespondConnectPeer>& respond);
 	void on_helper_connect_to(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectPeerData>& msg);
 	void on_get_peer_list(std::shared_ptr<mqas::tools::proto::p2p::RespondPeerList> list);
 	void on_peer_want_connect(const mqas::tools::proto::p2p::PeerData&);
 	void on_get_respond(const std::shared_ptr<mqas::tools::proto::p2p::RespondConnectPeer>& code);
+	void on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg);
 	void append_state(ui_state state);
 	void quit_helper();
 	ui_state pop_state();
@@ -68,6 +72,7 @@ protected:
 	std::vector<mqas::tools::proto::p2p::PeerData> want_connect_list;
 	std::shared_ptr<mqas::tools::proto::p2p::RespondConnectPeer> respond_code;
 	std::shared_ptr<mqas::tools::proto::p2p::RespondConnectPeer> respond_change_helper;
+	std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult> helper_result;
 	std::vector<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectPeerData>> try_connect_list;
 };
 
@@ -232,13 +237,20 @@ void tui::draw()
 		break;
 	case ui_state::helper_main:
 	{
-		wprintw(win, "Helper Main peer = %s", get_peer_name(respond_change_helper->peer_id()).c_str());
+		auto peer = get_peer(respond_change_helper->peer_id());
+		std::string name = none_str;
+		if (peer)
+			name = peer.value().name();
+		wprintw(win, "Helper Main peer = %d,name = %s", respond_change_helper->peer_id(),name.c_str());
 		for (int i = 0; i < this->try_connect_list.size(); ++i)
 		{
 			wmove(win, ++y, 1);
 			wprintw(win, "try connect to %s:%d", try_connect_list[i]->connect_data().ip().c_str(), try_connect_list[i]->connect_data().port());
 		}
 	}
+		break;
+	case ui_state::helper_result_failed:
+		wprintw(win, "Get p2p failed %s from %d",helper_result->reason().c_str(), helper_result->peer_id());
 		break;
 	default:
 		break;
@@ -330,6 +342,7 @@ void tui::reg_helper_stream(std::shared_ptr<mqas::tools::p2p::P2PHelperClientStr
 
 	helper_stream->on_change_result.connect(sigc::mem_fun(*this, &tui::on_change_helper_result));
 	helper_stream->on_connect_peer.connect(sigc::mem_fun(*this, &tui::on_helper_connect_to));
+	helper_stream->on_quit_result.connect(sigc::mem_fun(*this, &tui::on_helper_result));
 }
 
 void tui::on_change_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::RespondConnectPeer>& respond)
@@ -350,18 +363,30 @@ void tui::on_helper_connect_to(const std::shared_ptr<mqas::tools::proto::p2p::No
 	try_connect_list.push_back(msg);
 }
 
+void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg)
+{
+	helper_result = msg;
+	try_connect_list.clear();
+	if (msg->ret() != mqas::tools::proto::p2p::RetCode::ok)
+	{
+		if (current_state() == ui_state::helper_main)
+			pop_state();
+		append_state(ui_state::helper_result_failed);
+	}
+}
 
-const std::string& tui::get_peer_name(uint32_t id) const
+
+std::optional<mqas::tools::proto::p2p::PeerData> tui::get_peer(uint32_t id) const
 {
 	if (peer_list == nullptr)
-		return none_str;
+		return {};
 	for (int i = 0; i < peer_list->peer_list_size(); ++i)
 	{
 		auto it = peer_list->peer_list().Get(i);
 		if (it.id() == id)
-			return it.name();
+			return it;
 	}
-	return none_str;
+	return {};
 }
 
 void tui::quit_helper()

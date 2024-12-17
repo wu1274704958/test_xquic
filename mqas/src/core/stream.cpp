@@ -76,14 +76,14 @@ mqas::core::StreamVariantErrcode mqas::core::IStreamVariant::on_peer_quit(const 
     return StreamVariantErrcode::ok;
 }
 
-bool mqas::core::IStreamVariant::req_quit(uint32_t curr_tag,const std::span<uint8_t> &d) {
+bool mqas::core::IStreamVariant::req_quit(uint32_t curr_tag,const std::span<uint8_t> &d,bool lazy) {
     stream_variant_msg msg{};
     msg.cmd = stream_variant_cmd::req_quit_hold_stream;
     msg.param1 = curr_tag;
     msg.extra_params = d;
     auto data = msg.generate();
     if(!data)return false;
-    bool ret = write({*data});
+    bool ret = lazy ? (write_lazy({*data}),true) : write({*data});
     if (ret) { 
         setIsWaitPeerChangeRet(true); 
         on_req_quit();

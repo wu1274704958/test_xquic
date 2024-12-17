@@ -7,9 +7,11 @@ namespace mqas::tools::p2p {
 		on_connect_peer.emit(msg);
 	}
 
-	void P2PHelperClientStream::on_peer_quit_ret_msg_s(core::StreamVariantErrcode e, const std::shared_ptr<proto::p2p::NotifyConnectResult>& res)
+	mqas::core::StreamVariantErrcode P2PHelperClientStream::on_peer_quit_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectResult>& res,
+		std::vector<uint8_t>& buf)
 	{
 		on_quit_result.emit(res);
+		return mqas::core::StreamVariantErrcode::ok;
 	}
 
 	void P2PHelperClientStream::on_peer_change_ret_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondConnectPeer>& res)

@@ -11,7 +11,7 @@ namespace mqas::tools::controller {
 
 	p2p_helper_controller::operator bool() const
 	{
-		return _cxt != nullptr && _cxt->state == p2p::ConnectState::Ready;
+		return _cxt != nullptr && _cxt->state >= p2p::ConnectState::Ready;
 	}
 
 	bool p2p_helper_controller::ready() const
@@ -102,6 +102,9 @@ namespace mqas::tools::controller {
 		{
 		case p2p::StepResult::End:
 			set_reason("timeout");
+			on_timeout();
+			stop_step();
+			return;
 		case p2p::StepResult::None:
 			set_reason("unknow");
 			on_timeout();
@@ -116,7 +119,7 @@ namespace mqas::tools::controller {
 			on_timeout();
 			stop_step();
 		}
-		else
+		else if(res.second)
 			_notify_connect_signal[0](*res.second);
 		res = model.value().get().current_cxt(_cxt->id, _cxt->pid[1]);
 		assert(res.first == p2p::StepResult::Success);
@@ -125,7 +128,7 @@ namespace mqas::tools::controller {
 			set_reason(std::format("peer {} leaved", _peer_list[1]->id));
 			on_timeout();
 			stop_step();
-		}else
+		}else if(res.second)
 			_notify_connect_signal[1](*res.second);
 	}
 
@@ -166,7 +169,7 @@ namespace mqas::tools::controller {
 		if (!ready())
 			return false;
 		auto model = comm::locator::inst()->get<p2p::p2p_model>();
-		if (!model || model->get().get_context_const(_cxt->id) != nullptr)
+		if (!model || model->get().get_context_const(_cxt->id) == nullptr)
 			return false;
 		return model.value().get()[id] != nullptr && model->get().exist_context_peer(_cxt->id,id);
 	}

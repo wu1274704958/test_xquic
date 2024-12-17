@@ -250,12 +250,12 @@ namespace mqas::core{
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    bool StreamVariant<S...>::req_quit(uint32_t curr_tag,const std::span<uint8_t> &d)
+    bool StreamVariant<S...>::req_quit(uint32_t curr_tag,const std::span<uint8_t> &d,bool lazy)
     {
         bool ret = false;
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->req_quit(curr_tag,d)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->req_quit(curr_tag,d,lazy)),...);
         }
         return ret;
     }

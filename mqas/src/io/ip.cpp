@@ -57,7 +57,7 @@ u_short mqas::io::Ip::addr_get_port(const sockaddr& addr)
 #endif
 
 
-bool is_valid_local_ip(const char* ip) {
+bool mqas::io::Ip::is_valid_local_ip(const char* ip) {
 	return strcmp(ip,"0.0.0.0") != 0 && strcmp(ip,"127.0.0.1") != 0;
 }
 

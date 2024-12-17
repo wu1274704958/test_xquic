@@ -360,12 +360,12 @@ namespace mqas::core {
     MQAS_PB_STREAM_TEMPLATE_DECL
     template<class SM>
     requires IsProtoBufMsgConf<SM>
-    bool ProtoBufStream<S,M...>::send_req_quit(uint32_t curr_tag,const typename SM::PB_MSG_TYPE& m)
+    bool ProtoBufStream<S,M...>::send_req_quit(uint32_t curr_tag,const typename SM::PB_MSG_TYPE& m, bool lazy)
     {
         auto buf = ProtoBufMsg::write_msg<SM>(m);
         if(!buf)
             return false;
-        return req_quit(curr_tag,{*buf});
+        return req_quit(curr_tag,{*buf},lazy);
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
     template<class SM,stream_variant_cmd C>

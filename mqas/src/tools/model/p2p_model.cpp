@@ -94,7 +94,7 @@ namespace mqas::tools::p2p {
 	}
 	bool p2p_model::exist_context_peer(uint64_t mid, uint32_t id) const
 	{
-		auto cxt = get_context_const(id);
+		auto cxt = get_context_const(mid);
 		if (cxt == nullptr)
 			return false;
 		auto idx = self_idx(cxt->pid, id);
@@ -236,46 +236,32 @@ namespace mqas::tools::p2p {
 			cxt.state = cxt.state == ConnectState::Ready ? ConnectState::TryInternal : ConnectState::TryExternal;
 			return StepResult::Success;
 		case ConnectState::TryInternal:
-		{
-			if (cxt.stage_2[0] + 1 >= cxt.ip_list[0].size() && cxt.stage_2[1] + 1 >= cxt.ip_list[1].size())
-			{
-				cxt.state = ConnectState::ChangeToExternal;
-				return next_cxt(cxt);
-			}
-			if (cxt.stage_1 < size - 1 - 1)// first swap active
-			{
-				cxt.stage_1++;
-				generate_verify_code(cxt.verify_code);
-				return StepResult::Success;
-			}
-			cxt.stage_1 = 0; // second move ip1 to next 
-			const int ip1_count = cxt.ip_list[1].size();
-			if (cxt.stage_2[1] < ip1_count - 1)
-			{
-				cxt.stage_2[1]++;
-				generate_verify_code(cxt.verify_code);
-				return StepResult::Success;
-			}
-			cxt.stage_2[1] = 0;// third move ip0 to next
-			const int ip0_count = cxt.ip_list[0].size();
-			if (cxt.stage_2[0] < ip0_count - 1)
-			{
-				cxt.stage_2[0]++;
-				generate_verify_code(cxt.verify_code);
-				return StepResult::Success;
-			}
-			break;
-		}
 		case ConnectState::TryExternal:
-			if (cxt.stage_1 < size - 1 - 1)// first swap active
+		{
+			int8_t& a = cxt.stage_2[0];
+			int8_t& b = cxt.stage_2[1];
+			int8_t as = ConnectState::TryExternal == cxt.state ? 1 : cxt.ip_list[0].size();
+			int8_t bs = ConnectState::TryExternal == cxt.state ? 1 : cxt.ip_list[1].size();
+
+			if (a + 1 >= as && b + 1 > bs)
 			{
-				cxt.stage_1++;
-				generate_verify_code(cxt.verify_code);
-				return StepResult::Success;
+				if (cxt.state == ConnectState::TryInternal)
+				{
+					cxt.state = ConnectState::ChangeToExternal;
+					return next_cxt(cxt);
+				}
+				else {
+					cxt.state = ConnectState::Wait;
+					return next_cxt(cxt);
+				}
 			}
-			cxt.state = ConnectState::Wait;
-			return next_cxt(cxt);
-			break;
+			++a;
+			++b;
+			if (a + 1 >= as && b + 1 > bs)
+				return next_cxt(cxt);
+			generate_verify_code(cxt.verify_code);
+			return StepResult::Success;
+		}
 		case ConnectState::Success:
 		case ConnectState::Wait:
 			return StepResult::End;
@@ -292,12 +278,16 @@ namespace mqas::tools::p2p {
 		auto idx_oth = oth_idx(cxt.pid,self);
 		auto self_data = (*this)[self];
 		auto oth_data = (*this)[oth];
+		auto ip_idx = -1;
+		if (idx_oth >= cxt.stage_2.size())
+			return {};
+		ip_idx = cxt.stage_2[idx_oth];
 		if(self_data == nullptr || oth_data == nullptr)
 			return {};
 		proto::p2p::NotifyConnectPeerData data;
 		data.set_peer_id(oth);
 		proto::p2p::ConnectPeerData* d = data.mutable_connect_data();
-		d->set_ip( cxt.state == ConnectState::TryInternal ? cxt.ip_list[idx_oth][cxt.stage_2[idx_oth]] : oth_data->ip);
+		d->set_ip( cxt.state == ConnectState::TryInternal ? cxt.ip_list[idx_oth][ip_idx] : oth_data->ip);
 		d->set_port( cxt.state == ConnectState::TryInternal ? cxt.port_list[idx_oth] : oth_data->port);
 		d->set_verify_code( cxt.verify_code[idx_oth]);
 		d->set_send_times(3);
@@ -351,7 +341,7 @@ namespace mqas::tools::p2p {
 		cxt.ip_list[1].push_back("192.168.2.2");
 		cxt.ip_list[1].push_back("192.168.2.3");
 		cxt.ip_list[1].push_back("192.168.2.4");
-		cxt.state = ConnectState::Idle;
+		cxt.state = ConnectState::Ready;
 
 		StepResult res = StepResult::None; 
 		do {
