@@ -93,12 +93,12 @@ namespace mqas::tools::p2p {
 		ConnectState state;
 		int8_t stage_1;//who active
 		std::array<int8_t, 2> stage_2;
-		int8_t tag;// success count
+		std::array<int16_t, 2> tag;// success tag
 		bool is_same_external;
 		std::array<uint32_t,2> verify_code;
 		std::array<std::weak_ptr<mqas::core::IStreamVariant>, 2> stream;
 		connect_cxt() : port_list({0,0}) {}
-		operator bool() const { return tag == 3; }
+		inline operator bool() const { return tag[0] >= 0 && tag[1] >= 0; }
 		bool is_receive(uint32_t id) const;
 	};
 
@@ -168,7 +168,7 @@ namespace mqas::tools::p2p {
 		std::pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>> next_cxt(uint64_t id, uint32_t self);
 		std::pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>> current_cxt(uint64_t id, uint32_t self) const;
 		std::optional<proto::p2p::NotifyConnectPeerData> generate_connect_data(const connect_cxt& cxt, uint32_t self) const;
-		bool submit_verify_code(uint64_t id, uint32_t who, uint32_t code);
+		bool submit_verify_code(uint64_t id, uint32_t who, uint32_t code, uint16_t ip_index);
 		#ifndef NDEBUG  
 		void test_step_cxt();
 		#endif

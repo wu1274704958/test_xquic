@@ -252,6 +252,11 @@ void tui::draw()
 	case ui_state::helper_result_failed:
 		wprintw(win, "Get p2p failed %s from %d",helper_result->reason().c_str(), helper_result->peer_id());
 		break;
+	case ui_state::p2p_main:
+		wprintw(win, "Get success p2p ready to connect to %d addr is %s:%d",helper_result->peer_id(),
+			helper_result->address().ip().c_str(), helper_result->address().port());
+		//todo sync p2p connect state
+		break;
 	default:
 		break;
 	}
@@ -305,6 +310,10 @@ void tui::handle_input()
 	case ui_state::helper_main:
 		if (KEY_ESC == c)
 			quit_helper();
+		break;
+	case ui_state::p2p_main:
+		if (KEY_ESC == c)
+			;//todo close and clean p2p connect
 		break;
 	default:
 		break;
@@ -372,6 +381,12 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 		if (current_state() == ui_state::helper_main)
 			pop_state();
 		append_state(ui_state::helper_result_failed);
+	}
+	else {
+		if (current_state() == ui_state::helper_main)
+			pop_state();
+		append_state(ui_state::p2p_main);
+		//todo launch p2p connect
 	}
 }
 

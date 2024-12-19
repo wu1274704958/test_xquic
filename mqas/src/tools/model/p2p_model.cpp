@@ -69,9 +69,15 @@ namespace mqas::tools::p2p {
 		if (client_self == nullptr || client_oth == nullptr)
 			return 0;
 		auto id = merge_id(self, oth);
-		cxt_map.emplace(id, connect_cxt{});
+		bool is_new = false;
+		if((is_new = !cxt_map.contains(id)))
+			cxt_map.emplace(id, connect_cxt{});
 		auto& cxt = cxt_map[id];
-		cxt.id = id;
+		if (is_new)
+		{
+			cxt.id = id;
+			cxt.tag[0] = cxt.tag[1] = -1;
+		}
 		set_cxt(cxt, first_peer(*client_self, *client_oth), second_peer(*client_self, *client_oth),
 			self,oth_ip,std::move(self_stream));
 		*out = &cxt;
@@ -136,7 +142,7 @@ namespace mqas::tools::p2p {
 				cxt.ip_list[1].push_back(b_ip.ip_list().Get(i));
 		cxt.state = ConnectState::Idle;
 		cxt.stage_1 = cxt.stage_2[0] = cxt.stage_2[1] =  -1;
-		cxt.tag = 0;
+		cxt.tag[0] = cxt.tag[1] = -1;
 		return true;
 	}
 
@@ -153,7 +159,6 @@ namespace mqas::tools::p2p {
 			if(mqas::io::Ip::valid_ip(oth_ip.ip_list().Get(i).c_str(), oth_ip.port()))
 				cxt.ip_list[oth_idx].push_back(oth_ip.ip_list().Get(i));
 		cxt.stage_1 = cxt.stage_2[idx] = -1;
-		cxt.tag = 0;
 		cxt.state =  (cxt.port_list[0] > 0 && cxt.port_list[1] > 0) ? ConnectState::Ready : ConnectState::Idle;
 		cxt.stream[idx] = std::move(self_stream);
 		return true;
@@ -292,6 +297,7 @@ namespace mqas::tools::p2p {
 		d->set_verify_code( cxt.verify_code[idx_oth]);
 		d->set_send_times(3);
 		d->set_send_delay(200);
+		d->set_ip_index(ip_idx);
 		
 		return {data};
 	}
@@ -306,7 +312,7 @@ namespace mqas::tools::p2p {
 		arr[1] = dist(gen);
 	}
 
-	bool p2p_model::submit_verify_code(uint64_t id, uint32_t who, uint32_t code)
+	bool p2p_model::submit_verify_code(uint64_t id, uint32_t who, uint32_t code, uint16_t ip_index)
 	{
 		auto cxt = get_context(id);
 		if (!(cxt->state == ConnectState::TryInternal || cxt->state == ConnectState::TryExternal))
@@ -314,7 +320,7 @@ namespace mqas::tools::p2p {
 		auto idx_oth = oth_idx(cxt->pid, who);
 		if (cxt->verify_code[idx_oth] == code)
 		{
-			cxt->tag |= (1 << self_idx(cxt->pid, who));
+			cxt->tag[idx_oth] = ip_index;
 		}
 		return *cxt;
 	}
@@ -322,7 +328,7 @@ namespace mqas::tools::p2p {
 	bool connect_cxt::is_receive(uint32_t id) const
 	{
 		auto idx = self_idx(pid, id);
-		return ((tag >> idx) & 1) > 0;
+		return tag[idx] >= 0;
 	}
 
 

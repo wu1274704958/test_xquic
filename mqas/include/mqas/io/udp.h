@@ -8,6 +8,7 @@
 #include <span>
 #include <vector>
 #include <string>
+#include <sigc++/sigc++.h>
 
 namespace mqas::io
 {
@@ -41,19 +42,21 @@ namespace mqas::io
 		int try_send(const std::vector<std::span<uint8_t>>& d, const sockaddr& addr) const;
 		void send(const std::span<uint8_t>& d, const sockaddr& addr, std::function<void(UdpSocket*, int)> send_cb);
 		int try_send(const std::span<uint8_t>& d, const sockaddr& addr) const;
-		void recv_start(std::function<void(UdpSocket*,const std::optional<std::span<uint8_t>>&,ssize_t nread,const sockaddr*, unsigned)> recv_cb);
+		void recv_start();
 		int using_recvmmsg() const;
 		bool is_receiving() const;
 		void recv_stop();
 		size_t get_send_queue_size() const;
 		size_t get_send_queue_count() const;
+	public:
+		sigc::signal<void(UdpSocket*, const std::optional<std::span<uint8_t>>&, ssize_t nread, const sockaddr*, unsigned)> on_recv_signal;
 	protected:
 		static void buf_alloc_cb(uv_handle_t* handle,size_t suggested_size,uv_buf_t* buf);
 		static void on_send_callback(uv_udp_send_t* send, int status);
 	protected:
 		std::list<UdpSendReqCxt> send_cxts_;
-		std::function<void(UdpSocket*, const std::optional<std::span<uint8_t>>&, ssize_t nread, const sockaddr*, unsigned)> recv_cb_;
 		std::vector<uint8_t> buffer_;
+		bool is_receiving_:1 = false;
 	};
 	struct MQAS_EXTERN UdpSendReqCxt
 	{

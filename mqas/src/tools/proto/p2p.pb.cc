@@ -52,6 +52,20 @@ struct ClientIpListDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClientIpListDefaultTypeInternal _ClientIpList_default_instance_;
+PROTOBUF_CONSTEXPR Address::Address(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.ip_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.port_)*/0u
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct AddressDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR AddressDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~AddressDefaultTypeInternal() {}
+  union {
+    Address _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AddressDefaultTypeInternal _Address_default_instance_;
 PROTOBUF_CONSTEXPR ReqPeerList::ReqPeerList(
     ::_pbi::ConstantInitialized) {}
 struct ReqPeerListDefaultTypeInternal {
@@ -92,6 +106,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 PROTOBUF_CONSTEXPR RespondRegistePeer::RespondRegistePeer(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.ret_)*/0
+  , /*decltype(_impl_.id_)*/0u
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct RespondRegistePeerDefaultTypeInternal {
   PROTOBUF_CONSTEXPR RespondRegistePeerDefaultTypeInternal()
@@ -133,6 +148,7 @@ PROTOBUF_CONSTEXPR ConnectPeerData::ConnectPeerData(
   , /*decltype(_impl_.verify_code_)*/0u
   , /*decltype(_impl_.send_times_)*/0u
   , /*decltype(_impl_.send_delay_)*/0u
+  , /*decltype(_impl_.ip_index_)*/0u
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct ConnectPeerDataDefaultTypeInternal {
   PROTOBUF_CONSTEXPR ConnectPeerDataDefaultTypeInternal()
@@ -207,8 +223,10 @@ PROTOBUF_CONSTEXPR NotifyConnectResult::NotifyConnectResult(
     /*decltype(_impl_._has_bits_)*/{}
   , /*decltype(_impl_._cached_size_)*/{}
   , /*decltype(_impl_.reason_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.address_)*/nullptr
   , /*decltype(_impl_.ret_)*/0
-  , /*decltype(_impl_.peer_id_)*/0u} {}
+  , /*decltype(_impl_.peer_id_)*/0u
+  , /*decltype(_impl_.is_server_)*/false} {}
 struct NotifyConnectResultDefaultTypeInternal {
   PROTOBUF_CONSTEXPR NotifyConnectResultDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -235,6 +253,7 @@ PROTOBUF_CONSTEXPR ReqSubmitRecvPeerKeyCode::ReqSubmitRecvPeerKeyCode(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.peer_id_)*/0u
   , /*decltype(_impl_.verify_code_)*/0u
+  , /*decltype(_impl_.ip_index_)*/0u
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct ReqSubmitRecvPeerKeyCodeDefaultTypeInternal {
   PROTOBUF_CONSTEXPR ReqSubmitRecvPeerKeyCodeDefaultTypeInternal()
@@ -249,7 +268,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 }  // namespace proto
 }  // namespace tools
 }  // namespace mqas
-static ::_pb::Metadata file_level_metadata_p2p_2eproto[16];
+static ::_pb::Metadata file_level_metadata_p2p_2eproto[17];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_p2p_2eproto[1];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_p2p_2eproto = nullptr;
 
@@ -270,6 +289,14 @@ const uint32_t TableStruct_p2p_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ClientIpList, _impl_.ip_list_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ClientIpList, _impl_.port_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::Address, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::Address, _impl_.ip_),
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::Address, _impl_.port_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqPeerList, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -297,6 +324,7 @@ const uint32_t TableStruct_p2p_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::RespondRegistePeer, _impl_.ret_),
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::RespondRegistePeer, _impl_.id_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqUnregistePeer, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -321,6 +349,7 @@ const uint32_t TableStruct_p2p_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ConnectPeerData, _impl_.verify_code_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ConnectPeerData, _impl_.send_times_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ConnectPeerData, _impl_.send_delay_),
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ConnectPeerData, _impl_.ip_index_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqConnectPeer, _impl_._has_bits_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqConnectPeer, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -367,10 +396,14 @@ const uint32_t TableStruct_p2p_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.ret_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.peer_id_),
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.is_server_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.reason_),
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.address_),
+  ~0u,
   ~0u,
   ~0u,
   0,
+  1,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyPeerWantConnect, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -386,29 +419,32 @@ const uint32_t TableStruct_p2p_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode, _impl_.peer_id_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode, _impl_.verify_code_),
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode, _impl_.ip_index_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::mqas::tools::proto::p2p::PeerData)},
   { 8, -1, -1, sizeof(::mqas::tools::proto::p2p::ClientIpList)},
-  { 16, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqPeerList)},
-  { 22, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondPeerList)},
-  { 29, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqRegistePeer)},
-  { 36, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondRegistePeer)},
-  { 43, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqUnregistePeer)},
-  { 49, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondUnregistePeer)},
-  { 56, -1, -1, sizeof(::mqas::tools::proto::p2p::ConnectPeerData)},
-  { 67, 75, -1, sizeof(::mqas::tools::proto::p2p::ReqConnectPeer)},
-  { 77, 86, -1, sizeof(::mqas::tools::proto::p2p::ReqRespondPeerReqConnect)},
-  { 89, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondConnectPeer)},
-  { 97, -1, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectPeerData)},
-  { 105, 114, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectResult)},
-  { 117, -1, -1, sizeof(::mqas::tools::proto::p2p::NotifyPeerWantConnect)},
-  { 124, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode)},
+  { 16, -1, -1, sizeof(::mqas::tools::proto::p2p::Address)},
+  { 24, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqPeerList)},
+  { 30, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondPeerList)},
+  { 37, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqRegistePeer)},
+  { 44, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondRegistePeer)},
+  { 52, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqUnregistePeer)},
+  { 58, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondUnregistePeer)},
+  { 65, -1, -1, sizeof(::mqas::tools::proto::p2p::ConnectPeerData)},
+  { 77, 85, -1, sizeof(::mqas::tools::proto::p2p::ReqConnectPeer)},
+  { 87, 96, -1, sizeof(::mqas::tools::proto::p2p::ReqRespondPeerReqConnect)},
+  { 99, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondConnectPeer)},
+  { 107, -1, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectPeerData)},
+  { 115, 126, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectResult)},
+  { 131, -1, -1, sizeof(::mqas::tools::proto::p2p::NotifyPeerWantConnect)},
+  { 138, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
   &::mqas::tools::proto::p2p::_PeerData_default_instance_._instance,
   &::mqas::tools::proto::p2p::_ClientIpList_default_instance_._instance,
+  &::mqas::tools::proto::p2p::_Address_default_instance_._instance,
   &::mqas::tools::proto::p2p::_ReqPeerList_default_instance_._instance,
   &::mqas::tools::proto::p2p::_RespondPeerList_default_instance_._instance,
   &::mqas::tools::proto::p2p::_ReqRegistePeer_default_instance_._instance,
@@ -428,42 +464,46 @@ static const ::_pb::Message* const file_default_instances[] = {
 const char descriptor_table_protodef_p2p_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\tp2p.proto\022\024mqas.tools.proto.p2p\"$\n\010Pee"
   "rData\022\n\n\002id\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\"-\n\014Clien"
-  "tIpList\022\017\n\007ip_list\030\001 \003(\t\022\014\n\004port\030\002 \001(\r\"\r"
-  "\n\013ReqPeerList\"D\n\017RespondPeerList\0221\n\tpeer"
-  "_list\030\001 \003(\0132\036.mqas.tools.proto.p2p.PeerD"
-  "ata\"\036\n\016ReqRegistePeer\022\014\n\004name\030\001 \001(\t\"@\n\022R"
-  "espondRegistePeer\022*\n\003ret\030\001 \001(\0162\035.mqas.to"
-  "ols.proto.p2p.RetCode\"\022\n\020ReqUnregistePee"
-  "r\"B\n\024RespondUnregistePeer\022*\n\003ret\030\001 \001(\0162\035"
-  ".mqas.tools.proto.p2p.RetCode\"h\n\017Connect"
-  "PeerData\022\n\n\002ip\030\001 \001(\t\022\014\n\004port\030\002 \001(\r\022\023\n\013ve"
-  "rify_code\030\003 \001(\r\022\022\n\nsend_times\030\004 \001(\r\022\022\n\ns"
-  "end_delay\030\005 \001(\r\"g\n\016ReqConnectPeer\022\017\n\007pee"
-  "r_id\030\001 \001(\r\0228\n\007ip_list\030\002 \001(\0132\".mqas.tools"
-  ".proto.p2p.ClientIpListH\000\210\001\001B\n\n\010_ip_list"
-  "\"\200\001\n\030ReqRespondPeerReqConnect\022\017\n\007peer_id"
-  "\030\001 \001(\r\022\r\n\005agree\030\002 \001(\010\0228\n\007ip_list\030\003 \001(\0132\""
-  ".mqas.tools.proto.p2p.ClientIpListH\000\210\001\001B"
-  "\n\n\010_ip_list\"Q\n\022RespondConnectPeer\022\017\n\007pee"
-  "r_id\030\001 \001(\r\022*\n\003ret\030\002 \001(\0162\035.mqas.tools.pro"
-  "to.p2p.RetCode\"e\n\025NotifyConnectPeerData\022"
-  "\017\n\007peer_id\030\001 \001(\r\022;\n\014connect_data\030\002 \001(\0132%"
-  ".mqas.tools.proto.p2p.ConnectPeerData\"r\n"
-  "\023NotifyConnectResult\022*\n\003ret\030\001 \001(\0162\035.mqas"
-  ".tools.proto.p2p.RetCode\022\017\n\007peer_id\030\002 \001("
-  "\r\022\023\n\006reason\030\003 \001(\tH\000\210\001\001B\t\n\007_reason\"E\n\025Not"
-  "ifyPeerWantConnect\022,\n\004peer\030\001 \001(\0132\036.mqas."
-  "tools.proto.p2p.PeerData\"@\n\030ReqSubmitRec"
-  "vPeerKeyCode\022\017\n\007peer_id\030\001 \001(\r\022\023\n\013verify_"
-  "code\030\002 \001(\r*T\n\007RetCode\022\006\n\002ok\020\000\022\022\n\016already"
-  "_exists\020\001\022\016\n\nnot_exists\020\002\022\021\n\rpeer_reject"
-  "ed\020\003\022\n\n\006failed\020\004b\006proto3"
+  "tIpList\022\017\n\007ip_list\030\001 \003(\t\022\014\n\004port\030\002 \001(\r\"#"
+  "\n\007Address\022\n\n\002ip\030\001 \001(\t\022\014\n\004port\030\002 \001(\r\"\r\n\013R"
+  "eqPeerList\"D\n\017RespondPeerList\0221\n\tpeer_li"
+  "st\030\001 \003(\0132\036.mqas.tools.proto.p2p.PeerData"
+  "\"\036\n\016ReqRegistePeer\022\014\n\004name\030\001 \001(\t\"L\n\022Resp"
+  "ondRegistePeer\022*\n\003ret\030\001 \001(\0162\035.mqas.tools"
+  ".proto.p2p.RetCode\022\n\n\002id\030\002 \001(\r\"\022\n\020ReqUnr"
+  "egistePeer\"B\n\024RespondUnregistePeer\022*\n\003re"
+  "t\030\001 \001(\0162\035.mqas.tools.proto.p2p.RetCode\"z"
+  "\n\017ConnectPeerData\022\n\n\002ip\030\001 \001(\t\022\014\n\004port\030\002 "
+  "\001(\r\022\023\n\013verify_code\030\003 \001(\r\022\022\n\nsend_times\030\004"
+  " \001(\r\022\022\n\nsend_delay\030\005 \001(\r\022\020\n\010ip_index\030\006 \001"
+  "(\r\"g\n\016ReqConnectPeer\022\017\n\007peer_id\030\001 \001(\r\0228\n"
+  "\007ip_list\030\002 \001(\0132\".mqas.tools.proto.p2p.Cl"
+  "ientIpListH\000\210\001\001B\n\n\010_ip_list\"\200\001\n\030ReqRespo"
+  "ndPeerReqConnect\022\017\n\007peer_id\030\001 \001(\r\022\r\n\005agr"
+  "ee\030\002 \001(\010\0228\n\007ip_list\030\003 \001(\0132\".mqas.tools.p"
+  "roto.p2p.ClientIpListH\000\210\001\001B\n\n\010_ip_list\"Q"
+  "\n\022RespondConnectPeer\022\017\n\007peer_id\030\001 \001(\r\022*\n"
+  "\003ret\030\002 \001(\0162\035.mqas.tools.proto.p2p.RetCod"
+  "e\"e\n\025NotifyConnectPeerData\022\017\n\007peer_id\030\001 "
+  "\001(\r\022;\n\014connect_data\030\002 \001(\0132%.mqas.tools.p"
+  "roto.p2p.ConnectPeerData\"\306\001\n\023NotifyConne"
+  "ctResult\022*\n\003ret\030\001 \001(\0162\035.mqas.tools.proto"
+  ".p2p.RetCode\022\017\n\007peer_id\030\002 \001(\r\022\021\n\tis_serv"
+  "er\030\005 \001(\010\022\023\n\006reason\030\003 \001(\tH\000\210\001\001\0223\n\007address"
+  "\030\004 \001(\0132\035.mqas.tools.proto.p2p.AddressH\001\210"
+  "\001\001B\t\n\007_reasonB\n\n\010_address\"E\n\025NotifyPeerW"
+  "antConnect\022,\n\004peer\030\001 \001(\0132\036.mqas.tools.pr"
+  "oto.p2p.PeerData\"R\n\030ReqSubmitRecvPeerKey"
+  "Code\022\017\n\007peer_id\030\001 \001(\r\022\023\n\013verify_code\030\002 \001"
+  "(\r\022\020\n\010ip_index\030\003 \001(\r*T\n\007RetCode\022\006\n\002ok\020\000\022"
+  "\022\n\016already_exists\020\001\022\016\n\nnot_exists\020\002\022\021\n\rp"
+  "eer_rejected\020\003\022\n\n\006failed\020\004b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_p2p_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_p2p_2eproto = {
-    false, false, 1264, descriptor_table_protodef_p2p_2eproto,
+    false, false, 1434, descriptor_table_protodef_p2p_2eproto,
     "p2p.proto",
-    &descriptor_table_p2p_2eproto_once, nullptr, 0, 16,
+    &descriptor_table_p2p_2eproto_once, nullptr, 0, 17,
     schemas, file_default_instances, TableStruct_p2p_2eproto::offsets,
     file_level_metadata_p2p_2eproto, file_level_enum_descriptors_p2p_2eproto,
     file_level_service_descriptors_p2p_2eproto,
@@ -945,6 +985,236 @@ void ClientIpList::InternalSwap(ClientIpList* other) {
 
 // ===================================================================
 
+class Address::_Internal {
+ public:
+};
+
+Address::Address(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:mqas.tools.proto.p2p.Address)
+}
+Address::Address(const Address& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  Address* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.ip_){}
+    , decltype(_impl_.port_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_ip().empty()) {
+    _this->_impl_.ip_.Set(from._internal_ip(), 
+      _this->GetArenaForAllocation());
+  }
+  _this->_impl_.port_ = from._impl_.port_;
+  // @@protoc_insertion_point(copy_constructor:mqas.tools.proto.p2p.Address)
+}
+
+inline void Address::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.ip_){}
+    , decltype(_impl_.port_){0u}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.ip_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.ip_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+Address::~Address() {
+  // @@protoc_insertion_point(destructor:mqas.tools.proto.p2p.Address)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void Address::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.ip_.Destroy();
+}
+
+void Address::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void Address::Clear() {
+// @@protoc_insertion_point(message_clear_start:mqas.tools.proto.p2p.Address)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.ip_.ClearToEmpty();
+  _impl_.port_ = 0u;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* Address::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string ip = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_ip();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "mqas.tools.proto.p2p.Address.ip"));
+        } else
+          goto handle_unusual;
+        continue;
+      // uint32 port = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* Address::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:mqas.tools.proto.p2p.Address)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string ip = 1;
+  if (!this->_internal_ip().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_ip().data(), static_cast<int>(this->_internal_ip().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "mqas.tools.proto.p2p.Address.ip");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_ip(), target);
+  }
+
+  // uint32 port = 2;
+  if (this->_internal_port() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(2, this->_internal_port(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:mqas.tools.proto.p2p.Address)
+  return target;
+}
+
+size_t Address::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:mqas.tools.proto.p2p.Address)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string ip = 1;
+  if (!this->_internal_ip().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_ip());
+  }
+
+  // uint32 port = 2;
+  if (this->_internal_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_port());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData Address::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    Address::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*Address::GetClassData() const { return &_class_data_; }
+
+
+void Address::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<Address*>(&to_msg);
+  auto& from = static_cast<const Address&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:mqas.tools.proto.p2p.Address)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_ip().empty()) {
+    _this->_internal_set_ip(from._internal_ip());
+  }
+  if (from._internal_port() != 0) {
+    _this->_internal_set_port(from._internal_port());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void Address::CopyFrom(const Address& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:mqas.tools.proto.p2p.Address)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Address::IsInitialized() const {
+  return true;
+}
+
+void Address::InternalSwap(Address* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.ip_, lhs_arena,
+      &other->_impl_.ip_, rhs_arena
+  );
+  swap(_impl_.port_, other->_impl_.port_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata Address::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
+      file_level_metadata_p2p_2eproto[2]);
+}
+
+// ===================================================================
+
 class ReqPeerList::_Internal {
  public:
 };
@@ -980,7 +1250,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ReqPeerList::GetClassData() co
 ::PROTOBUF_NAMESPACE_ID::Metadata ReqPeerList::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[2]);
+      file_level_metadata_p2p_2eproto[3]);
 }
 
 // ===================================================================
@@ -1165,7 +1435,7 @@ void RespondPeerList::InternalSwap(RespondPeerList* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RespondPeerList::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[3]);
+      file_level_metadata_p2p_2eproto[4]);
 }
 
 // ===================================================================
@@ -1368,7 +1638,7 @@ void ReqRegistePeer::InternalSwap(ReqRegistePeer* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ReqRegistePeer::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[4]);
+      file_level_metadata_p2p_2eproto[5]);
 }
 
 // ===================================================================
@@ -1388,10 +1658,13 @@ RespondRegistePeer::RespondRegistePeer(const RespondRegistePeer& from)
   RespondRegistePeer* const _this = this; (void)_this;
   new (&_impl_) Impl_{
       decltype(_impl_.ret_){}
+    , decltype(_impl_.id_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _this->_impl_.ret_ = from._impl_.ret_;
+  ::memcpy(&_impl_.ret_, &from._impl_.ret_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.id_) -
+    reinterpret_cast<char*>(&_impl_.ret_)) + sizeof(_impl_.id_));
   // @@protoc_insertion_point(copy_constructor:mqas.tools.proto.p2p.RespondRegistePeer)
 }
 
@@ -1401,6 +1674,7 @@ inline void RespondRegistePeer::SharedCtor(
   (void)is_message_owned;
   new (&_impl_) Impl_{
       decltype(_impl_.ret_){0}
+    , decltype(_impl_.id_){0u}
     , /*decltype(_impl_._cached_size_)*/{}
   };
 }
@@ -1428,7 +1702,9 @@ void RespondRegistePeer::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _impl_.ret_ = 0;
+  ::memset(&_impl_.ret_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.id_) -
+      reinterpret_cast<char*>(&_impl_.ret_)) + sizeof(_impl_.id_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1444,6 +1720,14 @@ const char* RespondRegistePeer::_InternalParse(const char* ptr, ::_pbi::ParseCon
           uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
           _internal_set_ret(static_cast<::mqas::tools::proto::p2p::RetCode>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      // uint32 id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
@@ -1483,6 +1767,12 @@ uint8_t* RespondRegistePeer::_InternalSerialize(
       1, this->_internal_ret(), target);
   }
 
+  // uint32 id = 2;
+  if (this->_internal_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(2, this->_internal_id(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1503,6 +1793,11 @@ size_t RespondRegistePeer::ByteSizeLong() const {
   if (this->_internal_ret() != 0) {
     total_size += 1 +
       ::_pbi::WireFormatLite::EnumSize(this->_internal_ret());
+  }
+
+  // uint32 id = 2;
+  if (this->_internal_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_id());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
@@ -1526,6 +1821,9 @@ void RespondRegistePeer::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, con
   if (from._internal_ret() != 0) {
     _this->_internal_set_ret(from._internal_ret());
   }
+  if (from._internal_id() != 0) {
+    _this->_internal_set_id(from._internal_id());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -1543,13 +1841,18 @@ bool RespondRegistePeer::IsInitialized() const {
 void RespondRegistePeer::InternalSwap(RespondRegistePeer* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_.ret_, other->_impl_.ret_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(RespondRegistePeer, _impl_.id_)
+      + sizeof(RespondRegistePeer::_impl_.id_)
+      - PROTOBUF_FIELD_OFFSET(RespondRegistePeer, _impl_.ret_)>(
+          reinterpret_cast<char*>(&_impl_.ret_),
+          reinterpret_cast<char*>(&other->_impl_.ret_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata RespondRegistePeer::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[5]);
+      file_level_metadata_p2p_2eproto[6]);
 }
 
 // ===================================================================
@@ -1589,7 +1892,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ReqUnregistePeer::GetClassData
 ::PROTOBUF_NAMESPACE_ID::Metadata ReqUnregistePeer::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[6]);
+      file_level_metadata_p2p_2eproto[7]);
 }
 
 // ===================================================================
@@ -1770,7 +2073,7 @@ void RespondUnregistePeer::InternalSwap(RespondUnregistePeer* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RespondUnregistePeer::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[7]);
+      file_level_metadata_p2p_2eproto[8]);
 }
 
 // ===================================================================
@@ -1794,6 +2097,7 @@ ConnectPeerData::ConnectPeerData(const ConnectPeerData& from)
     , decltype(_impl_.verify_code_){}
     , decltype(_impl_.send_times_){}
     , decltype(_impl_.send_delay_){}
+    , decltype(_impl_.ip_index_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -1806,8 +2110,8 @@ ConnectPeerData::ConnectPeerData(const ConnectPeerData& from)
       _this->GetArenaForAllocation());
   }
   ::memcpy(&_impl_.port_, &from._impl_.port_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.send_delay_) -
-    reinterpret_cast<char*>(&_impl_.port_)) + sizeof(_impl_.send_delay_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.ip_index_) -
+    reinterpret_cast<char*>(&_impl_.port_)) + sizeof(_impl_.ip_index_));
   // @@protoc_insertion_point(copy_constructor:mqas.tools.proto.p2p.ConnectPeerData)
 }
 
@@ -1821,6 +2125,7 @@ inline void ConnectPeerData::SharedCtor(
     , decltype(_impl_.verify_code_){0u}
     , decltype(_impl_.send_times_){0u}
     , decltype(_impl_.send_delay_){0u}
+    , decltype(_impl_.ip_index_){0u}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.ip_.InitDefault();
@@ -1855,8 +2160,8 @@ void ConnectPeerData::Clear() {
 
   _impl_.ip_.ClearToEmpty();
   ::memset(&_impl_.port_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.send_delay_) -
-      reinterpret_cast<char*>(&_impl_.port_)) + sizeof(_impl_.send_delay_));
+      reinterpret_cast<char*>(&_impl_.ip_index_) -
+      reinterpret_cast<char*>(&_impl_.port_)) + sizeof(_impl_.ip_index_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1904,6 +2209,14 @@ const char* ConnectPeerData::_InternalParse(const char* ptr, ::_pbi::ParseContex
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
           _impl_.send_delay_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint32 ip_index = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          _impl_.ip_index_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1971,6 +2284,12 @@ uint8_t* ConnectPeerData::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteUInt32ToArray(5, this->_internal_send_delay(), target);
   }
 
+  // uint32 ip_index = 6;
+  if (this->_internal_ip_index() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(6, this->_internal_ip_index(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -2014,6 +2333,11 @@ size_t ConnectPeerData::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_send_delay());
   }
 
+  // uint32 ip_index = 6;
+  if (this->_internal_ip_index() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_ip_index());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -2047,6 +2371,9 @@ void ConnectPeerData::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const 
   if (from._internal_send_delay() != 0) {
     _this->_internal_set_send_delay(from._internal_send_delay());
   }
+  if (from._internal_ip_index() != 0) {
+    _this->_internal_set_ip_index(from._internal_ip_index());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -2071,8 +2398,8 @@ void ConnectPeerData::InternalSwap(ConnectPeerData* other) {
       &other->_impl_.ip_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ConnectPeerData, _impl_.send_delay_)
-      + sizeof(ConnectPeerData::_impl_.send_delay_)
+      PROTOBUF_FIELD_OFFSET(ConnectPeerData, _impl_.ip_index_)
+      + sizeof(ConnectPeerData::_impl_.ip_index_)
       - PROTOBUF_FIELD_OFFSET(ConnectPeerData, _impl_.port_)>(
           reinterpret_cast<char*>(&_impl_.port_),
           reinterpret_cast<char*>(&other->_impl_.port_));
@@ -2081,7 +2408,7 @@ void ConnectPeerData::InternalSwap(ConnectPeerData* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ConnectPeerData::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[8]);
+      file_level_metadata_p2p_2eproto[9]);
 }
 
 // ===================================================================
@@ -2317,7 +2644,7 @@ void ReqConnectPeer::InternalSwap(ReqConnectPeer* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ReqConnectPeer::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[9]);
+      file_level_metadata_p2p_2eproto[10]);
 }
 
 // ===================================================================
@@ -2581,7 +2908,7 @@ void ReqRespondPeerReqConnect::InternalSwap(ReqRespondPeerReqConnect* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ReqRespondPeerReqConnect::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[10]);
+      file_level_metadata_p2p_2eproto[11]);
 }
 
 // ===================================================================
@@ -2795,7 +3122,7 @@ void RespondConnectPeer::InternalSwap(RespondConnectPeer* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata RespondConnectPeer::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[11]);
+      file_level_metadata_p2p_2eproto[12]);
 }
 
 // ===================================================================
@@ -3019,7 +3346,7 @@ void NotifyConnectPeerData::InternalSwap(NotifyConnectPeerData* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata NotifyConnectPeerData::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[12]);
+      file_level_metadata_p2p_2eproto[13]);
 }
 
 // ===================================================================
@@ -3030,8 +3357,16 @@ class NotifyConnectResult::_Internal {
   static void set_has_reason(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
+  static const ::mqas::tools::proto::p2p::Address& address(const NotifyConnectResult* msg);
+  static void set_has_address(HasBits* has_bits) {
+    (*has_bits)[0] |= 2u;
+  }
 };
 
+const ::mqas::tools::proto::p2p::Address&
+NotifyConnectResult::_Internal::address(const NotifyConnectResult* msg) {
+  return *msg->_impl_.address_;
+}
 NotifyConnectResult::NotifyConnectResult(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
@@ -3045,8 +3380,10 @@ NotifyConnectResult::NotifyConnectResult(const NotifyConnectResult& from)
       decltype(_impl_._has_bits_){from._impl_._has_bits_}
     , /*decltype(_impl_._cached_size_)*/{}
     , decltype(_impl_.reason_){}
+    , decltype(_impl_.address_){nullptr}
     , decltype(_impl_.ret_){}
-    , decltype(_impl_.peer_id_){}};
+    , decltype(_impl_.peer_id_){}
+    , decltype(_impl_.is_server_){}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   _impl_.reason_.InitDefault();
@@ -3057,9 +3394,12 @@ NotifyConnectResult::NotifyConnectResult(const NotifyConnectResult& from)
     _this->_impl_.reason_.Set(from._internal_reason(), 
       _this->GetArenaForAllocation());
   }
+  if (from._internal_has_address()) {
+    _this->_impl_.address_ = new ::mqas::tools::proto::p2p::Address(*from._impl_.address_);
+  }
   ::memcpy(&_impl_.ret_, &from._impl_.ret_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.peer_id_) -
-    reinterpret_cast<char*>(&_impl_.ret_)) + sizeof(_impl_.peer_id_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.is_server_) -
+    reinterpret_cast<char*>(&_impl_.ret_)) + sizeof(_impl_.is_server_));
   // @@protoc_insertion_point(copy_constructor:mqas.tools.proto.p2p.NotifyConnectResult)
 }
 
@@ -3071,8 +3411,10 @@ inline void NotifyConnectResult::SharedCtor(
       decltype(_impl_._has_bits_){}
     , /*decltype(_impl_._cached_size_)*/{}
     , decltype(_impl_.reason_){}
+    , decltype(_impl_.address_){nullptr}
     , decltype(_impl_.ret_){0}
     , decltype(_impl_.peer_id_){0u}
+    , decltype(_impl_.is_server_){false}
   };
   _impl_.reason_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
@@ -3092,6 +3434,7 @@ NotifyConnectResult::~NotifyConnectResult() {
 inline void NotifyConnectResult::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.reason_.Destroy();
+  if (this != internal_default_instance()) delete _impl_.address_;
 }
 
 void NotifyConnectResult::SetCachedSize(int size) const {
@@ -3105,12 +3448,18 @@ void NotifyConnectResult::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000001u) {
-    _impl_.reason_.ClearNonDefaultToEmpty();
+  if (cached_has_bits & 0x00000003u) {
+    if (cached_has_bits & 0x00000001u) {
+      _impl_.reason_.ClearNonDefaultToEmpty();
+    }
+    if (cached_has_bits & 0x00000002u) {
+      GOOGLE_DCHECK(_impl_.address_ != nullptr);
+      _impl_.address_->Clear();
+    }
   }
   ::memset(&_impl_.ret_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.peer_id_) -
-      reinterpret_cast<char*>(&_impl_.ret_)) + sizeof(_impl_.peer_id_));
+      reinterpret_cast<char*>(&_impl_.is_server_) -
+      reinterpret_cast<char*>(&_impl_.ret_)) + sizeof(_impl_.is_server_));
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
@@ -3146,6 +3495,22 @@ const char* NotifyConnectResult::_InternalParse(const char* ptr, ::_pbi::ParseCo
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
           CHK_(::_pbi::VerifyUTF8(str, "mqas.tools.proto.p2p.NotifyConnectResult.reason"));
+        } else
+          goto handle_unusual;
+        continue;
+      // optional .mqas.tools.proto.p2p.Address address = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          ptr = ctx->ParseMessage(_internal_mutable_address(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bool is_server = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.is_server_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
@@ -3202,6 +3567,19 @@ uint8_t* NotifyConnectResult::_InternalSerialize(
         3, this->_internal_reason(), target);
   }
 
+  // optional .mqas.tools.proto.p2p.Address address = 4;
+  if (_internal_has_address()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(4, _Internal::address(this),
+        _Internal::address(this).GetCachedSize(), target, stream);
+  }
+
+  // bool is_server = 5;
+  if (this->_internal_is_server() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(5, this->_internal_is_server(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -3218,14 +3596,23 @@ size_t NotifyConnectResult::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // optional string reason = 3;
   cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000001u) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_reason());
-  }
+  if (cached_has_bits & 0x00000003u) {
+    // optional string reason = 3;
+    if (cached_has_bits & 0x00000001u) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+          this->_internal_reason());
+    }
 
+    // optional .mqas.tools.proto.p2p.Address address = 4;
+    if (cached_has_bits & 0x00000002u) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+          *_impl_.address_);
+    }
+
+  }
   // .mqas.tools.proto.p2p.RetCode ret = 1;
   if (this->_internal_ret() != 0) {
     total_size += 1 +
@@ -3235,6 +3622,11 @@ size_t NotifyConnectResult::ByteSizeLong() const {
   // uint32 peer_id = 2;
   if (this->_internal_peer_id() != 0) {
     total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_peer_id());
+  }
+
+  // bool is_server = 5;
+  if (this->_internal_is_server() != 0) {
+    total_size += 1 + 1;
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
@@ -3255,14 +3647,24 @@ void NotifyConnectResult::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, co
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (from._internal_has_reason()) {
-    _this->_internal_set_reason(from._internal_reason());
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (cached_has_bits & 0x00000003u) {
+    if (cached_has_bits & 0x00000001u) {
+      _this->_internal_set_reason(from._internal_reason());
+    }
+    if (cached_has_bits & 0x00000002u) {
+      _this->_internal_mutable_address()->::mqas::tools::proto::p2p::Address::MergeFrom(
+          from._internal_address());
+    }
   }
   if (from._internal_ret() != 0) {
     _this->_internal_set_ret(from._internal_ret());
   }
   if (from._internal_peer_id() != 0) {
     _this->_internal_set_peer_id(from._internal_peer_id());
+  }
+  if (from._internal_is_server() != 0) {
+    _this->_internal_set_is_server(from._internal_is_server());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -3289,17 +3691,17 @@ void NotifyConnectResult::InternalSwap(NotifyConnectResult* other) {
       &other->_impl_.reason_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_.peer_id_)
-      + sizeof(NotifyConnectResult::_impl_.peer_id_)
-      - PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_.ret_)>(
-          reinterpret_cast<char*>(&_impl_.ret_),
-          reinterpret_cast<char*>(&other->_impl_.ret_));
+      PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_.is_server_)
+      + sizeof(NotifyConnectResult::_impl_.is_server_)
+      - PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_.address_)>(
+          reinterpret_cast<char*>(&_impl_.address_),
+          reinterpret_cast<char*>(&other->_impl_.address_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata NotifyConnectResult::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[13]);
+      file_level_metadata_p2p_2eproto[14]);
 }
 
 // ===================================================================
@@ -3492,7 +3894,7 @@ void NotifyPeerWantConnect::InternalSwap(NotifyPeerWantConnect* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata NotifyPeerWantConnect::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[14]);
+      file_level_metadata_p2p_2eproto[15]);
 }
 
 // ===================================================================
@@ -3513,12 +3915,13 @@ ReqSubmitRecvPeerKeyCode::ReqSubmitRecvPeerKeyCode(const ReqSubmitRecvPeerKeyCod
   new (&_impl_) Impl_{
       decltype(_impl_.peer_id_){}
     , decltype(_impl_.verify_code_){}
+    , decltype(_impl_.ip_index_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::memcpy(&_impl_.peer_id_, &from._impl_.peer_id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.verify_code_) -
-    reinterpret_cast<char*>(&_impl_.peer_id_)) + sizeof(_impl_.verify_code_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.ip_index_) -
+    reinterpret_cast<char*>(&_impl_.peer_id_)) + sizeof(_impl_.ip_index_));
   // @@protoc_insertion_point(copy_constructor:mqas.tools.proto.p2p.ReqSubmitRecvPeerKeyCode)
 }
 
@@ -3529,6 +3932,7 @@ inline void ReqSubmitRecvPeerKeyCode::SharedCtor(
   new (&_impl_) Impl_{
       decltype(_impl_.peer_id_){0u}
     , decltype(_impl_.verify_code_){0u}
+    , decltype(_impl_.ip_index_){0u}
     , /*decltype(_impl_._cached_size_)*/{}
   };
 }
@@ -3557,8 +3961,8 @@ void ReqSubmitRecvPeerKeyCode::Clear() {
   (void) cached_has_bits;
 
   ::memset(&_impl_.peer_id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.verify_code_) -
-      reinterpret_cast<char*>(&_impl_.peer_id_)) + sizeof(_impl_.verify_code_));
+      reinterpret_cast<char*>(&_impl_.ip_index_) -
+      reinterpret_cast<char*>(&_impl_.peer_id_)) + sizeof(_impl_.ip_index_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -3580,6 +3984,14 @@ const char* ReqSubmitRecvPeerKeyCode::_InternalParse(const char* ptr, ::_pbi::Pa
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
           _impl_.verify_code_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint32 ip_index = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.ip_index_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -3625,6 +4037,12 @@ uint8_t* ReqSubmitRecvPeerKeyCode::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteUInt32ToArray(2, this->_internal_verify_code(), target);
   }
 
+  // uint32 ip_index = 3;
+  if (this->_internal_ip_index() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(3, this->_internal_ip_index(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -3651,6 +4069,11 @@ size_t ReqSubmitRecvPeerKeyCode::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_verify_code());
   }
 
+  // uint32 ip_index = 3;
+  if (this->_internal_ip_index() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_ip_index());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -3675,6 +4098,9 @@ void ReqSubmitRecvPeerKeyCode::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_ms
   if (from._internal_verify_code() != 0) {
     _this->_internal_set_verify_code(from._internal_verify_code());
   }
+  if (from._internal_ip_index() != 0) {
+    _this->_internal_set_ip_index(from._internal_ip_index());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -3693,8 +4119,8 @@ void ReqSubmitRecvPeerKeyCode::InternalSwap(ReqSubmitRecvPeerKeyCode* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ReqSubmitRecvPeerKeyCode, _impl_.verify_code_)
-      + sizeof(ReqSubmitRecvPeerKeyCode::_impl_.verify_code_)
+      PROTOBUF_FIELD_OFFSET(ReqSubmitRecvPeerKeyCode, _impl_.ip_index_)
+      + sizeof(ReqSubmitRecvPeerKeyCode::_impl_.ip_index_)
       - PROTOBUF_FIELD_OFFSET(ReqSubmitRecvPeerKeyCode, _impl_.peer_id_)>(
           reinterpret_cast<char*>(&_impl_.peer_id_),
           reinterpret_cast<char*>(&other->_impl_.peer_id_));
@@ -3703,7 +4129,7 @@ void ReqSubmitRecvPeerKeyCode::InternalSwap(ReqSubmitRecvPeerKeyCode* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ReqSubmitRecvPeerKeyCode::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_p2p_2eproto_getter, &descriptor_table_p2p_2eproto_once,
-      file_level_metadata_p2p_2eproto[15]);
+      file_level_metadata_p2p_2eproto[16]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -3719,6 +4145,10 @@ Arena::CreateMaybeMessage< ::mqas::tools::proto::p2p::PeerData >(Arena* arena) {
 template<> PROTOBUF_NOINLINE ::mqas::tools::proto::p2p::ClientIpList*
 Arena::CreateMaybeMessage< ::mqas::tools::proto::p2p::ClientIpList >(Arena* arena) {
   return Arena::CreateMessageInternal< ::mqas::tools::proto::p2p::ClientIpList >(arena);
+}
+template<> PROTOBUF_NOINLINE ::mqas::tools::proto::p2p::Address*
+Arena::CreateMaybeMessage< ::mqas::tools::proto::p2p::Address >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::mqas::tools::proto::p2p::Address >(arena);
 }
 template<> PROTOBUF_NOINLINE ::mqas::tools::proto::p2p::ReqPeerList*
 Arena::CreateMaybeMessage< ::mqas::tools::proto::p2p::ReqPeerList >(Arena* arena) {

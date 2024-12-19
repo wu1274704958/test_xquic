@@ -125,9 +125,10 @@ int mqas::io::UdpSocket::try_send(const std::span<uint8_t>& d, const sockaddr& a
 	return ret;
 }
 
-void mqas::io::UdpSocket::recv_start(
-	std::function<void(UdpSocket*,const std::optional<std::span<uint8_t>>&,ssize_t nread,const sockaddr*, unsigned)> recv_cb)
+void mqas::io::UdpSocket::recv_start()
 {
+	if(is_receiving_)
+		return;
 	const int ret = uv_udp_recv_start(handle_, buf_alloc_cb,[](uv_udp_t* handle,
 		ssize_t nread,
 		const uv_buf_t* buf,
@@ -139,11 +140,11 @@ void mqas::io::UdpSocket::recv_start(
 			std::optional<std::span<uint8_t>> span = std::nullopt;
 			if(nread > 0)
 				span = std::make_optional(std::span(reinterpret_cast<uint8_t*>(buf->base),nread));
-			sock->recv_cb_(sock,span,nread,addr,flags);
+			sock->on_recv_signal.emit(sock,span,nread,addr,flags);
 		}
 	});
 	if(ret != 0)throw Exception(ret);
-	recv_cb_ = std::move(recv_cb);
+	is_receiving_ = true;
 }
 
 int mqas::io::UdpSocket::using_recvmmsg() const
@@ -153,13 +154,13 @@ int mqas::io::UdpSocket::using_recvmmsg() const
 
 bool mqas::io::UdpSocket::is_receiving() const
 {
-	return (bool)recv_cb_;
+	return is_receiving_;
 }
 
 void mqas::io::UdpSocket::recv_stop()
 {
 	if (const int ret = uv_udp_recv_stop(handle_); ret != 0)throw Exception(ret);
-	recv_cb_ = nullptr;
+	is_receiving_ = false;
 }
 
 size_t mqas::io::UdpSocket::get_send_queue_size() const

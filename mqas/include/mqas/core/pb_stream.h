@@ -18,6 +18,7 @@ namespace mqas::core{
     requires requires{ requires (IsProtoBufMsgConf<M> && ...);}
     class ProtoBufStream : public IStreamVariant , public std::enable_shared_from_this<ProtoBufStream<S,M...>> {
     public:
+        using BASE_TYPE = ProtoBufStream<S,M...>;
         using HANDLER_FUN_TY = sigc::signal<void(size_t,const std::shared_ptr<google::protobuf::Message>&)>;
         using PARSER_FUN_TY = std::function<std::shared_ptr<google::protobuf::Message>(const MsgHeader&,MsgOrigin)>;
         void on_init(::lsquic_stream_t* lsquic_stream,connect_cxt* connect_cxt, std::weak_ptr<IConnect> connect);

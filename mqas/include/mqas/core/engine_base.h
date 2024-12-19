@@ -10,6 +10,7 @@
 #include <concepts>
 #include <span>
 #include <optional>
+#include <sigc++/sigc++.h>
 
 namespace mqas::core
 {
@@ -83,7 +84,7 @@ namespace mqas::core
 		void init_lsquic() noexcept(false);
 		void process_conns() const;
         void process_conns_lazy() const;
-		void start_recv() const;
+		void start_recv();
 		::lsquic_conn_t* connect(const ::sockaddr& addr,::lsquic_version ver, const char* hostname = nullptr, unsigned short base_plpmtu = 0,
 			const unsigned char* sess_resume = nullptr, size_t sess_resume_len = 0,
 			/** Resumption token: optional */
@@ -136,6 +137,7 @@ namespace mqas::core
 		::lsquic_logger_if lsquic_logger_if_;
 		::lsquic_engine_api lsquic_engine_api_;
 		::lsquic_stream_if lsquic_stream_if_;
+		sigc::connection recv_connection_;
 	};
 }
 

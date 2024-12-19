@@ -27,6 +27,7 @@ namespace mqas::io
 		[[nodiscard]] uint64_t get_repeat() const;
 		[[nodiscard]] uint64_t get_due_in() const;
 		void again() const;
+		bool is_start() const;
 		static void timer_cb_static(uv_timer_t* handle);
 	protected:
 		std::function<void(Timer*)> cb_func_;

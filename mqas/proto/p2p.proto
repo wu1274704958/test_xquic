@@ -20,6 +20,11 @@ message ClientIpList{
     repeated string ip_list = 1;
     uint32 port = 2;
 }
+
+message Address {
+    string ip = 1;
+    uint32 port = 2;
+}
 //--------------------------------
 
 //lobby 
@@ -35,6 +40,7 @@ message ReqRegistePeer{
 
 message RespondRegistePeer{
     RetCode ret = 1;
+    uint32 id = 2;
 }
 
 message ReqUnregistePeer{}
@@ -51,6 +57,7 @@ message ConnectPeerData{
     uint32 verify_code = 3;
     uint32 send_times = 4; 
     uint32 send_delay = 5;
+    uint32 ip_index = 6;
 }
 
 //helper
@@ -78,7 +85,9 @@ message NotifyConnectPeerData{
 message NotifyConnectResult{
     RetCode ret = 1;
     uint32 peer_id = 2;
+    bool is_server = 5;
     optional string reason = 3;
+    optional Address address = 4;
 }
 
 message NotifyPeerWantConnect{
@@ -88,5 +97,6 @@ message NotifyPeerWantConnect{
 message ReqSubmitRecvPeerKeyCode{
     uint32 peer_id = 1;
     uint32 verify_code = 2;
+    uint32 ip_index = 3;
 }
 //--------------------------------------------

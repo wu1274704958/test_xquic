@@ -43,6 +43,11 @@ void mqas::io::Timer::again() const
 		throw Exception(ret);
 }
 
+bool mqas::io::Timer::is_start() const
+{
+	return (bool)cb_func_;
+}
+
 void mqas::io::Timer::timer_cb_static(uv_timer_t* handle)
 {
 	auto* ptr = static_cast<Timer*>(handle->data);

@@ -3,14 +3,21 @@
 #include <mqas/io/exception.h>
 #include <easylogging++.h>
 
-void mqas::io::Ip::str2addr_ipv4(const char* str, int port, sockaddr& addr)
+bool mqas::io::Ip::str2addr_ipv4(const char* str, int port, sockaddr& addr)
 {
-	if (const int ret = uv_ip4_addr(str, port, reinterpret_cast<sockaddr_in*>(&addr)); ret != 0)throw Exception(ret);
+	return uv_ip4_addr(str, port, reinterpret_cast<sockaddr_in*>(&addr)) == 0;
 }
 
-void mqas::io::Ip::str2addr_ipv6(const char* str, int port, sockaddr& addr)
+bool mqas::io::Ip::str2addr_ipv6(const char* str, int port, sockaddr& addr)
 {
-	if (const int ret = uv_ip6_addr(str, port, reinterpret_cast<sockaddr_in6*>(&addr)); ret != 0)throw Exception(ret);
+	return uv_ip6_addr(str, port, reinterpret_cast<sockaddr_in6*>(&addr)) == 0;
+}
+
+bool mqas::io::Ip::str2addr(const char* str, int port, sockaddr& addr)
+{
+	if(!str2addr_ipv4(str,port,addr))
+		return str2addr_ipv6(str,port,addr);
+	return true;
 }
 
 std::string mqas::io::Ip::addr2str_ipv4(const sockaddr& addr)

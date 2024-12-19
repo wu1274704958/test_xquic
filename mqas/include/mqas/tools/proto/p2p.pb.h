@@ -51,6 +51,9 @@ namespace mqas {
 namespace tools {
 namespace proto {
 namespace p2p {
+class Address;
+struct AddressDefaultTypeInternal;
+MQAS_EXTERN extern AddressDefaultTypeInternal _Address_default_instance_;
 class ClientIpList;
 struct ClientIpListDefaultTypeInternal;
 MQAS_EXTERN extern ClientIpListDefaultTypeInternal _ClientIpList_default_instance_;
@@ -104,6 +107,7 @@ MQAS_EXTERN extern RespondUnregistePeerDefaultTypeInternal _RespondUnregistePeer
 }  // namespace tools
 }  // namespace mqas
 PROTOBUF_NAMESPACE_OPEN
+template<> MQAS_EXTERN ::mqas::tools::proto::p2p::Address* Arena::CreateMaybeMessage<::mqas::tools::proto::p2p::Address>(Arena*);
 template<> MQAS_EXTERN ::mqas::tools::proto::p2p::ClientIpList* Arena::CreateMaybeMessage<::mqas::tools::proto::p2p::ClientIpList>(Arena*);
 template<> MQAS_EXTERN ::mqas::tools::proto::p2p::ConnectPeerData* Arena::CreateMaybeMessage<::mqas::tools::proto::p2p::ConnectPeerData>(Arena*);
 template<> MQAS_EXTERN ::mqas::tools::proto::p2p::NotifyConnectPeerData* Arena::CreateMaybeMessage<::mqas::tools::proto::p2p::NotifyConnectPeerData>(Arena*);
@@ -494,6 +498,170 @@ class MQAS_EXTERN ClientIpList final :
 };
 // -------------------------------------------------------------------
 
+class MQAS_EXTERN Address final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:mqas.tools.proto.p2p.Address) */ {
+ public:
+  inline Address() : Address(nullptr) {}
+  ~Address() override;
+  explicit PROTOBUF_CONSTEXPR Address(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Address(const Address& from);
+  Address(Address&& from) noexcept
+    : Address() {
+    *this = ::std::move(from);
+  }
+
+  inline Address& operator=(const Address& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Address& operator=(Address&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Address& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Address* internal_default_instance() {
+    return reinterpret_cast<const Address*>(
+               &_Address_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(Address& a, Address& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Address* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Address* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Address* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<Address>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Address& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const Address& from) {
+    Address::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Address* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "mqas.tools.proto.p2p.Address";
+  }
+  protected:
+  explicit Address(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kIpFieldNumber = 1,
+    kPortFieldNumber = 2,
+  };
+  // string ip = 1;
+  void clear_ip();
+  const std::string& ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_ip();
+  PROTOBUF_NODISCARD std::string* release_ip();
+  void set_allocated_ip(std::string* ip);
+  private:
+  const std::string& _internal_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_ip(const std::string& value);
+  std::string* _internal_mutable_ip();
+  public:
+
+  // uint32 port = 2;
+  void clear_port();
+  uint32_t port() const;
+  void set_port(uint32_t value);
+  private:
+  uint32_t _internal_port() const;
+  void _internal_set_port(uint32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.Address)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr ip_;
+    uint32_t port_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_p2p_2eproto;
+};
+// -------------------------------------------------------------------
+
 class MQAS_EXTERN ReqPeerList final :
     public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:mqas.tools.proto.p2p.ReqPeerList) */ {
  public:
@@ -541,7 +709,7 @@ class MQAS_EXTERN ReqPeerList final :
                &_ReqPeerList_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    3;
 
   friend void swap(ReqPeerList& a, ReqPeerList& b) {
     a.Swap(&b);
@@ -660,7 +828,7 @@ class MQAS_EXTERN RespondPeerList final :
                &_RespondPeerList_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    4;
 
   friend void swap(RespondPeerList& a, RespondPeerList& b) {
     a.Swap(&b);
@@ -817,7 +985,7 @@ class MQAS_EXTERN ReqRegistePeer final :
                &_ReqRegistePeer_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    4;
+    5;
 
   friend void swap(ReqRegistePeer& a, ReqRegistePeer& b) {
     a.Swap(&b);
@@ -970,7 +1138,7 @@ class MQAS_EXTERN RespondRegistePeer final :
                &_RespondRegistePeer_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    6;
 
   friend void swap(RespondRegistePeer& a, RespondRegistePeer& b) {
     a.Swap(&b);
@@ -1044,6 +1212,7 @@ class MQAS_EXTERN RespondRegistePeer final :
 
   enum : int {
     kRetFieldNumber = 1,
+    kIdFieldNumber = 2,
   };
   // .mqas.tools.proto.p2p.RetCode ret = 1;
   void clear_ret();
@@ -1052,6 +1221,15 @@ class MQAS_EXTERN RespondRegistePeer final :
   private:
   ::mqas::tools::proto::p2p::RetCode _internal_ret() const;
   void _internal_set_ret(::mqas::tools::proto::p2p::RetCode value);
+  public:
+
+  // uint32 id = 2;
+  void clear_id();
+  uint32_t id() const;
+  void set_id(uint32_t value);
+  private:
+  uint32_t _internal_id() const;
+  void _internal_set_id(uint32_t value);
   public:
 
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.RespondRegistePeer)
@@ -1063,6 +1241,7 @@ class MQAS_EXTERN RespondRegistePeer final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     int ret_;
+    uint32_t id_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1117,7 +1296,7 @@ class MQAS_EXTERN ReqUnregistePeer final :
                &_ReqUnregistePeer_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    7;
 
   friend void swap(ReqUnregistePeer& a, ReqUnregistePeer& b) {
     a.Swap(&b);
@@ -1236,7 +1415,7 @@ class MQAS_EXTERN RespondUnregistePeer final :
                &_RespondUnregistePeer_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    8;
 
   friend void swap(RespondUnregistePeer& a, RespondUnregistePeer& b) {
     a.Swap(&b);
@@ -1384,7 +1563,7 @@ class MQAS_EXTERN ConnectPeerData final :
                &_ConnectPeerData_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    9;
 
   friend void swap(ConnectPeerData& a, ConnectPeerData& b) {
     a.Swap(&b);
@@ -1462,6 +1641,7 @@ class MQAS_EXTERN ConnectPeerData final :
     kVerifyCodeFieldNumber = 3,
     kSendTimesFieldNumber = 4,
     kSendDelayFieldNumber = 5,
+    kIpIndexFieldNumber = 6,
   };
   // string ip = 1;
   void clear_ip();
@@ -1513,6 +1693,15 @@ class MQAS_EXTERN ConnectPeerData final :
   void _internal_set_send_delay(uint32_t value);
   public:
 
+  // uint32 ip_index = 6;
+  void clear_ip_index();
+  uint32_t ip_index() const;
+  void set_ip_index(uint32_t value);
+  private:
+  uint32_t _internal_ip_index() const;
+  void _internal_set_ip_index(uint32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.ConnectPeerData)
  private:
   class _Internal;
@@ -1526,6 +1715,7 @@ class MQAS_EXTERN ConnectPeerData final :
     uint32_t verify_code_;
     uint32_t send_times_;
     uint32_t send_delay_;
+    uint32_t ip_index_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1581,7 +1771,7 @@ class MQAS_EXTERN ReqConnectPeer final :
                &_ReqConnectPeer_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    10;
 
   friend void swap(ReqConnectPeer& a, ReqConnectPeer& b) {
     a.Swap(&b);
@@ -1750,7 +1940,7 @@ class MQAS_EXTERN ReqRespondPeerReqConnect final :
                &_ReqRespondPeerReqConnect_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    11;
 
   friend void swap(ReqRespondPeerReqConnect& a, ReqRespondPeerReqConnect& b) {
     a.Swap(&b);
@@ -1930,7 +2120,7 @@ class MQAS_EXTERN RespondConnectPeer final :
                &_RespondConnectPeer_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    12;
 
   friend void swap(RespondConnectPeer& a, RespondConnectPeer& b) {
     a.Swap(&b);
@@ -2089,7 +2279,7 @@ class MQAS_EXTERN NotifyConnectPeerData final :
                &_NotifyConnectPeerData_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    13;
 
   friend void swap(NotifyConnectPeerData& a, NotifyConnectPeerData& b) {
     a.Swap(&b);
@@ -2257,7 +2447,7 @@ class MQAS_EXTERN NotifyConnectResult final :
                &_NotifyConnectResult_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    13;
+    14;
 
   friend void swap(NotifyConnectResult& a, NotifyConnectResult& b) {
     a.Swap(&b);
@@ -2331,8 +2521,10 @@ class MQAS_EXTERN NotifyConnectResult final :
 
   enum : int {
     kReasonFieldNumber = 3,
+    kAddressFieldNumber = 4,
     kRetFieldNumber = 1,
     kPeerIdFieldNumber = 2,
+    kIsServerFieldNumber = 5,
   };
   // optional string reason = 3;
   bool has_reason() const;
@@ -2352,6 +2544,24 @@ class MQAS_EXTERN NotifyConnectResult final :
   std::string* _internal_mutable_reason();
   public:
 
+  // optional .mqas.tools.proto.p2p.Address address = 4;
+  bool has_address() const;
+  private:
+  bool _internal_has_address() const;
+  public:
+  void clear_address();
+  const ::mqas::tools::proto::p2p::Address& address() const;
+  PROTOBUF_NODISCARD ::mqas::tools::proto::p2p::Address* release_address();
+  ::mqas::tools::proto::p2p::Address* mutable_address();
+  void set_allocated_address(::mqas::tools::proto::p2p::Address* address);
+  private:
+  const ::mqas::tools::proto::p2p::Address& _internal_address() const;
+  ::mqas::tools::proto::p2p::Address* _internal_mutable_address();
+  public:
+  void unsafe_arena_set_allocated_address(
+      ::mqas::tools::proto::p2p::Address* address);
+  ::mqas::tools::proto::p2p::Address* unsafe_arena_release_address();
+
   // .mqas.tools.proto.p2p.RetCode ret = 1;
   void clear_ret();
   ::mqas::tools::proto::p2p::RetCode ret() const;
@@ -2370,6 +2580,15 @@ class MQAS_EXTERN NotifyConnectResult final :
   void _internal_set_peer_id(uint32_t value);
   public:
 
+  // bool is_server = 5;
+  void clear_is_server();
+  bool is_server() const;
+  void set_is_server(bool value);
+  private:
+  bool _internal_is_server() const;
+  void _internal_set_is_server(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.NotifyConnectResult)
  private:
   class _Internal;
@@ -2381,8 +2600,10 @@ class MQAS_EXTERN NotifyConnectResult final :
     ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr reason_;
+    ::mqas::tools::proto::p2p::Address* address_;
     int ret_;
     uint32_t peer_id_;
+    bool is_server_;
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_p2p_2eproto;
@@ -2437,7 +2658,7 @@ class MQAS_EXTERN NotifyPeerWantConnect final :
                &_NotifyPeerWantConnect_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    14;
+    15;
 
   friend void swap(NotifyPeerWantConnect& a, NotifyPeerWantConnect& b) {
     a.Swap(&b);
@@ -2594,7 +2815,7 @@ class MQAS_EXTERN ReqSubmitRecvPeerKeyCode final :
                &_ReqSubmitRecvPeerKeyCode_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    16;
 
   friend void swap(ReqSubmitRecvPeerKeyCode& a, ReqSubmitRecvPeerKeyCode& b) {
     a.Swap(&b);
@@ -2669,6 +2890,7 @@ class MQAS_EXTERN ReqSubmitRecvPeerKeyCode final :
   enum : int {
     kPeerIdFieldNumber = 1,
     kVerifyCodeFieldNumber = 2,
+    kIpIndexFieldNumber = 3,
   };
   // uint32 peer_id = 1;
   void clear_peer_id();
@@ -2688,6 +2910,15 @@ class MQAS_EXTERN ReqSubmitRecvPeerKeyCode final :
   void _internal_set_verify_code(uint32_t value);
   public:
 
+  // uint32 ip_index = 3;
+  void clear_ip_index();
+  uint32_t ip_index() const;
+  void set_ip_index(uint32_t value);
+  private:
+  uint32_t _internal_ip_index() const;
+  void _internal_set_ip_index(uint32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.ReqSubmitRecvPeerKeyCode)
  private:
   class _Internal;
@@ -2698,6 +2929,7 @@ class MQAS_EXTERN ReqSubmitRecvPeerKeyCode final :
   struct Impl_ {
     uint32_t peer_id_;
     uint32_t verify_code_;
+    uint32_t ip_index_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -2885,6 +3117,80 @@ inline void ClientIpList::set_port(uint32_t value) {
 
 // -------------------------------------------------------------------
 
+// Address
+
+// string ip = 1;
+inline void Address::clear_ip() {
+  _impl_.ip_.ClearToEmpty();
+}
+inline const std::string& Address::ip() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.Address.ip)
+  return _internal_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Address::set_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.Address.ip)
+}
+inline std::string* Address::mutable_ip() {
+  std::string* _s = _internal_mutable_ip();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.Address.ip)
+  return _s;
+}
+inline const std::string& Address::_internal_ip() const {
+  return _impl_.ip_.Get();
+}
+inline void Address::_internal_set_ip(const std::string& value) {
+  
+  _impl_.ip_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Address::_internal_mutable_ip() {
+  
+  return _impl_.ip_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Address::release_ip() {
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.Address.ip)
+  return _impl_.ip_.Release();
+}
+inline void Address::set_allocated_ip(std::string* ip) {
+  if (ip != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.ip_.SetAllocated(ip, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.ip_.IsDefault()) {
+    _impl_.ip_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.Address.ip)
+}
+
+// uint32 port = 2;
+inline void Address::clear_port() {
+  _impl_.port_ = 0u;
+}
+inline uint32_t Address::_internal_port() const {
+  return _impl_.port_;
+}
+inline uint32_t Address::port() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.Address.port)
+  return _internal_port();
+}
+inline void Address::_internal_set_port(uint32_t value) {
+  
+  _impl_.port_ = value;
+}
+inline void Address::set_port(uint32_t value) {
+  _internal_set_port(value);
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.Address.port)
+}
+
+// -------------------------------------------------------------------
+
 // ReqPeerList
 
 // -------------------------------------------------------------------
@@ -3007,6 +3313,26 @@ inline void RespondRegistePeer::_internal_set_ret(::mqas::tools::proto::p2p::Ret
 inline void RespondRegistePeer::set_ret(::mqas::tools::proto::p2p::RetCode value) {
   _internal_set_ret(value);
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.RespondRegistePeer.ret)
+}
+
+// uint32 id = 2;
+inline void RespondRegistePeer::clear_id() {
+  _impl_.id_ = 0u;
+}
+inline uint32_t RespondRegistePeer::_internal_id() const {
+  return _impl_.id_;
+}
+inline uint32_t RespondRegistePeer::id() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.RespondRegistePeer.id)
+  return _internal_id();
+}
+inline void RespondRegistePeer::_internal_set_id(uint32_t value) {
+  
+  _impl_.id_ = value;
+}
+inline void RespondRegistePeer::set_id(uint32_t value) {
+  _internal_set_id(value);
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.RespondRegistePeer.id)
 }
 
 // -------------------------------------------------------------------
@@ -3169,6 +3495,26 @@ inline void ConnectPeerData::_internal_set_send_delay(uint32_t value) {
 inline void ConnectPeerData::set_send_delay(uint32_t value) {
   _internal_set_send_delay(value);
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ConnectPeerData.send_delay)
+}
+
+// uint32 ip_index = 6;
+inline void ConnectPeerData::clear_ip_index() {
+  _impl_.ip_index_ = 0u;
+}
+inline uint32_t ConnectPeerData::_internal_ip_index() const {
+  return _impl_.ip_index_;
+}
+inline uint32_t ConnectPeerData::ip_index() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.ConnectPeerData.ip_index)
+  return _internal_ip_index();
+}
+inline void ConnectPeerData::_internal_set_ip_index(uint32_t value) {
+  
+  _impl_.ip_index_ = value;
+}
+inline void ConnectPeerData::set_ip_index(uint32_t value) {
+  _internal_set_ip_index(value);
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ConnectPeerData.ip_index)
 }
 
 // -------------------------------------------------------------------
@@ -3621,6 +3967,26 @@ inline void NotifyConnectResult::set_peer_id(uint32_t value) {
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.peer_id)
 }
 
+// bool is_server = 5;
+inline void NotifyConnectResult::clear_is_server() {
+  _impl_.is_server_ = false;
+}
+inline bool NotifyConnectResult::_internal_is_server() const {
+  return _impl_.is_server_;
+}
+inline bool NotifyConnectResult::is_server() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.is_server)
+  return _internal_is_server();
+}
+inline void NotifyConnectResult::_internal_set_is_server(bool value) {
+  
+  _impl_.is_server_ = value;
+}
+inline void NotifyConnectResult::set_is_server(bool value) {
+  _internal_set_is_server(value);
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.is_server)
+}
+
 // optional string reason = 3;
 inline bool NotifyConnectResult::_internal_has_reason() const {
   bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
@@ -3687,6 +4053,96 @@ inline void NotifyConnectResult::set_allocated_reason(std::string* reason) {
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.reason)
+}
+
+// optional .mqas.tools.proto.p2p.Address address = 4;
+inline bool NotifyConnectResult::_internal_has_address() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  PROTOBUF_ASSUME(!value || _impl_.address_ != nullptr);
+  return value;
+}
+inline bool NotifyConnectResult::has_address() const {
+  return _internal_has_address();
+}
+inline void NotifyConnectResult::clear_address() {
+  if (_impl_.address_ != nullptr) _impl_.address_->Clear();
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline const ::mqas::tools::proto::p2p::Address& NotifyConnectResult::_internal_address() const {
+  const ::mqas::tools::proto::p2p::Address* p = _impl_.address_;
+  return p != nullptr ? *p : reinterpret_cast<const ::mqas::tools::proto::p2p::Address&>(
+      ::mqas::tools::proto::p2p::_Address_default_instance_);
+}
+inline const ::mqas::tools::proto::p2p::Address& NotifyConnectResult::address() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.address)
+  return _internal_address();
+}
+inline void NotifyConnectResult::unsafe_arena_set_allocated_address(
+    ::mqas::tools::proto::p2p::Address* address) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.address_);
+  }
+  _impl_.address_ = address;
+  if (address) {
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.address)
+}
+inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::release_address() {
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  ::mqas::tools::proto::p2p::Address* temp = _impl_.address_;
+  _impl_.address_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::unsafe_arena_release_address() {
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.address)
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  ::mqas::tools::proto::p2p::Address* temp = _impl_.address_;
+  _impl_.address_ = nullptr;
+  return temp;
+}
+inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::_internal_mutable_address() {
+  _impl_._has_bits_[0] |= 0x00000002u;
+  if (_impl_.address_ == nullptr) {
+    auto* p = CreateMaybeMessage<::mqas::tools::proto::p2p::Address>(GetArenaForAllocation());
+    _impl_.address_ = p;
+  }
+  return _impl_.address_;
+}
+inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::mutable_address() {
+  ::mqas::tools::proto::p2p::Address* _msg = _internal_mutable_address();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.address)
+  return _msg;
+}
+inline void NotifyConnectResult::set_allocated_address(::mqas::tools::proto::p2p::Address* address) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.address_;
+  }
+  if (address) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(address);
+    if (message_arena != submessage_arena) {
+      address = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, address, submessage_arena);
+    }
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  _impl_.address_ = address;
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.address)
 }
 
 // -------------------------------------------------------------------
@@ -3827,9 +4283,31 @@ inline void ReqSubmitRecvPeerKeyCode::set_verify_code(uint32_t value) {
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ReqSubmitRecvPeerKeyCode.verify_code)
 }
 
+// uint32 ip_index = 3;
+inline void ReqSubmitRecvPeerKeyCode::clear_ip_index() {
+  _impl_.ip_index_ = 0u;
+}
+inline uint32_t ReqSubmitRecvPeerKeyCode::_internal_ip_index() const {
+  return _impl_.ip_index_;
+}
+inline uint32_t ReqSubmitRecvPeerKeyCode::ip_index() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.ReqSubmitRecvPeerKeyCode.ip_index)
+  return _internal_ip_index();
+}
+inline void ReqSubmitRecvPeerKeyCode::_internal_set_ip_index(uint32_t value) {
+  
+  _impl_.ip_index_ = value;
+}
+inline void ReqSubmitRecvPeerKeyCode::set_ip_index(uint32_t value) {
+  _internal_set_ip_index(value);
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ReqSubmitRecvPeerKeyCode.ip_index)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

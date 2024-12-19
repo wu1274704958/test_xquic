@@ -23,6 +23,7 @@ namespace mqas::tools::p2p {
 			ret_msg.set_ret(proto::p2p::peer_rejected);
 			return core::StreamVariantErrcode::failed;
 		}
+		ret_msg.set_id(id);
 		if(!core::ProtoBufMsg::write_msg<RespondRegistePeerPair>(ret, ret_msg))
 			return core::StreamVariantErrcode::parse_failed;
 

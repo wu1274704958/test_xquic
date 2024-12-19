@@ -186,9 +186,12 @@ void mqas::core::engine_base<E>::init_lsquic() noexcept(false)
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E>::start_recv() const
+void mqas::core::engine_base<E>::start_recv()
 {
-	socket_->recv_start([this](io::UdpSocket* sock,const std::optional<std::span<uint8_t>>& buf,ssize_t nread,const sockaddr* addr,unsigned flags)
+	if(recv_connection_.connected())
+		return;
+	socket_->recv_start();
+	recv_connection_ = socket_->on_recv_signal.connect([this](io::UdpSocket* sock, const std::optional<std::span<uint8_t>>& buf, ssize_t nread, const sockaddr* addr, unsigned flags)
 	{
 		if (nread == 0 || addr == nullptr)
 			return;
@@ -197,7 +200,7 @@ void mqas::core::engine_base<E>::start_recv() const
 			LOG(ERROR) << "udp recv error unexpected nread = " << nread;
 			return;
 		}
-		if(engine_extern_->on_recv(buf,nread,addr,flags))
+		if (engine_extern_->on_recv(buf, nread, addr, flags))
 		{
 			const int ret = ::lsquic_engine_packet_in(engine_, reinterpret_cast<const unsigned char*>(buf->data()), nread,
 				&this->local_addr_, addr, static_cast<void*>(const_cast<engine_base*>(this)), 0);

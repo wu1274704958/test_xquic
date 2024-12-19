@@ -18,6 +18,20 @@ namespace mqas::tools::p2p {
 		return core::StreamVariantErrcode::ok;
 	}
 
+	P2PLobbyClientStream::~P2PLobbyClientStream()
+	{
+		connect_cxt_->set_cxt<int>(nullptr);
+	}
+
+	void P2PLobbyClientStream::on_peer_change_ret_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondRegistePeer>& msg)
+	{
+		if (code == core::StreamVariantErrcode::ok && msg->ret() == proto::p2p::RetCode::ok)
+		{
+			id = msg->id();
+			connect_cxt_->set_cxt(&id);
+		}
+	}
+
 	void P2PLobbyClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::RespondPeerList>& msg)
 	{
 		peer_list = msg;

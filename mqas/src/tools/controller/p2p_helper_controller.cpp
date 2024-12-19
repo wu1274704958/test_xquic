@@ -42,12 +42,12 @@ namespace mqas::tools::controller {
 		return *this;
 	}
 
-	void p2p_helper_controller::submit_verify_code(uint64_t id, uint32_t who, uint32_t code)
+	void p2p_helper_controller::submit_verify_code(uint64_t id, uint32_t who, uint32_t code, uint16_t ip_index)
 	{
 		auto model = comm::locator::inst()->get<p2p::p2p_model>();
 		if (!*this && !model)
 			return;
-		if (model.value().get().submit_verify_code(id, who, code))
+		if (model.value().get().submit_verify_code(id, who, code,ip_index))
 		{
 			if (is_start())
 				stop_step();
@@ -142,14 +142,52 @@ namespace mqas::tools::controller {
 		_notify_connect_signal[idx] = notify_connect;
 	}
 
+	void p2p_helper_controller::set_current_address(uint32_t id,proto::p2p::Address* addr) const
+	{
+		if (!*this && !*_cxt)
+			return;
+		auto model = comm::locator::inst()->get<p2p::p2p_model>();
+		if (!model)
+			return;
+		const auto idx = p2p::oth_idx(_cxt->pid, id);
+		switch (_cxt->state)
+		{
+		case p2p::ConnectState::TryExternal:
+		{
+			const auto peer = model->get()[id];
+			if (peer == nullptr)
+				return;
+			addr->set_ip(peer->ip);
+			addr->set_port(peer->port);
+			break;
+		}
+		case p2p::ConnectState::TryInternal:
+		{
+			addr->set_port(_cxt->port_list[idx]);
+			const auto& list = _cxt->ip_list[idx];
+			auto ip_idx = _cxt->tag[idx];
+			if (ip_idx >= list.size())
+				ip_idx = list.size() - 1;
+			addr->set_ip(list[ip_idx]);
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
 	void p2p_helper_controller::notify_success(uint32_t id) const
 	{
 		if (!peer_exist(id))
 			return;
 		const auto idx = p2p::self_idx(_cxt->pid, id);
+		const auto oth_id = p2p::other(_cxt->pid, id);
 		mqas::tools::proto::p2p::NotifyConnectResult msg;
 		msg.set_peer_id(tools::p2p::other(_cxt->pid, id));
 		msg.set_ret(mqas::tools::proto::p2p::RetCode::ok);
+		msg.set_is_server(idx == 0);
+		auto address = msg.mutable_address();
+		set_current_address(oth_id,address);
 		_notify_connect_result[idx](msg);
 	}
 	void p2p_helper_controller::notify_failed(uint32_t id, const std::optional<std::string>& reason) const
@@ -157,6 +195,7 @@ namespace mqas::tools::controller {
 		if (!peer_exist(id))
 			return;
 		const auto idx = p2p::self_idx(_cxt->pid, id);
+		const auto oth_id = p2p::other(_cxt->pid, id);
 		mqas::tools::proto::p2p::NotifyConnectResult msg;
 		msg.set_peer_id(tools::p2p::other(_cxt->pid, id));
 		msg.set_ret(mqas::tools::proto::p2p::RetCode::failed);

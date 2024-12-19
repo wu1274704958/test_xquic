@@ -77,8 +77,6 @@ namespace mqas::core{
         template<typename T>
         void set_cxt(const T* t){ cxt = reinterpret_cast<void*>(const_cast<T*>(t));}
         template<typename T>
-        void set_cxt(const T& t) { cxt = reinterpret_cast<void*>(const_cast<T*>(&t)); }
-        template<typename T>
         [[nodiscard]] T* get_cxt() { return reinterpret_cast<T*>(cxt); }
     };
     template<typename S>
