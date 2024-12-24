@@ -67,6 +67,7 @@ namespace mqas::core
     enum class MsgOrigin : uint8_t {
         normal = 0, // or_read
         on_change,
+        on_local_change,
         on_peer_change_ret,
         on_peer_quit,
         on_peer_quit_ret

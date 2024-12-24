@@ -60,6 +60,13 @@ mqas::core::IStreamVariant::on_change(const std::span<uint8_t>& params,
     return StreamVariantErrcode::ok;
 }
 
+mqas::core::StreamVariantErrcode 
+mqas::core::IStreamVariant::on_local_change(const std::span<uint8_t>& params,
+    std::vector<uint8_t>& ret_buf)
+{
+    return StreamVariantErrcode::not_support;
+}
+
 void mqas::core::IStreamVariant::on_peer_change_ret(mqas::core::StreamVariantErrcode code, const std::span<uint8_t> &params) {
 
 }

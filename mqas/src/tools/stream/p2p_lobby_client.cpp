@@ -4,7 +4,7 @@
 namespace mqas::tools::p2p {
 
 
-	core::StreamVariantErrcode mqas::tools::p2p::P2PLobbyClientStream::on_change_msg_s(const std::shared_ptr<proto::p2p::ReqRegistePeer>& msg, std::vector<uint8_t>& ret)
+	core::StreamVariantErrcode mqas::tools::p2p::P2PLobbyClientStream::on_local_change_msg_s(const std::shared_ptr<proto::p2p::ReqRegistePeer>& msg, std::vector<uint8_t>& ret)
 	{
 		if (name.empty())
 		{

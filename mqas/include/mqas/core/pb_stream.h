@@ -32,6 +32,11 @@ namespace mqas::core{
         StreamVariantErrcode on_change_msg(size_t,const std::shared_ptr<google::protobuf::Message>&,
                                                    std::vector<uint8_t> &ret_buf);
 
+        StreamVariantErrcode on_local_change(const std::span<uint8_t>& params,
+            std::vector<uint8_t>& ret_buf);
+        StreamVariantErrcode on_local_change_msg(size_t, const std::shared_ptr<google::protobuf::Message>&,
+            std::vector<uint8_t>& ret_buf);
+
         void on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params);
         void on_peer_change_ret_msg(StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&);
         size_t on_read(const std::span<const uint8_t>& current);
@@ -64,6 +69,11 @@ namespace mqas::core{
         template<class F,class ... Ss>
         StreamVariantErrcode on_change_msg_forward(size_t,const std::shared_ptr<google::protobuf::Message>&,
                 std::vector<uint8_t> &ret_buf);
+
+        template<class F, class ... Ss>
+        StreamVariantErrcode on_local_change_msg_forward(size_t, const std::shared_ptr<google::protobuf::Message>&,
+            std::vector<uint8_t>& ret_buf);
+
         template<class F,class ... Ss>
         void on_peer_change_ret_msg_forward(StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&);
         template<class F,class ... Ss>

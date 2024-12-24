@@ -7,7 +7,7 @@
 namespace fs = std::filesystem;
 
 mqas::core::StreamVariantErrcode
-mqas::tools::SendFileStream::on_change_msg_s(const std::shared_ptr<proto::ReqSendFile> &req,
+mqas::tools::SendFileStream::on_local_change_msg_s(const std::shared_ptr<proto::ReqSendFile> &req,
                                              std::vector<uint8_t> &ret_buf) {
     if(req->name().empty() || !fs::exists(req->name()))
         return core::StreamVariantErrcode::failed;

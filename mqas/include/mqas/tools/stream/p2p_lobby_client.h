@@ -23,7 +23,7 @@ namespace mqas::tools::p2p {
 
 		~P2PLobbyClientStream();
 
-		core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::p2p::ReqRegistePeer>& msg,
+		core::StreamVariantErrcode on_local_change_msg_s(const std::shared_ptr<proto::p2p::ReqRegistePeer>& msg,
 			std::vector<uint8_t>& ret);
 		void on_peer_change_ret_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondRegistePeer>&);
 		std::function<void(const proto::p2p::ReqRespondPeerReqConnect&)> on_change_helper;

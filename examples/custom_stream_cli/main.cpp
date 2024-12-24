@@ -11,7 +11,7 @@ class Stream:public core::IStreamVariant
 {
 public:
 
-    mqas::core::StreamVariantErrcode on_change(const std::span<uint8_t>& params,
+    mqas::core::StreamVariantErrcode on_local_change(const std::span<uint8_t>& params,
                                                std::vector<uint8_t>& ret_buf)
     {
         std::string_view sv(reinterpret_cast<const char*>(params.data()), params.size());
@@ -55,7 +55,7 @@ int main(int argc,const char** argv)
         conn->make_stream([&io_cxt,&tty](std::weak_ptr<core::StreamVariant<core::StreamVariantPair<1,Stream>>> stream){
             auto s_ = stream.lock();
             std::string_view sv("req self");
-            s_->req_change<Stream>();
+            s_->req_change<Stream>(std::span<uint8_t>((uint8_t*)sv.data(),sv.size()));
         });
 	}catch (std::exception& e)
 	{

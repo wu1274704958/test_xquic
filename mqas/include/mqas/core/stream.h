@@ -29,6 +29,8 @@ namespace mqas::core {
 
         StreamVariantErrcode on_change(const std::span<uint8_t> &params,
                                                    std::vector<uint8_t> &ret_buf);
+        StreamVariantErrcode on_local_change(const std::span<uint8_t>& params,
+                                                    std::vector<uint8_t>& ret_buf);
         void on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params);
         StreamVariantErrcode on_peer_quit(const std::span<uint8_t>&,std::vector<uint8_t>&);
         void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
@@ -135,10 +137,10 @@ namespace mqas::core {
         template<typename CS>
         requires variability_stream_require<CS>
         StreamVariantErrcode change_self_inside([[maybe_unused]] const std::span<uint8_t>& change_params);
-        template<typename CS>
+        template<typename CS,bool IS_LOCAL>
         requires variability_stream_pair_require<CS>
         StreamVariantErrcode change_to_uncheck(const std::span<uint8_t>& change_params,
-                                               std::vector<uint8_t>& ret_buf,bool is_req = false);
+                                               std::vector<uint8_t>& ret_buf);
         template<typename CS, typename F,typename ... Ss>
         requires requires{
             requires variability_stream_require<CS> && variability_stream_pair_require<F>;

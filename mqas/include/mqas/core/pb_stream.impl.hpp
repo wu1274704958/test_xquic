@@ -30,6 +30,14 @@ namespace mqas::core {
             std::declval<std::vector<uint8_t>&>()))>>
             : std::true_type {};
 
+    template<typename T, typename M, typename = std::void_t<>>
+    struct has_member_function_on_local_change_msg_s : std::false_type {};
+
+    template<typename T, typename M>
+    struct has_member_function_on_local_change_msg_s<T, M, std::void_t<decltype(std::declval<T>().on_local_change_msg_s(std::declval<std::shared_ptr<M>>(),
+        std::declval<std::vector<uint8_t>&>()))>>
+        : std::true_type {};
+
     template<typename T,typename M,typename = std::void_t<>>
     struct has_member_function_on_peer_change_ret_msg_s : std::false_type {};
 
@@ -182,6 +190,60 @@ namespace mqas::core {
         }
 
     }
+
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    StreamVariantErrcode ProtoBufStream<S, M...>::on_local_change(const std::span<uint8_t>& params,
+        std::vector<uint8_t>& ret_buf)
+    {
+        if (params.empty())
+            return on_local_change_msg(0, nullptr, ret_buf);
+        auto msg_wrap = parse_base_msg(params);
+        if (!msg_wrap) {
+            LOG(ERROR) << "Try parse proto::MsgWrapper failed on_local_change";
+            return StreamVariantErrcode::parse_failed;
+        }
+        size_t mid = msg_wrap->msg_id;
+        if (!msg_parsers_.contains(mid)) {
+            LOG(ERROR) << "Not support msg " << mid << " on_local_change";
+            return StreamVariantErrcode::not_support;
+        }
+        auto msg = msg_parsers_[mid](*msg_wrap, MsgOrigin::on_local_change);
+        return on_local_change_msg_forward<M...>(mid, msg, ret_buf);
+    }
+    
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    StreamVariantErrcode ProtoBufStream<S, M...>::on_local_change_msg(size_t, const std::shared_ptr<google::protobuf::Message>&,
+        std::vector<uint8_t>& ret_buf)
+    {
+        return StreamVariantErrcode::not_support;
+    }
+
+    MQAS_PB_STREAM_TEMPLATE_DECL
+    template<class F, class ... Ss>
+    StreamVariantErrcode ProtoBufStream<S, M...>::on_local_change_msg_forward(size_t mid, const std::shared_ptr<google::protobuf::Message>& msg,
+        std::vector<uint8_t>& ret_buf)
+    {
+        if (F::PB_MSG_ID == mid)
+        {
+            if constexpr (has_member_function_on_local_change_msg_s<S, typename F::PB_MSG_TYPE>::value)
+            {
+                return static_cast<S*>(this)->on_local_change_msg_s(std::static_pointer_cast<typename F::PB_MSG_TYPE>(msg), ret_buf);
+            }
+            else {
+                return static_cast<S*>(this)->on_local_change_msg(mid, msg, ret_buf);
+            }
+        }
+        else {
+            if constexpr (sizeof...(Ss) == 0)
+            {
+                return static_cast<S*>(this)->on_local_change_msg(mid, msg, ret_buf);
+            }
+            else {
+                return on_local_change_msg_forward<Ss...>(mid, msg, ret_buf);
+            }
+        }
+    }
+
 
     MQAS_PB_STREAM_TEMPLATE_DECL
     void ProtoBufStream<S,M...>::on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params)

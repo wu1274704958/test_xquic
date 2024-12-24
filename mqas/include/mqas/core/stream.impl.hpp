@@ -375,7 +375,7 @@ namespace mqas::core{
                                                         std::vector<uint8_t>& ret_buf)
     {
         StreamVariantErrcode ret = StreamVariantErrcode::failed_not_find;
-        ((S::STREAM_TAG == tag && ((ret = change_to_uncheck<S>(change_params,ret_buf)), false)),...);
+        ((S::STREAM_TAG == tag && ((ret = change_to_uncheck<S,false>(change_params,ret_buf)), false)),...);
         return ret;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -476,7 +476,7 @@ namespace mqas::core{
     {
         if constexpr(std::is_same_v<typename F::STREAM_TYPE,CS>)
         {
-            return change_to_uncheck<F>(change_params,ret_buf);
+            return change_to_uncheck<F,true>(change_params,ret_buf);
         }else{
             return change_self_inside<CS,Ss...>(change_params,ret_buf);
         }
@@ -491,10 +491,10 @@ namespace mqas::core{
     }
 
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    template<typename CS>
+    template<typename CS,bool IS_LOCAL>
     requires variability_stream_pair_require<CS>
     StreamVariantErrcode StreamVariant<S...>::change_to_uncheck(const std::span<uint8_t>& change_params,
-                                           std::vector<uint8_t>& ret_buf,bool is_req)
+                                           std::vector<uint8_t>& ret_buf)
     {
         //checked it earlier
         //clear_curr_stream();
@@ -506,12 +506,23 @@ namespace mqas::core{
         stream->set_outer(this->weak_from_this());
         stream->set_cxt(cxt_);
         stream->on_init(stream_,connect_cxt_,connect);
-        StreamVariantErrcode res = stream->on_change(change_params,ret_buf);                  //request change by self can be not support
-        if(res != StreamVariantErrcode::ok && res != StreamVariantErrcode::skip_and_manual && (!is_req || res != StreamVariantErrcode::not_support)) {
-            clear_curr_stream();
-            return res;
+        StreamVariantErrcode res;
+        if constexpr (!IS_LOCAL)
+        {
+            res = stream->on_change(change_params, ret_buf);
+            if (res != StreamVariantErrcode::ok && res != StreamVariantErrcode::skip_and_manual) {
+                clear_curr_stream();
+                return res;
+            }
         }
-        if(is_req)stream->setIsWaitPeerChangeRet(true);
+        else {
+            res = stream->on_local_change(change_params, ret_buf);//request local change can be not support
+            if (res != StreamVariantErrcode::ok && res != StreamVariantErrcode::skip_and_manual && res != StreamVariantErrcode::not_support) {
+                clear_curr_stream();
+                return res;
+            }
+            stream->setIsWaitPeerChangeRet(true);
+        }
         return res;
     }
 
@@ -534,7 +545,7 @@ namespace mqas::core{
                 return false;
             }
             std::vector<uint8_t> ret_buf{}; 
-            ret = change_to_uncheck<F>(change_params,ret_buf,true);                               //request change by self can be not support
+            ret = change_to_uncheck<F,true>(change_params,ret_buf);                               //request change by self can be not support
             if(ret != StreamVariantErrcode::ok && ret != StreamVariantErrcode::skip_and_manual && ret != StreamVariantErrcode::not_support)
             {
                 LOG(ERROR) << "req_change_to " << F::STREAM_TAG << " change self failed error = " << (size_t)ret;

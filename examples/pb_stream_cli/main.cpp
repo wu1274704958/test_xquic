@@ -13,7 +13,7 @@ using SayByeMsgPair = core::PBMsgPair<2,proto::SayByeMsg>;
 class Stream:public core::ProtoBufStream<Stream,SayHelloMsgPair,SayByeMsgPair>
 {
 public:
-    core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::SayHelloMsg>& hello,
+    core::StreamVariantErrcode on_local_change_msg_s(const std::shared_ptr<proto::SayHelloMsg>& hello,
                                                std::vector<uint8_t> &ret_buf)
     {
         printf("on_change %s %d\n",hello->msg().c_str(),hello->num());
