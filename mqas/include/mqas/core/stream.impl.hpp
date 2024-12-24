@@ -341,6 +341,8 @@ namespace mqas::core{
                     }
                     else
                     {
+                        if (has_holds_stream())
+                            on_quit_stream_signal.emit(get_holds_stream(stream_tag_));
                         current_state = variant_stream_state::none;
                         clear_curr_stream();
                     }
@@ -357,6 +359,8 @@ namespace mqas::core{
                             current_state = variant_stream_state::half_quit;
                             break;
                         }
+                        if (has_holds_stream())
+                            on_quit_stream_signal.emit(get_holds_stream(stream_tag_));
                         clear_curr_stream();
                     }
                     if(!ret_buf.empty())
@@ -429,6 +433,18 @@ namespace mqas::core{
         }
         return nullptr;
     }
+
+    MQAS_STREAM_IMPL_TEMPLATE_DECL
+    std::shared_ptr<IStreamVariant> StreamVariant<S...>::get_holds_stream(size_t stream_tag)
+    {
+        std::shared_ptr<IStreamVariant> res = nullptr;
+        if (stream_tag == 0)
+            return res;
+        ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && 
+            (res = std::dynamic_pointer_cast<IStreamVariant>(std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)),false)), ...);
+        return res;
+    }
+
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     bool StreamVariant<S...>::has_holds_stream() const
     {
@@ -523,6 +539,7 @@ namespace mqas::core{
             }
             stream->setIsWaitPeerChangeRet(true);
         }
+        on_change_stream_signal.emit(stream);
         return res;
     }
 
@@ -604,6 +621,7 @@ namespace mqas::core{
     {
         if constexpr (has_member_function_on_pause<typename SP::STREAM_TYPE>::value)
         {
+            on_pause_stream_signal.emit(stream);
             stream->on_pause();
         }
         stack.push(std::make_pair(SP::STREAM_TAG,std::dynamic_pointer_cast<IStreamVariant>(stream)));
@@ -633,6 +651,7 @@ namespace mqas::core{
         if constexpr (has_member_function_on_resume<typename SP::STREAM_TYPE>::value)
         {
             std::dynamic_pointer_cast<typename SP::STREAM_TYPE>(stream)->on_resume();
+            on_resume_stream_signal.emit(stream);
         }
     }
 

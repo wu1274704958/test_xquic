@@ -11,6 +11,7 @@
 #include <stack>
 #include <mqas/core/connect.h>
 #include <mqas/core/protobuf_msg.h>
+#include <sigc++/sigc++.h>
 
 namespace mqas::core {
 
@@ -77,6 +78,10 @@ namespace mqas::core {
     }
     class StreamVariant : public IStreamVariantMgr,public std::enable_shared_from_this<StreamVariant<S...>> {
     public:
+        sigc::signal<void(std::shared_ptr<IStreamVariant>)> on_change_stream_signal;
+        sigc::signal<void(std::shared_ptr<IStreamVariant>)> on_quit_stream_signal;
+        sigc::signal<void(std::shared_ptr<IStreamVariant>)> on_resume_stream_signal;
+        sigc::signal<void(std::shared_ptr<IStreamVariant>)> on_pause_stream_signal;
         size_t do_read();
         size_t do_read_shell();
         size_t do_read_hold();
@@ -117,6 +122,7 @@ namespace mqas::core {
         template<class CS>
         requires variability_stream_require<CS>
         std::shared_ptr<CS> get_holds_stream();
+        std::shared_ptr<IStreamVariant> get_holds_stream(size_t stream_tag);
         [[nodiscard]] bool has_holds_stream() const;
         StreamVariantErrcode on_peer_quit(const std::span<uint8_t> &,std::vector<uint8_t>&);
         void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);

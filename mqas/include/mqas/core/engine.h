@@ -83,6 +83,7 @@ namespace mqas::core {
 	{
 	friend C;
 	public:
+		sigc::signal<void(std::shared_ptr<C>)> on_new_connect_signal;
 		std::weak_ptr<C> connect(const ::sockaddr& addr, ::lsquic_version ver, const char* hostname = nullptr, unsigned short base_plpmtu = 0,
 			const unsigned char* sess_resume = nullptr, size_t sess_resume_len = 0,const unsigned char* token = nullptr, size_t token_sz = 0);
 

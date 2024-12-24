@@ -9,6 +9,7 @@
 #include <mqas/macro.h>
 #include <mqas/core/engine.h>
 #include <mqas/io/timer.h>
+#include <sigc++/sigc++.h>
 
 namespace mqas::core{
 
@@ -86,6 +87,7 @@ namespace mqas::core{
     }
     class Connect : public IConnect,public std::enable_shared_from_this<Connect<S>>{
     public:
+        sigc::signal<void(std::shared_ptr<S>)> on_new_stream_signal;
         void init(::lsquic_conn_t* conn, engine_cxt* engine_cxt);
         void on_close();
         void on_new_stream(::lsquic_stream_t* lsquic_stream);
@@ -95,13 +97,12 @@ namespace mqas::core{
         void on_stream_reset(lsquic_stream_t* s, int how);
         bool has_stream(lsquic_stream_t*) const;
         bool write_stream(::lsquic_stream_t*,const std::span<uint8_t>&);
-        void make_stream(std::function<void(std::weak_ptr<S>)>);
+        sigc::connection make_stream(std::function<void(std::shared_ptr<S>)> f = {});
         void close();
-        std::weak_ptr<S> get_stream(::lsquic_stream_t*) const;
+        std::shared_ptr<S> get_stream(::lsquic_stream_t*) const;
     protected:
         std::unordered_map<size_t ,std::shared_ptr<S>> stream_map_;
         connect_cxt connect_cxt_;
-        std::function<void(std::weak_ptr<S>)> on_new_stream_cb_;
     };
 
 }

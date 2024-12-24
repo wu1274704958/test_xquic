@@ -43,6 +43,7 @@ std::weak_ptr<C> mqas::core::engine<C>::add(::lsquic_conn_t* conn)
 		conn_map_.emplace(reinterpret_cast<size_t>(conn),std::make_shared<C>());
 		auto c = conn_map_[reinterpret_cast<size_t>(conn)];
 		c->init(conn,&engine_cxt_);
+		on_new_connect_signal.emit(c);
 		return c;
 	}
 	return conn_map_[reinterpret_cast<size_t>(conn)];

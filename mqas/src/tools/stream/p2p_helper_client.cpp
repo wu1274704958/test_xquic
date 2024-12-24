@@ -34,7 +34,7 @@ namespace mqas::tools::p2p {
 	mqas::core::StreamVariantErrcode P2PHelperClientStream::on_peer_quit_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectResult>& res,
 		std::vector<uint8_t>& buf)
 	{
-		on_quit_result.emit(res);
+		on_quit_result.emit(res,_socket);
 		return mqas::core::StreamVariantErrcode::ok;
 	}
 

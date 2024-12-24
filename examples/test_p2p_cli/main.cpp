@@ -10,6 +10,10 @@
 #include <stack>
 #include <mqas/io/idle.h>
 #include <mqas/tools/stream/p2p_helper_client.h>
+#include <mqas/comm/engine.h>
+#include "p2p_chat.h"
+#include <mqas/comm/locator.h>
+
 using namespace mqas;
 MQAS_SHARE_EASYLOGGINGPP
 
@@ -28,6 +32,9 @@ protected:
 using StreamType = core::StreamVariant<
 	core::StreamVariantPair<1, LobbyStream>,
 	core::StreamVariantPair<2, mqas::tools::p2p::P2PHelperClientStream>>;
+
+using P2PStreamType = core::StreamVariant<
+	core::StreamVariantPair<1,P2PChatStream>>;
 
 enum class ui_state {
 	none = 0,
@@ -57,9 +64,11 @@ protected:
 	void on_get_peer_list(std::shared_ptr<mqas::tools::proto::p2p::RespondPeerList> list);
 	void on_peer_want_connect(const mqas::tools::proto::p2p::PeerData&);
 	void on_get_respond(const std::shared_ptr<mqas::tools::proto::p2p::RespondConnectPeer>& code);
-	void on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg);
+	void on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg, std::shared_ptr<io::UdpSocket>);
 	void append_state(ui_state state);
 	void quit_helper();
+	void on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,bool is_server);
+	void on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_server);
 	ui_state pop_state();
 	ui_state current_state() const;
 protected:
@@ -74,12 +83,15 @@ protected:
 	std::shared_ptr<mqas::tools::proto::p2p::RespondConnectPeer> respond_change_helper;
 	std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult> helper_result;
 	std::vector<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectPeerData>> try_connect_list;
+	std::shared_ptr<core::engine_base<core::engine<core::Connect<P2PStreamType>>>> p2p_engine;
+	std::weak_ptr<P2PStreamType> p2p_stream;
 };
 
 int main(int argc, const char** argv)
 {
-	Context<core::InitFlags::GLOBAL_CLIENT> context;
+	Context<core::InitFlags::BOTH> context;
 	io::Context io_cxt;
+	comm::locator::inst()->deposit<std::reference_wrapper<io::Context>>(io_cxt);
 	tui ui;
 	ui.init();
 	core::engine_base<core::engine<core::Connect<StreamType>>> e(io_cxt);
@@ -372,7 +384,7 @@ void tui::on_helper_connect_to(const std::shared_ptr<mqas::tools::proto::p2p::No
 	try_connect_list.push_back(msg);
 }
 
-void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg)
+void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg,std::shared_ptr<io::UdpSocket> sock)
 {
 	helper_result = msg;
 	try_connect_list.clear();
@@ -386,7 +398,20 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 		if (current_state() == ui_state::helper_main)
 			pop_state();
 		append_state(ui_state::p2p_main);
-		//todo launch p2p connect
+		
+		auto io_cxt = comm::locator::inst()->get_ref<io::Context>();
+
+		std::function<void(std::shared_ptr<core::Connect<P2PStreamType>>)> func = std::bind(&tui::on_new_p2p_connect, this, std::placeholders::_1, msg->is_server());
+		if (msg->is_server())
+			p2p_engine = comm::engine_util::launch_engine<P2PStreamType>(io_cxt.value().get(), "conf.txt",
+				core::EngineFlags::Server, sock, func);
+		else
+		{
+			sockaddr addr;
+			io::Ip::str2addr(msg->address().ip().c_str(), msg->address().port(), addr);
+			p2p_engine = comm::engine_util::launch_engine<P2PStreamType>(io_cxt.value().get(), "conf.txt",
+				core::EngineFlags::None, sock, func, addr);
+		}
 	}
 }
 
@@ -412,4 +437,24 @@ void tui::quit_helper()
 		helper_stream = nullptr;
 		try_connect_list.clear();
 	}
+}
+
+void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_server)
+{
+	if (is_server)
+	{
+	
+	}
+	else {
+		test::ReqDirectChat m;
+		stream->req_change<P2PChatStream,ReqDirectChatPair>(m);
+	}
+}
+
+void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,bool is_server)
+{
+	if (is_server)
+		conn->on_new_stream_signal.connect(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1, is_server));
+	else
+		conn->make_stream(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1,is_server));	
 }

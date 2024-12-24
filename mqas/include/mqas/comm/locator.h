@@ -20,6 +20,15 @@ namespace mqas::comm {
 				else
 					return *p;
 			}
+			template<typename T>
+			std::optional<std::reference_wrapper<T>> get_ref()
+			{
+				std::reference_wrapper<T>* p = try_get_from_pool<std::reference_wrapper<T>>(map);
+				if (p == nullptr)
+					return {};
+				else
+					return *p;
+			}
 			template<typename T,typename ... Args>
 			bool deposit(Args&& ...args)
 			{

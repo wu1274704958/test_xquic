@@ -2,6 +2,7 @@
 #include "mqas/core/pb_stream.h"
 #include "MsgDef.h"
 #include <sigc++/sigc++.h>
+#include <mqas/io/udp.h>
 
 namespace mqas::tools::p2p {
 	class MQAS_EXTERN P2PHelperClientStream : public core::ProtoBufStream<P2PHelperClientStream,
@@ -13,7 +14,7 @@ namespace mqas::tools::p2p {
 	public:
 		sigc::signal<void(const std::shared_ptr<proto::p2p::NotifyConnectPeerData>&)> on_connect_peer;
 		sigc::signal<void(const std::shared_ptr<proto::p2p::RespondConnectPeer>&)> on_change_result;
-		sigc::signal<void(const std::shared_ptr<proto::p2p::NotifyConnectResult>&)> on_quit_result;
+		sigc::signal<void(const std::shared_ptr<proto::p2p::NotifyConnectResult>&,std::shared_ptr<io::UdpSocket>)> on_quit_result;
 
 		~P2PHelperClientStream();
 

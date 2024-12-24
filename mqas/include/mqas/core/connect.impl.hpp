@@ -36,11 +36,7 @@ namespace mqas::core{
         const auto key = reinterpret_cast<size_t>(lsquic_stream);
         stream_map_.emplace(key,std::make_shared<S>());
         stream_map_[key]->on_init(lsquic_stream,&connect_cxt_, this->weak_from_this());
-        if(on_new_stream_cb_)
-        {
-            on_new_stream_cb_(stream_map_[key]);
-            on_new_stream_cb_ = nullptr;
-        }
+        on_new_stream_signal.emit(stream_map_[key]);
     }
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
     void Connect<S>::on_stream_read(::lsquic_stream_t* lsquic_stream)
@@ -85,10 +81,13 @@ namespace mqas::core{
         return false;
     }
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
-    void Connect<S>::make_stream(std::function<void(std::weak_ptr<S>)> cb)
+    sigc::connection Connect<S>::make_stream(std::function<void(std::shared_ptr<S>)> cb)
     {
-        this->on_new_stream_cb_ = std::move(cb);
+        sigc::connection res;
+        if (cb)
+            res = on_new_stream_signal.connect(cb);
         IConnect::make_stream();
+        return res;
     }
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
     void Connect<S>::close()
@@ -100,7 +99,7 @@ namespace mqas::core{
         IConnect::close();
     }
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
-    std::weak_ptr<S> Connect<S>::get_stream(::lsquic_stream_t* s) const
+    std::shared_ptr<S> Connect<S>::get_stream(::lsquic_stream_t* s) const
     {
         const auto key = reinterpret_cast<size_t>(s);
         if(stream_map_.contains(key))
