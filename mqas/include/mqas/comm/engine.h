@@ -18,7 +18,7 @@ namespace mqas::comm {
 		}
 		static auto launch_engine(io::Context& io_cxt,const char* conf_file, mqas::core::EngineFlags engine_flags,
 			std::shared_ptr<io::UdpSocket> socket = nullptr, std::function<void(std::shared_ptr<C<S>>)> on_connected = {},
-			std::optional<sockaddr> addr = {}) -> std::shared_ptr<mqas::core::engine_base<E<C<S>>>>;
+			std::optional<sockaddr> addr = {}, std::function<void(const std::exception&)> on_exception = {}) -> std::shared_ptr<mqas::core::engine_base<E<C<S>>>>;
 	};
 }
 

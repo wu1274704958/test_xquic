@@ -232,6 +232,7 @@ void mqas::core::engine_base<E>::close_timer()
 {
 	if (proc_conns_timer_)
 	{
+		proc_conns_timer_->stop();
 		cxt.del_handle(proc_conns_timer_);
 		proc_conns_timer_ = nullptr;
 	}
@@ -244,6 +245,21 @@ void mqas::core::engine_base<E>::close_ssl_ctx()
 		SSL_CTX_free(ssl_ctx_);
 		ssl_ctx_ = nullptr;
 	}
+}
+
+ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::close()
+{
+	if (engine_extern_)
+		engine_extern_->close();
+}
+
+ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::wait_all_connect_closed()
+{
+	close();
+	while (engine_extern_ && engine_extern_->connect_count() > 0)
+		cxt.run(mqas::io::Context::RunMode::ONCE);
 }
 
 ENGINE_BASE_TEMPLATE_DECL
@@ -314,6 +330,7 @@ ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::process_conns() const
 {
 	proc_conns_timer_->stop();
+	if (engine_ == nullptr) return;
 	int diff;
 	::lsquic_engine_process_conns(engine_);
 	if (::lsquic_engine_earliest_adv_tick(engine_, &diff)) {

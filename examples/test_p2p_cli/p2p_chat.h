@@ -14,6 +14,7 @@ class P2PChatStream : public mqas::core::ProtoBufStream<P2PChatStream,
 {
 public:
     sigc::signal<void(const std::string&, const std::string&)> on_received_message;
+    sigc::signal<void(const std::string&)> on_connected;
     mqas::core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<test::ReqDirectChat>& msg,
         std::vector<uint8_t>& ret_buf);
     mqas::core::StreamVariantErrcode on_local_change_msg_s(const std::shared_ptr<test::ReqDirectChat>& msg,

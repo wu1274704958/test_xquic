@@ -84,6 +84,7 @@ namespace mqas::core {
 	friend C;
 	public:
 		sigc::signal<void(std::shared_ptr<C>)> on_new_connect_signal;
+		sigc::signal<void(std::shared_ptr<C>)> on_connect_closed_signal;
 		std::weak_ptr<C> connect(const ::sockaddr& addr, ::lsquic_version ver, const char* hostname = nullptr, unsigned short base_plpmtu = 0,
 			const unsigned char* sess_resume = nullptr, size_t sess_resume_len = 0,const unsigned char* token = nullptr, size_t token_sz = 0);
 
@@ -110,6 +111,7 @@ namespace mqas::core {
         bool write_datagram(::lsquic_conn_t* conn,const std::span<uint8_t>&);
         bool write_stream(::lsquic_conn_t* conn,lsquic_stream_t* stream,const std::span<uint8_t>&);
         bool has_stream(lsquic_conn_t* conn,lsquic_stream_t* stream) const;
+		size_t connect_count() const;
 	public:
 		engine_cxt engine_cxt_;
 	protected:

@@ -14,12 +14,12 @@ namespace mqas::io
 	class UdpSocket;
 	class MQAS_EXTERN Context
 	{
+	public:
 		enum class RunMode{
 			DEFAULT = 0,
 			ONCE,
 			NOWAIT
 		};
-	public:
 		Context();
 		~Context();
 		Context(const Context&)=delete;

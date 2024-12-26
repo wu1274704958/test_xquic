@@ -12,7 +12,7 @@ namespace mqas::comm {
 	}
 	auto engine_util::launch_engine(io::Context& io_cxt,const char* conf_file, mqas::core::EngineFlags engine_flags,
 		std::shared_ptr<io::UdpSocket> socket, std::function<void(std::shared_ptr<C<S>>)> on_connected,
-		std::optional<sockaddr> addr) -> std::shared_ptr<mqas::core::engine_base<E<C<S>>>>
+		std::optional<sockaddr> addr, std::function<void(const std::exception&)> on_exception) -> std::shared_ptr<mqas::core::engine_base<E<C<S>>>>
 	{
 		auto engine = std::make_shared<core::engine_base<E<C<S>>>>(io_cxt);
 		try {
@@ -39,6 +39,8 @@ namespace mqas::comm {
 		catch (std::exception& e)
 		{
 			LOG(ERROR) << "Launch engine failed: " << e.what();
+			if(on_exception)
+				on_exception(e);
 		}
 		return engine;
 	}

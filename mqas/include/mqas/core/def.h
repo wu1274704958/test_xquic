@@ -5,6 +5,7 @@
 #include <optional>
 #include <mqas/core/proto/simple.h>
 #include <google/protobuf/message.h>
+#include <lsquic.h>
 
 namespace mqas::core
 {
@@ -82,6 +83,19 @@ namespace mqas::core
         size_t use_len = 0;
         [[nodiscard]] std::optional<std::vector<uint8_t>> generate() const;
         size_t byte_size() const;
+    };
+
+    struct MQAS_EXTERN engine_config
+    {
+        std::string bind_ip;
+        std::string log_level;
+        std::string log_path;
+        std::string log_config;
+        std::string alpn;
+        std::string ssl_cert_path;
+        std::string ssl_key_path;
+        short port = 0;
+        ::lsquic_engine_settings lsquic_settings = {};
     };
 
 }

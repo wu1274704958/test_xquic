@@ -21,6 +21,7 @@ mqas::core::StreamVariantErrcode P2PChatStream::on_change_msg_s(const std::share
     if (name.empty())
         return mqas::core::StreamVariantErrcode::failed;
     _peer_name = std::move(msg->name());
+    on_connected.emit(_peer_name);
     test::RespondDirectChat m;
     m.set_name(std::move(name));
     mqas::core::ProtoBufMsg::write_msg<RespondDirectChatPair>(ret_buf, m);
@@ -32,6 +33,7 @@ void P2PChatStream::on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode co
     if (code == mqas::core::StreamVariantErrcode::ok)
     {
         _peer_name = std::move(msg->name());
+        on_connected.emit(_peer_name);
     }
 }
 

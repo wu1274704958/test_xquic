@@ -1,0 +1,397 @@
+#include "mqas/core/engine_driver.h"
+#include "mqas/comm/string.h"
+#include <easylogging++.h>
+#include "mqas/log.h"
+#include <mqas/comm/macro.h>
+#include <mqas/io/udp.h>
+#include <mqas/io/exception.h>
+
+namespace mqas::core {
+
+	std::shared_ptr<engine_driver> engine_driver::_instance = nullptr;
+	std::mutex engine_driver::_instance_lock;
+	std::shared_ptr<engine_driver> engine_driver::instance() {
+		std::lock_guard lock(_instance_lock);
+		if (_instance == nullptr)
+			_instance = std::make_shared<engine_driver>();
+		return _instance;
+	}
+
+	bool engine_driver::register_engine(engine_base_interface* e, ::lsquic_engine* origin_e, const char* conf)
+	{
+		bool res = false;
+		if(!_initialized)
+			res = initialization(conf,e->get_engine_flags());
+		if(!res) return res;
+
+		auto v = _engine_map.find(origin_e);
+		if(v != _engine_map.end())
+			return false;
+		_engine_map.insert({ origin_e, e});
+		return true;
+	}
+
+	void engine_driver::unregister_engine(engine_base_interface* e, ::lsquic_engine* origin_e)
+	{
+		_engine_map.erase(origin_e);
+	}
+
+	bool engine_driver::initialization(const char* conf, EngineFlags flags)
+	{
+		_golbal_conf = toml::parse(conf);
+		_engine_config = toml::find<engine_config>(_golbal_conf, "engine_config");
+
+		init_logger();
+		init_setting(_golbal_conf,flags);
+
+		if (contain<uint32_t>(flags, EngineFlags::Server) && !_engine_config.ssl_cert_path.empty() && !_engine_config.ssl_key_path.empty())
+			init_ssl(_engine_config.ssl_cert_path.c_str(), _engine_config.ssl_key_path.c_str());
+		init_lsquic();
+
+		return true;
+	}
+
+	void engine_driver::init_setting(const toml::value& conf_data,EngineFlags flags)
+	{
+		::lsquic_engine_init_settings(&_engine_config.lsquic_settings, static_cast<unsigned>(flags));
+		if (conf_data.contains("lsquic_settings"))
+			settings_from_toml(_engine_config.lsquic_settings, conf_data.at("lsquic_settings"));
+	}
+
+	void engine_driver::fill_lsquic_engine_api(::lsquic_engine* origin_e,EngineFlags flags,::lsquic_engine_api& api) const
+	{
+		api.ea_settings = &_engine_config.lsquic_settings;
+		api.ea_packets_out = on_packets_out;
+		api.ea_stream_if = &_lsquic_stream_if;
+		api.ea_stream_if_ctx = (void*)this;
+		if (contain<uint32_t>(flags, EngineFlags::Server))
+			api.ea_get_ssl_ctx = on_get_ssl_ctx;
+		else
+		{ 
+			api.ea_get_ssl_ctx = nullptr;
+			api.ea_alpn = _engine_config.alpn.c_str();
+			if (_engine_config.alpn.empty())
+				LOG(WARNING) << "Client alpn is empty!";
+		}
+	}
+
+	//
+	void engine_driver::init_logger() const
+	{
+		mqas::log::init("default", _engine_config.log_config, std::nullopt);
+		const auto lsquic_log = el::Loggers::getLogger("lsquic");
+		el::Configurations c;
+		c.setFromBase(el::Loggers::getLogger("default")->configurations());
+		auto fmt = c.get(el::Level::Global, el::ConfigurationType::Format)->value();
+		bool erase_succ = mqas::comm::erase_substr(fmt, "[%level]");
+		if (!erase_succ) erase_succ = mqas::comm::erase_substr(fmt, "[%levshort]");
+		if (erase_succ)
+			c.set(el::Level::Global, el::ConfigurationType::Format, fmt);
+		el::Loggers::reconfigureLogger(lsquic_log, c);
+	}
+
+	int engine_driver::init_ssl(const char* cert_file, const char* key_file)
+	{
+		//LOG(INFO) << "initialize ssl ctx";
+		int ret = 0;
+		_ssl_ctx = SSL_CTX_new(TLS_method());
+		if (!_ssl_ctx)
+		{
+			LOG(ERROR) << "SSL_CTX_new failed";
+			throw std::runtime_error("SSL_CTX_new failed\n");
+		}
+		SSL_CTX_set_min_proto_version(_ssl_ctx, TLS1_3_VERSION);
+		SSL_CTX_set_max_proto_version(_ssl_ctx, TLS1_3_VERSION);
+		SSL_CTX_set_default_verify_paths(_ssl_ctx);
+		SSL_CTX_set_alpn_select_cb(_ssl_ctx, ssl_select_alpn_s, const_cast<char*>(_engine_config.alpn.c_str()));
+		if ((ret = SSL_CTX_use_certificate_chain_file(_ssl_ctx, cert_file)) != 1)
+		{
+			LOG(ERROR) << "SSL_CTX_use_certificate_chain_file failed " << ret;
+			throw std::runtime_error("SSL_CTX_use_certificate_chain_file failed");
+		}
+		if ((ret = SSL_CTX_use_PrivateKey_file(_ssl_ctx, key_file, SSL_FILETYPE_PEM)) != 1)
+		{
+			LOG(ERROR) << "SSL_CTX_use_PrivateKey_file failed " << ret;
+			throw std::runtime_error("SSL_CTX_use_PrivateKey_file failed");
+		}
+		return 0;
+	}
+
+	void engine_driver::init_lsquic() noexcept(false)
+	{
+		_lsquic_logger_if = { lsquic_log_func, };
+
+		lsquic_logger_init(&_lsquic_logger_if, this, LLTS_NONE);
+		lsquic_set_log_level(_engine_config.log_level.c_str());
+
+		_lsquic_stream_if.on_new_conn = on_new_conn_s;
+		_lsquic_stream_if.on_conn_closed = on_conn_closed_s;
+		_lsquic_stream_if.on_new_stream = on_new_stream_s;
+		_lsquic_stream_if.on_read = on_read_s;
+		_lsquic_stream_if.on_write = on_write_s;
+		_lsquic_stream_if.on_close = on_close_s;
+		_lsquic_stream_if.on_goaway_received = on_goaway_received;
+		_lsquic_stream_if.on_dg_write = on_dg_write;
+		_lsquic_stream_if.on_datagram = on_datagram;
+		_lsquic_stream_if.on_hsk_done = on_hsk_done;
+		_lsquic_stream_if.on_new_token = on_new_token;
+		_lsquic_stream_if.on_reset = on_reset;
+		_lsquic_stream_if.on_conncloseframe_received = on_conncloseframe_received;
+	}
+
+
+	//lsquic callback function
+	int engine_driver::lsquic_log_func(void* logger_ctx, const char* buf, size_t len)
+	{
+		CLOG(ERROR, "lsquic") << buf;
+		return 0;
+	}
+
+	engine_base_interface* engine_driver::get_engine_by_cxt(void* cxt,::lsquic_engine* engine)
+	{
+		auto* self = static_cast<engine_driver*>(cxt);
+		if (self == nullptr || !self->_engine_map.contains(engine))
+		{ 
+			LOG(ERROR) << "get_engine_by_cxt get nullptr";
+			return nullptr;
+		}
+		return self->_engine_map[engine];
+	}
+		
+
+	lsquic_conn_ctx_t* engine_driver::on_new_conn_s(void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
+	{
+		auto ptr = get_engine_by_cxt(stream_if_ctx,::lsquic_conn_get_engine(lsquic_conn));
+		ptr->on_new_conn_s(stream_if_ctx,lsquic_conn);
+		return reinterpret_cast<lsquic_conn_ctx_t*>(stream_if_ctx);
+	}
+	void engine_driver::on_conn_closed_s(lsquic_conn_t* lsquic_conn)
+	{
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(lsquic_conn),::lsquic_conn_get_engine(lsquic_conn));
+		ptr->on_conn_closed_s(lsquic_conn);
+	}
+	lsquic_stream_ctx_t* engine_driver::on_new_stream_s(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
+	{
+		auto ptr = get_engine_by_cxt(stream_if_ctx, ::lsquic_conn_get_engine(::lsquic_stream_conn(lsquic_stream)));
+		ptr->on_new_stream_s(stream_if_ctx, lsquic_stream);
+		return reinterpret_cast<lsquic_stream_ctx_t*>(stream_if_ctx);
+	}
+	void engine_driver::on_read_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+	{
+		auto ptr = get_engine_by_cxt(lsquic_stream_ctx, ::lsquic_conn_get_engine(::lsquic_stream_conn(lsquic_stream)));
+		ptr->on_read_s(lsquic_stream, lsquic_stream_ctx);
+	}
+	void engine_driver::on_write_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+	{
+		auto ptr = get_engine_by_cxt(lsquic_stream_ctx, ::lsquic_conn_get_engine(::lsquic_stream_conn(lsquic_stream)));
+		ptr->on_write_s(lsquic_stream, lsquic_stream_ctx);
+	}
+	void engine_driver::on_close_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+	{
+		auto ptr = get_engine_by_cxt(lsquic_stream_ctx, ::lsquic_conn_get_engine(::lsquic_stream_conn(lsquic_stream)));
+		ptr->on_close_s(lsquic_stream, lsquic_stream_ctx);
+	}
+	//optional callback
+	void engine_driver::on_goaway_received(lsquic_conn_t* c)
+	{
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c), ::lsquic_conn_get_engine(c));
+		ptr->on_goaway_received(c);
+	}
+
+	ssize_t engine_driver::on_dg_write(lsquic_conn_t* c, void* buf, size_t buf_sz)
+	{
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c), ::lsquic_conn_get_engine(c));
+		return ptr->on_dg_write(c, buf, buf_sz);
+	}
+
+	void engine_driver::on_datagram(lsquic_conn_t* c, const void* buf, size_t sz)
+	{
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c), ::lsquic_conn_get_engine(c));
+		ptr->on_datagram(c,buf,sz);
+	}
+
+	void engine_driver::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s)
+	{
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c), ::lsquic_conn_get_engine(c));
+		ptr->on_hsk_done(c, s);
+	}
+	void engine_driver::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
+	{
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c), ::lsquic_conn_get_engine(c));
+		ptr->on_new_token(c, token,token_size);
+	}
+	void engine_driver::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)
+	{
+		auto ptr = get_engine_by_cxt(h, ::lsquic_conn_get_engine(::lsquic_stream_conn(s)));
+		ptr->on_reset(s, h, how);
+	}
+
+	void engine_driver::on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len)
+	{
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c), ::lsquic_conn_get_engine(c));
+		ptr->on_conncloseframe_received(c, app_error, error_code,reason,reason_len);
+	}
+
+	int engine_driver::on_packets_out(void* packets_out_ctx, const lsquic_out_spec* out_spec, unsigned n_packets_out)
+	{
+		const auto sock = static_cast<io::UdpSocket*>(packets_out_ctx);
+
+		std::vector<std::span<uint8_t>> bufs;
+		unsigned succ_num = n_packets_out;
+		for (unsigned n = 0; n < n_packets_out; ++n)
+		{
+			if (bufs.size() < out_spec[n].iovlen)
+				bufs.resize(out_spec[n].iovlen);
+			for (unsigned i = 0; i < out_spec[n].iovlen; ++i)
+			{
+				bufs[i] = std::span<uint8_t>(static_cast<uint8_t*>(out_spec[n].iov[i].iov_base), out_spec[n].iov[i].iov_len);
+			}
+			try {
+				sock->send(bufs, *out_spec[n].dest_sa, [](io::UdpSocket* s, int status) {
+					if (status != 0) LOG(ERROR) << "packets_out send failed status = " << status;
+					});
+				//sock->try_send(bufs, *out_spec[n].dest_sa);
+			}
+			catch (io::Exception& e)
+			{
+				--succ_num;
+				LOG(ERROR) << "packets_out send failed exception = " << e.what();
+			}
+		}
+		return static_cast<int>(succ_num);
+	}
+
+	ssl_ctx_st* engine_driver::on_get_ssl_ctx(void* peer_ctx, const sockaddr* local)
+	{
+		const auto engine = static_cast<engine_driver*>(peer_ctx);
+		return engine->_ssl_ctx;
+	}
+}
+
+
+//engine config deserialize
+mqas::core::engine_config toml::from<mqas::core::engine_config>::from_toml(const value& v)
+{
+	mqas::core::engine_config f;
+	f.bind_ip = find_or<std::string			>(v, "bind_ip", "0.0.0.0");
+	f.port = find_or<short					>(v, "port", 8083);
+	f.log_level = find_or<std::string		>(v, "log_level", "warning");
+	f.log_path = find_or<std::string		>(v, "log_path", "log.txt");
+	f.log_config = find_or<std::string		>(v, "log_config", "");
+	f.alpn = find_or<std::string			>(v, "alpn", "");
+	f.ssl_cert_path = find_or<std::string		>(v, "ssl_cert_path", "");
+	f.ssl_key_path = find_or<std::string		>(v, "ssl_key_path", "");
+	return f;
+}
+
+namespace mqas::core {
+
+
+	int engine_driver::ssl_select_alpn_s(::SSL* ssl, const unsigned char** out, unsigned char* outlen,
+		const unsigned char* in, unsigned inlen, void* arg)
+	{
+		const auto alpn = static_cast<const char*>(arg);
+		//LOG(INFO) << "select alpn";
+		std::vector<uint8_t> buf;
+		const auto ss = mqas::comm::split(alpn, ';');
+		for (auto& a : ss)
+		{
+			buf.push_back(static_cast<char>(a.size()));
+			for (auto c : a)
+				buf.push_back(c);
+		}
+		const int r = SSL_select_next_proto(const_cast<unsigned char**>(out), outlen, in, inlen,
+			reinterpret_cast<const uint8_t*>(buf.data()), static_cast<unsigned>(buf.size()));
+		if (r == OPENSSL_NPN_NEGOTIATED)
+			return SSL_TLSEXT_ERR_OK;
+		else {
+			const std::string_view in_sv(reinterpret_cast<const char*>(in), inlen);
+			LOG(TRACE) << "no supported protocol can be selected from " << in_sv;
+			return SSL_TLSEXT_ERR_ALERT_FATAL;
+		}
+	}
+
+	///read lsquic setting from config
+#define CK_READ_SETTING(k,t) if (v.contains(#k)) s.k = toml::find<t>(v, #k)
+#define CK_READ_SETTING_Str(k) if (v.contains(#k)) s.k = toml::find<std::string>(v, #k).c_str()
+	void engine_driver::settings_from_toml(::lsquic_engine_settings& s, const toml::value& v)
+	{
+		CK_READ_SETTING(es_versions, unsigned);
+		CK_READ_SETTING(es_sfcw, unsigned);
+		CK_READ_SETTING(es_max_cfcw, unsigned);
+		CK_READ_SETTING(es_max_sfcw, unsigned);
+		CK_READ_SETTING(es_max_streams_in, unsigned);
+		CK_READ_SETTING(es_handshake_to, unsigned long);
+		CK_READ_SETTING(es_idle_conn_to, unsigned long);
+		CK_READ_SETTING(es_silent_close, int);
+		CK_READ_SETTING(es_max_header_list_size, unsigned);
+		CK_READ_SETTING(es_silent_close, int);
+		CK_READ_SETTING_Str(es_ua);
+		CK_READ_SETTING(es_sttl, uint64_t);
+		CK_READ_SETTING(es_pdmd, uint64_t);
+		CK_READ_SETTING(es_aead, uint64_t);
+		CK_READ_SETTING(es_kexs, uint64_t);
+		CK_READ_SETTING(es_max_inchoate, unsigned);
+		CK_READ_SETTING(es_support_push, unsigned);
+		CK_READ_SETTING(es_support_tcid0, int);
+		CK_READ_SETTING(es_support_nstp, int);
+		CK_READ_SETTING(es_honor_prst, int);
+		CK_READ_SETTING(es_send_prst, int);
+		CK_READ_SETTING(es_progress_check, unsigned);
+		CK_READ_SETTING(es_rw_once, int);
+		CK_READ_SETTING(es_proc_time_thresh, unsigned);
+		CK_READ_SETTING(es_pace_packets, int);
+		CK_READ_SETTING(es_clock_granularity, unsigned);
+		CK_READ_SETTING(es_cc_algo, unsigned);
+		CK_READ_SETTING(es_cc_rtt_thresh, unsigned);
+		CK_READ_SETTING(es_noprogress_timeout, unsigned);
+		CK_READ_SETTING(es_init_max_data, unsigned);
+		CK_READ_SETTING(es_init_max_stream_data_bidi_remote, unsigned);
+		CK_READ_SETTING(es_init_max_stream_data_bidi_local, unsigned);
+		CK_READ_SETTING(es_init_max_stream_data_uni, unsigned);
+		CK_READ_SETTING(es_init_max_streams_bidi, unsigned);
+		CK_READ_SETTING(es_init_max_streams_uni, unsigned);
+		CK_READ_SETTING(es_idle_timeout, unsigned);
+		CK_READ_SETTING(es_ping_period, unsigned);
+		CK_READ_SETTING(es_scid_len, unsigned);
+		CK_READ_SETTING(es_scid_iss_rate, unsigned);
+		CK_READ_SETTING(es_qpack_dec_max_size, unsigned);
+		CK_READ_SETTING(es_qpack_dec_max_blocked, unsigned);
+		CK_READ_SETTING(es_qpack_enc_max_size, unsigned);
+		CK_READ_SETTING(es_qpack_enc_max_blocked, unsigned);
+		CK_READ_SETTING(es_ecn, int);
+		CK_READ_SETTING(es_allow_migration, int);
+		CK_READ_SETTING(es_ql_bits, int);
+		CK_READ_SETTING(es_spin, int);
+		CK_READ_SETTING(es_delayed_acks, int);
+		CK_READ_SETTING(es_timestamps, int);
+		CK_READ_SETTING(es_max_udp_payload_size_rx, int);
+		CK_READ_SETTING(es_grease_quic_bit, int);
+		CK_READ_SETTING(es_dplpmtud, int);
+		CK_READ_SETTING(es_base_plpmtu, unsigned short);
+		CK_READ_SETTING(es_max_plpmtu, unsigned short);
+		CK_READ_SETTING(es_mtu_probe_timer, unsigned);
+		CK_READ_SETTING(es_datagrams, int);
+		CK_READ_SETTING(es_optimistic_nat, int);
+		CK_READ_SETTING(es_ext_http_prio, int);
+		CK_READ_SETTING(es_qpack_experiment, int);
+		/**
+		*WARNING.The library comes with sane defaults.Only fiddle with
+		* these knobs if you know what you are doing.
+		*/
+		CK_READ_SETTING(es_ptpc_periodicity, unsigned);
+		CK_READ_SETTING(es_ptpc_max_packtol, unsigned);
+		CK_READ_SETTING(es_ptpc_dyn_target, int);
+		CK_READ_SETTING(es_ptpc_target, float);
+		CK_READ_SETTING(es_ptpc_prop_gain, float);
+		CK_READ_SETTING(es_ptpc_int_gain, float);
+		CK_READ_SETTING(es_ptpc_err_thresh, float);
+		CK_READ_SETTING(es_ptpc_err_divisor, float);
+
+		CK_READ_SETTING(es_delay_onclose, int);
+		CK_READ_SETTING(es_max_batch_size, unsigned);
+		CK_READ_SETTING(es_check_tp_sanity, int);
+	}
+#undef CK_READ_SETTING
+#undef CK_READ_SETTING_Str
+}

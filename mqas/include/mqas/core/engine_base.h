@@ -14,18 +14,6 @@
 
 namespace mqas::core
 {
-	struct MQAS_EXTERN engine_config
-	{
-		std::string bind_ip;
-		std::string log_level;
-		std::string log_path;
-		std::string log_config;
-		std::string alpn;
-		std::string ssl_cert_path;
-		std::string ssl_key_path;
-		short port = 0;
-		::lsquic_engine_settings lsquic_settings = {};
-	};
 	
 	class MQAS_EXTERN IEngine
 	{
@@ -93,13 +81,15 @@ namespace mqas::core
 		void close_socket();
 		void close_timer();
 		void close_ssl_ctx();
+		void close();
+		void wait_all_connect_closed();
 		~engine_base()
 		{
-            if(engine_extern_)
-				engine_extern_->close();
 			close_socket();
 			close_timer();
 			close_ssl_ctx();
+			if(engine_)
+				::lsquic_engine_destroy(engine_);
 		}
 	protected:
 		static std::string load_config(const char* conf_file);

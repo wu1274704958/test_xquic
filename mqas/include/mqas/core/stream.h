@@ -82,6 +82,7 @@ namespace mqas::core {
         sigc::signal<void(std::shared_ptr<IStreamVariant>)> on_quit_stream_signal;
         sigc::signal<void(std::shared_ptr<IStreamVariant>)> on_resume_stream_signal;
         sigc::signal<void(std::shared_ptr<IStreamVariant>)> on_pause_stream_signal;
+        sigc::signal<void(std::shared_ptr<IStreamVariant>)> on_close_signal;
         size_t do_read();
         size_t do_read_shell();
         size_t do_read_hold();

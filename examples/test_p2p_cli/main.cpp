@@ -13,6 +13,7 @@
 #include <mqas/comm/engine.h>
 #include "p2p_chat.h"
 #include <mqas/comm/locator.h>
+#include <algorithm>
 
 using namespace mqas;
 MQAS_SHARE_EASYLOGGINGPP
@@ -45,7 +46,46 @@ enum class ui_state {
 	get_respond = 5,
 	helper_main = 6,
 	helper_result_failed = 7,
-	p2p_main = 8
+	p2p_main = 8,
+	p2p_chat = 9,
+};
+
+struct p2p_chat_cxt {
+	std::string peer_name;
+	std::vector<std::pair<uint8_t,std::string>> msg_list;
+	uint16_t height = 0;
+	uint16_t width = 0;
+	uint16_t input_pos = 0;
+	uint16_t min = 0;
+	uint16_t max = 0;
+	std::string input_text;
+
+	void scroll_end()
+	{
+		size_t total_messages = msg_list.size();
+		if (height >= total_messages) {
+			min = 0;
+			max = total_messages <= 0 ? 0 : total_messages - 1;
+		}
+		else {
+			max = total_messages - 1;
+			min = max - height;
+		}
+	}
+
+	void scroll_up() {
+		if (min > 0) {
+			min--;
+			max--;
+		}
+	}
+
+	void scroll_down() {
+		if (max < msg_list.size() - 1) {
+			min++;
+			max++;
+		}
+	}
 };
 
 struct tui
@@ -67,8 +107,13 @@ protected:
 	void on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg, std::shared_ptr<io::UdpSocket>);
 	void append_state(ui_state state);
 	void quit_helper();
+	void quit_p2p();
 	void on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,bool is_server);
 	void on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_server);
+	void on_recive_p2p_msg(const std::string&,const std::string&);
+	void on_p2p_peer_quit(std::shared_ptr<core::IStreamVariant> stream);
+	void on_p2p_connected(const std::string&);
+	void clean_up_p2p(bool active = true);
 	ui_state pop_state();
 	ui_state current_state() const;
 protected:
@@ -84,7 +129,11 @@ protected:
 	std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult> helper_result;
 	std::vector<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectPeerData>> try_connect_list;
 	std::shared_ptr<core::engine_base<core::engine<core::Connect<P2PStreamType>>>> p2p_engine;
-	std::weak_ptr<P2PStreamType> p2p_stream;
+	std::weak_ptr<P2PChatStream> p2p_stream;
+	std::shared_ptr<p2p_chat_cxt> p2p_cxt;
+	int rows, cols;
+	std::shared_ptr<io::Idle> idle;
+	std::vector<std::function<void()>> lazy_task;
 };
 
 int main(int argc, const char** argv)
@@ -157,10 +206,16 @@ void tui::init()
 	nodelay(stdscr,TRUE);
 	refresh();
 	append_state(ui_state::main);
-	int rows, cols;
 	getmaxyx(stdscr, rows, cols);
 	win = newwin(rows, cols, 0, 0);
 	input_peer_id = 0;
+
+	idle = comm::locator::inst()->get_ref<io::Context>().value().get().make_shared<io::Idle>();
+	idle->start([this](io::Idle*) {
+		for(auto& t : lazy_task)
+			t();
+		lazy_task.clear();
+	});
 }
 
 void tui::append_state(ui_state state)
@@ -267,7 +322,30 @@ void tui::draw()
 	case ui_state::p2p_main:
 		wprintw(win, "Get success p2p ready to connect to %d addr is %s:%d",helper_result->peer_id(),
 			helper_result->address().ip().c_str(), helper_result->address().port());
+		wmove(win, ++y, 1);
+		wprintw(win, "connecting...");
 		//todo sync p2p connect state
+		break;
+	case ui_state::p2p_chat:
+	{
+		wmove(win,0,0);
+		wprintw(win,"chating to %s", p2p_cxt->peer_name.c_str());
+		for (int i = p2p_cxt->min; i <= p2p_cxt->max; ++i)
+		{
+			const auto& it = p2p_cxt->msg_list[i];
+			if (it.first == 0)	//self
+			{
+				wmove(win, y + i, p2p_cxt->width - it.second.size());
+				wprintw(win, "%s :self", it.second.c_str());
+			}
+			else {				//peer
+				wmove(win, y + i, 1);
+				wprintw(win, "peer: %s", it.second.c_str());
+			}	
+		}
+		wmove(win, p2p_cxt->input_pos, 1);
+		wprintw(win, "input: [%s]", p2p_cxt->input_text.c_str());
+	}
 		break;
 	default:
 		break;
@@ -325,7 +403,21 @@ void tui::handle_input()
 		break;
 	case ui_state::p2p_main:
 		if (KEY_ESC == c)
-			;//todo close and clean p2p connect
+			quit_p2p();
+		break;
+	case ui_state::p2p_chat:
+	{
+		if (KEY_ESC == c)
+			quit_p2p();
+		else if (c == KEY_Enter && !p2p_cxt->input_text.empty()) //enter
+		{
+			auto ptr = p2p_stream.lock();
+			if (ptr->send_msg(p2p_cxt->input_text))
+				p2p_cxt->msg_list.push_back({0,std::move(p2p_cxt->input_text)});
+		}
+		else
+			p2p_cxt->input_text += c;
+	}
 		break;
 	default:
 		break;
@@ -402,16 +494,24 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 		auto io_cxt = comm::locator::inst()->get_ref<io::Context>();
 
 		std::function<void(std::shared_ptr<core::Connect<P2PStreamType>>)> func = std::bind(&tui::on_new_p2p_connect, this, std::placeholders::_1, msg->is_server());
+		std::function<void(const std::exception&)> exception_func = [this](const std::exception&) {
+			on_p2p_peer_quit(nullptr);
+		};
 		if (msg->is_server())
 			p2p_engine = comm::engine_util::launch_engine<P2PStreamType>(io_cxt.value().get(), "conf.txt",
-				core::EngineFlags::Server, sock, func);
+				core::EngineFlags::Server, sock, func, std::nullopt,exception_func);
 		else
 		{
 			sockaddr addr;
 			io::Ip::str2addr(msg->address().ip().c_str(), msg->address().port(), addr);
 			p2p_engine = comm::engine_util::launch_engine<P2PStreamType>(io_cxt.value().get(), "conf.txt",
-				core::EngineFlags::None, sock, func, addr);
+				core::EngineFlags::None, sock, func, addr,exception_func);
 		}
+		p2p_engine->get_engine()->on_connect_closed_signal.connect([this](std::shared_ptr<core::Connect<P2PStreamType>>) {
+			lazy_task.push_back([this]() {
+				quit_p2p();
+			});
+		});
 	}
 }
 
@@ -439,16 +539,47 @@ void tui::quit_helper()
 	}
 }
 
+void tui::quit_p2p()
+{
+	if (p2p_engine)
+	{
+		p2p_engine->wait_all_connect_closed();
+		on_p2p_peer_quit(nullptr);
+	}
+}
+
 void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_server)
 {
+	auto self = this;
+	std::function<void(std::shared_ptr<P2PChatStream>)> func = [self](std::shared_ptr<P2PChatStream> ptr){
+		self->p2p_stream = ptr;
+		ptr->on_received_message.connect(sigc::mem_fun(*self,&tui::on_recive_p2p_msg));
+		ptr->on_connected.connect(sigc::mem_fun(*self,&tui::on_p2p_connected));
+	};
 	if (is_server)
 	{
-	
+		stream->on_change_stream_signal.connect([func](std::shared_ptr<core::IStreamVariant> p) {
+			auto ptr = std::dynamic_pointer_cast<P2PChatStream>(p);
+			if(ptr)
+				func(ptr);
+		});
 	}
 	else {
 		test::ReqDirectChat m;
-		stream->req_change<P2PChatStream,ReqDirectChatPair>(m);
+		if (stream->req_change<P2PChatStream, ReqDirectChatPair>(m))
+		{
+			auto ptr = stream->get_holds_stream<P2PChatStream>();
+			if(ptr)
+				func(ptr);
+		}
 	}
+}
+
+void tui::on_recive_p2p_msg(const std::string& name, const std::string& msg)
+{
+	p2p_cxt->msg_list.push_back({1,msg});
+	//handle sliding window
+	p2p_cxt->scroll_end();
 }
 
 void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,bool is_server)
@@ -457,4 +588,32 @@ void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,
 		conn->on_new_stream_signal.connect(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1, is_server));
 	else
 		conn->make_stream(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1,is_server));	
+}
+
+void tui::on_p2p_peer_quit(std::shared_ptr<core::IStreamVariant> stream)
+{
+	clean_up_p2p(false);
+	auto curr = current_state();
+	if(curr == ui_state::p2p_chat || curr == ui_state::p2p_main)
+		pop_state();
+}
+
+void tui::on_p2p_connected(const std::string& name)
+{
+	if (current_state() == ui_state::p2p_main)
+		pop_state();
+	append_state(ui_state::p2p_chat);
+	
+	p2p_cxt = std::make_shared<p2p_chat_cxt>();
+	p2p_cxt->height = cols - 1 - 2;
+	p2p_cxt->width = rows - 2;
+	p2p_cxt->input_pos = cols - 1;
+	p2p_cxt->peer_name = name;
+}
+
+void tui::clean_up_p2p(bool active)
+{
+	p2p_stream.reset();
+	p2p_engine.reset();
+	p2p_cxt.reset();
 }

@@ -59,6 +59,7 @@ void mqas::core::engine<C>::on_conn_closed(lsquic_conn_t* lsquic_conn)
 	const auto key = reinterpret_cast<size_t>(lsquic_conn);
 	if (conn_map_.contains(key))
 	{
+		on_connect_closed_signal.emit(conn_map_[key]);
 		conn_map_[key]->on_close();
 		conn_map_.erase(key);
 	}
@@ -199,6 +200,12 @@ bool mqas::core::engine<C>::has_stream(lsquic_conn_t *conn, lsquic_stream_t *str
     return false;
 }
 
+ENGINE_TEMPLATE_DECL
+size_t mqas::core::engine<C>::connect_count() const
+{
+	return conn_map_.size();
+}
+
 
 ENGINE_TEMPLATE_DECL
 void mqas::core::engine<C>::close()
@@ -207,7 +214,8 @@ void mqas::core::engine<C>::close()
     {
         c.second->close();
     }
-    engine_cxt_.process_conns();
+	if(!conn_map_.empty())
+		engine_cxt_.process_conns();
 }
 
 #undef ENGINE_TEMPLATE_DECL

@@ -75,6 +75,7 @@ namespace mqas::core{
     MQAS_STREAM_IMPL_TEMPLATE_DECL
     void StreamVariant<S...>::on_close()
     {
+        on_close_signal.emit(get_holds_stream(stream_tag_));
         if(stream_tag_ == 0)
         {
             IStream::on_close();
