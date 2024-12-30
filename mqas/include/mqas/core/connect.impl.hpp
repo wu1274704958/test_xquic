@@ -17,8 +17,8 @@ requires requires{                                                              
 namespace mqas::core{
 
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
-    void Connect<S>::init(::lsquic_conn_t *conn, engine_cxt *engine_cxt) {
-        IConnect::init(conn, engine_cxt);
+    void Connect<S>::init(::lsquic_conn_t *conn, std::shared_ptr<engine_cxt> cxt) {
+        IConnect::init(conn, cxt);
         connect_cxt_ = {};
         connect_cxt_.engine_cxt_ = engine_cxt_;
         connect_cxt_.has_stream = std::bind_front(&Connect<S>::has_stream,this);

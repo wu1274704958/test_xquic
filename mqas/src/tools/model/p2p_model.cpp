@@ -135,10 +135,12 @@ namespace mqas::tools::p2p {
 		cxt.pid[0] = a.id;
 		cxt.pid[1] = b.id;
 		for (int i = 0; i < a_ip.ip_list_size(); ++i)
-			if (mqas::io::Ip::valid_ip(a_ip.ip_list().Get(i).c_str(), a_ip.port()))
+			if (mqas::io::Ip::is_valid_local_ip(a_ip.ip_list().Get(i).c_str()) && 
+				mqas::io::Ip::valid_ip(a_ip.ip_list().Get(i).c_str(), a_ip.port()))
 				cxt.ip_list[0].push_back(a_ip.ip_list().Get(i));
 		for (int i = 0; i < b_ip.ip_list_size(); ++i)
-			if (mqas::io::Ip::valid_ip(b_ip.ip_list().Get(i).c_str(), b_ip.port()))
+			if (mqas::io::Ip::is_valid_local_ip(b_ip.ip_list().Get(i).c_str()) &&
+				mqas::io::Ip::valid_ip(b_ip.ip_list().Get(i).c_str(), b_ip.port()))
 				cxt.ip_list[1].push_back(b_ip.ip_list().Get(i));
 		cxt.state = ConnectState::Idle;
 		cxt.stage_1 = cxt.stage_2[0] = cxt.stage_2[1] =  -1;
@@ -156,7 +158,8 @@ namespace mqas::tools::p2p {
 		const auto oth_idx = idx == 0 ? 1 : 0;
 		cxt.port_list[oth_idx] = oth_ip.port();
 		for (int i = 0; i < oth_ip.ip_list_size(); ++i)
-			if(mqas::io::Ip::valid_ip(oth_ip.ip_list().Get(i).c_str(), oth_ip.port()))
+			if(mqas::io::Ip::is_valid_local_ip(oth_ip.ip_list().Get(i).c_str()) &&
+			   mqas::io::Ip::valid_ip(oth_ip.ip_list().Get(i).c_str(), oth_ip.port()))
 				cxt.ip_list[oth_idx].push_back(oth_ip.ip_list().Get(i));
 		cxt.stage_1 = cxt.stage_2[idx] = -1;
 		cxt.state =  (cxt.port_list[0] > 0 && cxt.port_list[1] > 0) ? ConnectState::Ready : ConnectState::Idle;

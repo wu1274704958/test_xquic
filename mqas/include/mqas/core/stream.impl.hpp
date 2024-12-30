@@ -94,14 +94,28 @@ namespace mqas::core{
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
+    template <bool Lazy>
     bool StreamVariant<S...>::write(const std::span<uint8_t>& d)
     {
         if(stream_tag_ == 0)
         {
-            return IStream::write(d);
+            if constexpr(Lazy)
+            { 
+                IStream::write_lazy(d);
+                return true;
+            }
+            else {
+                return IStream::write(d);
+            }
         }else{
             bool ret = false;
-            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->write(d))),...);
+            if constexpr (Lazy)
+            {
+                ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (ret = (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->write_lazy(d),true))), ...);
+            }
+            else {
+                ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->write(d))),...);
+            }
             return ret;
         }
     }
@@ -526,6 +540,7 @@ namespace mqas::core{
         StreamVariantErrcode res;
         if constexpr (!IS_LOCAL)
         {
+            on_change_stream_signal.emit(stream);
             res = stream->on_change(change_params, ret_buf);
             if (res != StreamVariantErrcode::ok && res != StreamVariantErrcode::skip_and_manual) {
                 clear_curr_stream();
@@ -540,7 +555,6 @@ namespace mqas::core{
             }
             stream->setIsWaitPeerChangeRet(true);
         }
-        on_change_stream_signal.emit(stream);
         return res;
     }
 

@@ -53,6 +53,25 @@ u_short mqas::io::Ip::addr_get_port(const sockaddr& addr)
 	}
 }
 
+bool mqas::io::Ip::compare_ip(const sockaddr& a, const sockaddr& b, bool ignorePort)
+{
+	if (a.sa_family != b.sa_family)
+		return false;
+	if (a.sa_family == AF_INET) {
+		auto* addra_in = (const struct sockaddr_in*)&a;
+		auto* addrb_in = (const struct sockaddr_in*)&b;
+		auto addr_same = std::memcmp(&addra_in->sin_addr, &addrb_in->sin_addr,sizeof(IN_ADDR)) == 0;
+		return ignorePort ? addr_same : addr_same && addra_in->sin_port == addrb_in->sin_port;
+	}
+	else if(a.sa_family == AF_INET6) {
+		auto* addra_in = (const struct sockaddr_in6*)&a;
+		auto* addrb_in = (const struct sockaddr_in6*)&b;
+		auto addr_same = std::memcmp(&addra_in->sin6_addr, &addrb_in->sin6_addr, sizeof(IN6_ADDR)) == 0;
+		return ignorePort ? addr_same : addr_same && addra_in->sin6_port == addrb_in->sin6_port;
+	}
+	return false;
+}
+
 #if _WIN32
 #include <winsock2.h>
 #include <iphlpapi.h>
@@ -124,10 +143,9 @@ bool mqas::io::Ip::valid_ipv6(const char* str, int port)
 	sockaddr addr;
 	return uv_ip6_addr(str, port, reinterpret_cast<sockaddr_in6*>(&addr)) == 0;
 }
+
 bool mqas::io::Ip::valid_ip(const char* str, int port)
 {
-	if (!is_valid_local_ip(str))
-		return false;
 	sockaddr addr;
 	auto ret = uv_ip4_addr(str, port, reinterpret_cast<sockaddr_in*>(&addr));
 	if (ret != 0)

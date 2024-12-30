@@ -10,8 +10,6 @@
 
 namespace mqas::core
 {
-	struct MQAS_EXTERN engine_config;
-
 	class MQAS_EXTERN engine_base_interface
 	{
 		public:
@@ -35,11 +33,15 @@ namespace mqas::core
 
 	class MQAS_EXTERN base_engine_driver {
 	public:
+		bool initialization(const char* conf, EngineFlags flags) { return false; }
 		bool initialized() const { return false; }
-		const toml::value* get_global_conf() const { return nullptr; }
-		bool register_engine(engine_base_interface* e, ::lsquic_engine* origin_e, const char* conf) {return false;}
+		std::shared_ptr<toml::value> get_global_conf() const { return nullptr; }
+		bool register_engine(engine_base_interface* e, ::lsquic_engine* origin_e) {return false;}
 		void unregister_engine(engine_base_interface* e, ::lsquic_engine* origin_e) {}
-		void fill_lsquic_engine_api(::lsquic_engine* origin_e,EngineFlags flags,::lsquic_engine_api& api) const {}
+		void fill_lsquic_engine_api(engine_base_interface* e,EngineFlags flags,::lsquic_engine_api& api,
+			const engine_config& conf) const {}
+		std::shared_ptr<engine_config> get_engine_conf() const { return nullptr;}
+		::SSL_CTX* get_ssl_or_generate(const std::string&, const std::string&) { return nullptr; }
 	};
 
 	template <typename T>
@@ -54,36 +56,39 @@ namespace mqas::core
 		public:
 		static std::shared_ptr<engine_driver> instance();
 		bool initialized() {return _initialized;}
-		const toml::value* get_global_conf() const { return &_golbal_conf;}
-		bool register_engine(engine_base_interface* e, ::lsquic_engine* origin_e,const char* conf);
+		std::shared_ptr<toml::value> get_global_conf() const { return _golbal_conf;}
+		bool register_engine(engine_base_interface* e, ::lsquic_engine* origin_e);
 		void unregister_engine(engine_base_interface* e, ::lsquic_engine* origin_e);
-		void fill_lsquic_engine_api(::lsquic_engine* origin_e,EngineFlags flags, ::lsquic_engine_api& api) const;
-
+		void fill_lsquic_engine_api(engine_base_interface* e,EngineFlags flags, ::lsquic_engine_api& api,
+			const engine_config& conf) const;
+		std::shared_ptr<engine_config> get_engine_conf() const { return _engine_config; }
+		bool initialization(const char* conf);
+		::SSL_CTX* get_ssl_or_generate(const std::string& cert_file, const std::string& key_file);
+		static void settings_from_toml(::lsquic_engine_settings& s, const toml::value& v);
 		protected:
-		bool initialization(const char* conf, EngineFlags flags);
-		void init_setting(const toml::value& conf_data, EngineFlags flags);
 		void init_logger() const;
-		int init_ssl(const char* cert_file, const char* key_file);
+		::SSL_CTX* init_ssl(const std::string& cert_file, const std::string& key_file);
+		std::string ssl_pair_key(const std::string&, const std::string& key_file);
+		void close_ssl_ctx();
 		void init_lsquic() noexcept(false);
 
-		static void settings_from_toml(::lsquic_engine_settings& s, const toml::value& v);
 		static int ssl_select_alpn_s(::SSL* ssl, const unsigned char** out, unsigned char* outlen,
 			const unsigned char* in, unsigned inlen, void* arg);
-		static engine_base_interface* get_engine_by_cxt(void* cxt, ::lsquic_engine* engine);
+		static engine_base_interface* get_engine_by_cxt(void* cxt);
 
 		protected:
 			static std::shared_ptr<engine_driver> _instance;
 			static std::mutex _instance_lock;
 
-			engine_config _engine_config;
-			toml::value _golbal_conf;
+			std::shared_ptr<engine_config> _engine_config;
+			std::shared_ptr<toml::value> _golbal_conf;
 			std::atomic_bool _initialized = false;
 			//context
-			::SSL_CTX* _ssl_ctx = nullptr;
-			::lsquic_logger_if _lsquic_logger_if;
-			::lsquic_stream_if _lsquic_stream_if;
+			::lsquic_logger_if _lsquic_logger_if = {};
+			::lsquic_stream_if _lsquic_stream_if = {};
 			
 			std::unordered_map<::lsquic_engine*,engine_base_interface*> _engine_map;
+			std::unordered_map<std::string, ::SSL_CTX*> _ssl_ctx_map;
 
 		protected:
 			//lsquic callback function
@@ -105,16 +110,7 @@ namespace mqas::core
 			static void on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len);
 
 			static int on_packets_out(void* packets_out_ctx, const lsquic_out_spec* out_spec, unsigned n_packets_out);
-			static ssl_ctx_st* on_get_ssl_ctx(void* peer_ctx, const sockaddr* local);
 	};
 
 	
 }
-
-
-
-template<>
-struct MQAS_EXTERN toml::from<mqas::core::engine_config>
-{
-	static mqas::core::engine_config from_toml(const value& v);
-};

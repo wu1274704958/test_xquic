@@ -11,7 +11,7 @@ void mqas::core::IStream::on_init(::lsquic_stream_t *lsquic_stream,connect_cxt* 
     reader_.lsqr_size = reader_size;
     this->connect = std::move(connect);
     if(want_read_on_init_) want_read(true);
-    lazy_timer = connect_cxt_->engine_cxt_->io_cxt->make_handle<io::Timer>();
+    lazy_timer = connect_cxt_->engine_cxt_->io_cxt.make_handle<io::Timer>();
 }
 
 size_t mqas::core::IStream::do_read() {
@@ -66,7 +66,7 @@ void mqas::core::IStream::do_write() {
 void mqas::core::IStream::on_close() {
     is_closed_ = true;
     if(lazy_timer)
-        connect_cxt_->engine_cxt_->io_cxt->del_handle(lazy_timer);
+        connect_cxt_->engine_cxt_->io_cxt.del_handle(lazy_timer);
     lazy_timer = nullptr;
 }
 
@@ -141,6 +141,7 @@ bool mqas::core::IStream::want_read(bool f) const {
         LOG(ERROR) << "Stream "<< stream_ <<" want read get error " << errno;
         return false;
     }
+    MQAS_DBG("Stream " << stream_ << " want read " << f);
     return true;
 }
 
@@ -154,9 +155,10 @@ bool mqas::core::IStream::close() {
 
 bool mqas::core::IStream::want_write(bool f) const {
     if(lsquic_stream_wantwrite(stream_,f ? 1 : 0) == -1) {
-        LOG(ERROR) << "Stream "<< stream_ <<" want read get error " << errno;
+        LOG(ERROR) << "Stream "<< stream_ <<" want write get error " << errno;
         return false;
     }
+    MQAS_DBG("Stream " << stream_ << " want write " << f);
     return true;
 }
 

@@ -7,7 +7,7 @@ namespace mqas::tools::p2p {
 		on_connect_peer.emit(msg);
 
 		if(_timer == nullptr)
-			_timer = connect_cxt_->engine_cxt_->io_cxt->make_shared<io::Timer>();
+			_timer = connect_cxt_->engine_cxt_->io_cxt.make_shared<io::Timer>();
 
 		_connect_peer_data = msg;
 		_connect_count = 0;
@@ -34,6 +34,8 @@ namespace mqas::tools::p2p {
 	mqas::core::StreamVariantErrcode P2PHelperClientStream::on_peer_quit_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectResult>& res,
 		std::vector<uint8_t>& buf)
 	{
+		if (_receive_connect.connected())
+			_receive_connect.disconnect();
 		on_quit_result.emit(res,_socket);
 		return mqas::core::StreamVariantErrcode::ok;
 	}
@@ -128,7 +130,7 @@ namespace mqas::tools::p2p {
 
 	bool P2PHelperClientStream::is_stream_addr(const sockaddr* addr) const
 	{
-		return std::memcmp(_local_addr,addr,sizeof(sockaddr)) == 0;
+		return io::Ip::compare_ip(*_local_addr,*addr);
 	}
 
 

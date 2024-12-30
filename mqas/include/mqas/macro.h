@@ -24,3 +24,10 @@
 #endif
 
 #endif
+
+
+#if !NDEBUG && 1
+#define MQAS_DBG(msg) LOG(DEBUG) << msg
+#else
+#define MQAS_DBG(msg) 
+#endif

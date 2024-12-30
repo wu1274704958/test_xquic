@@ -11,50 +11,17 @@
 #include <span>
 #include <optional>
 #include <sigc++/sigc++.h>
+#include "engine_interface.h"
 
 namespace mqas::core
 {
-	
-	class MQAS_EXTERN IEngine
-	{
-	public:
-			void init(void* engine_base_ptr);
-			void on_new_lsquic_engine(::lsquic_engine_api&, EngineFlags);
-			void on_init_socket(std::shared_ptr<io::UdpSocket> socket);
-			void on_init_config(std::shared_ptr<toml::value> config);
-			void on_init_logger();
-			bool on_recv(const std::optional<std::span<uint8_t>>& buf, ssize_t nread, const sockaddr* addr, unsigned flags);
-
-			void on_new_conn(void* stream_if_ctx, lsquic_conn_t* lsquic_conn);
-			void on_conn_closed(lsquic_conn_t* lsquic_conn);
-			void on_new_stream(void* stream_if_ctx, lsquic_stream_t* lsquic_stream);
-			void on_read(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx);
-			void on_write(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx);
-			void on_close(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx);
-            void close();
-			//optional callback
-			void on_goaway_received(lsquic_conn_t* c);
-			ssize_t on_dg_write(lsquic_conn_t* c, void*, size_t);
-			void on_datagram(lsquic_conn_t*, const void* buf, size_t);
-			void on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s);
-			void on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size);
-			void on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how);
-			void on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len);
-			const std::shared_ptr<toml::value> get_config() const;
-			const std::shared_ptr<io::UdpSocket> get_socket() const;
-	protected:
-			void* engine_base_ptr_ = nullptr;
-			std::shared_ptr<toml::value> config;
-			std::shared_ptr<io::UdpSocket> socket_;
-	};
-
 	template<typename E>
 	requires requires
 	{
 		requires std::is_default_constructible_v<E>;
 		requires std::is_base_of_v<IEngine, E>;
 	}
-	class engine_base
+	class MQAS_EXTERN engine_base
 	{
 		friend E;
 	public:
@@ -65,32 +32,23 @@ namespace mqas::core
 		engine_base& operator=(const engine_base&) = delete;
 		void init(const char* conf_file, core::EngineFlags engine_flags) noexcept(false);
 		void init(const char* conf_file, core::EngineFlags engine_flags,std::shared_ptr<io::UdpSocket> socket) noexcept(false);
+		void process_conns() const;
+        void process_conns_lazy() const;
+		void start_recv();
+		std::shared_ptr<E> get_engine() const; 
+		void wait_all_connect_closed();
+		void close();
+		~engine_base();
+	protected:
 		void init_setting(const toml::value& conf_data);
 		void init_extern_engine();
 		void init_logger() const;
 		int init_ssl(const char* cert_file, const char* key_file);
 		void init_lsquic() noexcept(false);
-		void process_conns() const;
-        void process_conns_lazy() const;
-		void start_recv();
-		::lsquic_conn_t* connect(const ::sockaddr& addr,::lsquic_version ver, const char* hostname = nullptr, unsigned short base_plpmtu = 0,
-			const unsigned char* sess_resume = nullptr, size_t sess_resume_len = 0,
-			/** Resumption token: optional */
-			const unsigned char* token = nullptr, size_t token_sz = 0);
-		std::shared_ptr<E> get_engine() const; 
+		void init_context();
 		void close_socket();
 		void close_timer();
 		void close_ssl_ctx();
-		void close();
-		void wait_all_connect_closed();
-		~engine_base()
-		{
-			close_socket();
-			close_timer();
-			close_ssl_ctx();
-			if(engine_)
-				::lsquic_engine_destroy(engine_);
-		}
 	protected:
 		static std::string load_config(const char* conf_file);
 		//lsquic callback function
@@ -114,7 +72,8 @@ namespace mqas::core
 		static int on_packets_out(void* packets_out_ctx, const lsquic_out_spec* out_spec, unsigned n_packets_out);
 		static ssl_ctx_st* on_get_ssl_ctx(void* peer_ctx, const sockaddr* local);
 	public:
-		io::Context& cxt;
+		io::Context& io_cxt;
+		std::shared_ptr<engine_cxt> context;
 	protected:
 		std::shared_ptr<io::UdpSocket> socket_;
 		io::Timer* proc_conns_timer_;
@@ -130,11 +89,5 @@ namespace mqas::core
 		sigc::connection recv_connection_;
 	};
 }
-
-template<>
-struct MQAS_EXTERN toml::from<mqas::core::engine_config>
-{
-	static mqas::core::engine_config from_toml(const value& v);
-};
 
 #include "engine_base.impl.hpp"

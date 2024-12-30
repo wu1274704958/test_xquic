@@ -90,6 +90,7 @@ namespace mqas::core {
         void on_close();
         void on_reset(StreamAspect how);
         //operator functions
+        template <bool Lazy = false>
         bool write(const std::span<uint8_t>&);
         bool want_read(bool) const;
         bool want_write(bool) const;

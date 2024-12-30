@@ -14,7 +14,7 @@ mqas::tools::SendFileStream::on_local_change_msg_s(const std::shared_ptr<proto::
     fs::path path = req->name();
     proto::ReqSendFile ret(*req);
     read_req_.data = this;
-    uv_fs_open(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(),&read_req_,req->name().c_str(),O_RDONLY,0644, [](uv_fs_t* req){
+    uv_fs_open(connect_cxt_->engine_cxt_->io_cxt.get_loop().get(),&read_req_,req->name().c_str(),O_RDONLY,0644, [](uv_fs_t* req){
         auto self = static_cast<SendFileStream*>(req->data);
         if(req->result < 0)
         {
@@ -48,7 +48,7 @@ mqas::tools::SendFileStream::on_peer_change_ret_msg_s(mqas::core::StreamVariantE
     }else{
         buf_ = uv_buf_init((char*)real_buf_.data(),real_buf_.size());
         read_req_.data = this;
-        uv_fs_read(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(),&read_req_,file_,&buf_,1,-1,on_read_file_cb);
+        uv_fs_read(connect_cxt_->engine_cxt_->io_cxt.get_loop().get(),&read_req_,file_,&buf_,1,-1,on_read_file_cb);
     }
 }
 
@@ -99,13 +99,13 @@ void mqas::tools::SendFileStream::on_read_file_cb(uv_fs_t *req) {
         self->write(std::span<uint8_t>((uint8_t*)self->buf_.base,req->result));
         uv_fs_req_cleanup(req);
         self->read_req_.data = self;
-        uv_fs_read(self->connect_cxt_->engine_cxt_->io_cxt->get_loop().get(),&self->read_req_,self->file_,&self->buf_,1,-1,on_read_file_cb);
+        uv_fs_read(self->connect_cxt_->engine_cxt_->io_cxt.get_loop().get(),&self->read_req_,self->file_,&self->buf_,1,-1,on_read_file_cb);
     }
 }
 
 void mqas::tools::SendFileStream::close_file_sync() {
     if(file_ != 0) {
-        uv_fs_close(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(), &read_req_, file_, nullptr);
+        uv_fs_close(connect_cxt_->engine_cxt_->io_cxt.get_loop().get(), &read_req_, file_, nullptr);
         uv_fs_req_cleanup(&read_req_);
         file_ = 0;
     }
@@ -114,7 +114,7 @@ void mqas::tools::SendFileStream::close_file_sync() {
 void mqas::tools::SendFileStream::close_file_async() {
     if(file_ != 0) {
         read_req_.data = this;
-        uv_fs_close(connect_cxt_->engine_cxt_->io_cxt->get_loop().get(), &read_req_, file_, [](uv_fs_t* req){
+        uv_fs_close(connect_cxt_->engine_cxt_->io_cxt.get_loop().get(), &read_req_, file_, [](uv_fs_t* req){
             auto self = static_cast<SendFileStream*>(req->data);
             uv_fs_req_cleanup(req);
             self->file_ = 0;

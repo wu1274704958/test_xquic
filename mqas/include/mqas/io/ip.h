@@ -21,5 +21,7 @@ namespace mqas::io {
 		static bool valid_ipv4(const char* str, int port);
 		static bool valid_ipv6(const char* str, int port);
 		static bool valid_ip(const char* str, int port);
+
+		static bool compare_ip(const sockaddr& a, const sockaddr& b,bool ignorePort = false);
 	};
 }

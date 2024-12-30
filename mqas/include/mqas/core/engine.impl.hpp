@@ -7,29 +7,29 @@ requires requires{									 \
 	requires std::is_base_of_v<mqas::core::IConnect, C>;		 \
 }
 ENGINE_TEMPLATE_DECL
-void mqas::core::engine<C>::init(void* engine_base_ptr) //override
+void mqas::core::engine<C>::init(std::shared_ptr<mqas::core::engine_cxt> cxt) //override
 {
-	IEngine::init(engine_base_ptr);
-    const auto p = static_cast<engine_base<engine<C>>*>(engine_base_ptr_);
-    engine_cxt_.engine_flags = p->engine_flags_;
-    engine_cxt_.io_cxt = &p->cxt;
-	engine_cxt_.process_conns = std::bind(&engine_base<engine<C>>::process_conns,p);
-    engine_cxt_.process_conns_lazy = std::bind(&engine_base<engine<C>>::process_conns_lazy,p);
-    engine_cxt_.write_datagram = std::bind_front(&engine<C>::write_datagram,this);
-    engine_cxt_.write_stream = std::bind_front(&engine<C>::write_stream,this);
-    engine_cxt_.has_stream = std::bind_front(&engine<C>::has_stream,this);
-	engine_cxt_.engine = this->weak_from_this();
+	IEngine::init(cxt);
+
+	context->write_datagram = std::bind_front(&engine<C>::write_datagram, this);
+	context->write_stream = std::bind_front(&engine<C>::write_stream, this);
+	context->has_stream = std::bind_front(&engine<C>::has_stream, this);
+	context->engine = this->weak_from_this();
 }
 
 ENGINE_TEMPLATE_DECL
 std::weak_ptr<C> mqas::core::engine<C>::connect(const ::sockaddr & addr, ::lsquic_version ver, const char* hostname, unsigned short base_plpmtu,
 	const unsigned char* sess_resume, size_t sess_resume_len, const unsigned char* token, size_t token_sz)
 {
-	const auto p = static_cast<engine_base<engine<C>>*>(engine_base_ptr_);
-	auto conn = p->connect(addr,ver,hostname,base_plpmtu,sess_resume,sess_resume_len,token,token_sz);
+	auto conn = ::lsquic_engine_connect(context->engine_core, ver, &context->local_addr, &addr, nullptr, (lsquic_conn_ctx_t*)this, hostname, base_plpmtu, sess_resume, sess_resume_len, token, token_sz);
+#if !NDEBUG
+	LOG(INFO) << "connect conn = " << reinterpret_cast<size_t>(conn);
+#endif
+	context->process_conns();
 	if(conn == nullptr) return {};
 	return add(conn);
 }
+
 ENGINE_TEMPLATE_DECL
 bool mqas::core::engine<C>::contain(::lsquic_conn_t* conn) const
 {
@@ -42,7 +42,7 @@ std::weak_ptr<C> mqas::core::engine<C>::add(::lsquic_conn_t* conn)
 	{
 		conn_map_.emplace(reinterpret_cast<size_t>(conn),std::make_shared<C>());
 		auto c = conn_map_[reinterpret_cast<size_t>(conn)];
-		c->init(conn,&engine_cxt_);
+		c->init(conn,context);
 		on_new_connect_signal.emit(c);
 		return c;
 	}
@@ -215,7 +215,7 @@ void mqas::core::engine<C>::close()
         c.second->close();
     }
 	if(!conn_map_.empty())
-		engine_cxt_.process_conns();
+		context->process_conns();
 }
 
 #undef ENGINE_TEMPLATE_DECL

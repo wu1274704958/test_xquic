@@ -1,9 +1,9 @@
 #include <mqas/core/engine.h>
 namespace mqas::core{
-	void IConnect::init(::lsquic_conn_t* conn, engine_cxt* engine_cxt)
+	void IConnect::init(::lsquic_conn_t* conn, std::shared_ptr<engine_cxt> cxt)
 	{
 		this->conn_ = conn;
-		this->engine_cxt_ = engine_cxt;
+		this->engine_cxt_ = std::move(cxt);
 	}
 	void IConnect::on_close() {}
 	void IConnect::on_new_stream(::lsquic_stream_t* lsquic_stream) {}

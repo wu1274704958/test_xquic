@@ -112,7 +112,7 @@ namespace mqas::tools::p2p {
         _other_id = id;
         if (cxt->state == p2p::ConnectState::Ready)
         {
-            locator->deposit_cxt<tools::controller::p2p_helper_controller>((size_t)_merge_id, _self->id, id, connect_cxt_->engine_cxt_->io_cxt);
+            locator->deposit_cxt<tools::controller::p2p_helper_controller>((size_t)_merge_id, _self->id, id, &connect_cxt_->engine_cxt_->io_cxt);
             auto controller = locator->get<tools::controller::p2p_helper_controller>((size_t)_merge_id);
             setup_event(*controller);
             auto oth_id = other(cxt->pid, _self->id);
@@ -132,7 +132,7 @@ namespace mqas::tools::p2p {
             }
         }
         else {
-            _timeout_timer = connect_cxt_->engine_cxt_->io_cxt->make_shared<io::Timer>();
+            _timeout_timer = connect_cxt_->engine_cxt_->io_cxt.make_shared<io::Timer>();
             _timeout_timer->start(std::bind(&P2PHelperStream::on_timeout,this,std::placeholders::_1),1000 * 30, 0);
         }
         return core::StreamVariantErrcode::ok;

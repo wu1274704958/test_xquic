@@ -6,6 +6,11 @@
 #include <mqas/core/proto/simple.h>
 #include <google/protobuf/message.h>
 #include <lsquic.h>
+#include <toml.hpp>
+
+namespace mqas::io {
+    class MQAS_EXTERN Context;
+}
 
 namespace mqas::core
 {
@@ -98,4 +103,45 @@ namespace mqas::core
         ::lsquic_engine_settings lsquic_settings = {};
     };
 
+    class MQAS_EXTERN IEngine;
+
+    struct MQAS_EXTERN engine_cxt
+    {
+        engine_cxt(io::Context& io_cxt, ::sockaddr& local_addr) : 
+        io_cxt(io_cxt),local_addr(local_addr){}
+        EngineFlags engine_flags;
+        io::Context& io_cxt;
+        ::lsquic_engine* engine_core;
+        ::sockaddr& local_addr;
+        std::weak_ptr<mqas::core::IEngine> engine;
+        std::function<void()> process_conns;
+        std::function<void()> process_conns_lazy;
+        std::function<bool(::lsquic_conn_t*, const std::span<uint8_t>&)> write_datagram;
+        std::function<bool(::lsquic_conn_t*, lsquic_stream_t*, const std::span<uint8_t>&)> write_stream;
+        std::function<bool(::lsquic_conn_t*, lsquic_stream_t*)> has_stream;
+    };
+
+    template<typename T>
+    struct MQAS_EXTERN peer_context {
+        peer_context():engine(nullptr) {}
+        peer_context(T* e):engine(e) {}
+        T* engine;
+    };
+
 }
+
+
+template<>
+struct MQAS_EXTERN toml::from<mqas::core::engine_config>
+{
+    static mqas::core::engine_config from_toml(const value& v);
+};
+
+namespace std {
+    template <>
+    struct hash<sockaddr> {
+        size_t operator()(const sockaddr& addr) const;
+    };
+}
+
+bool operator==(const sockaddr&,const sockaddr&);

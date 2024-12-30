@@ -14,7 +14,7 @@ namespace mqas::core {
 
 	class MQAS_EXTERN IConnect {
 	public:
-		void init(::lsquic_conn_t* conn, engine_cxt* engine_cxt);
+		void init(::lsquic_conn_t* conn, std::shared_ptr<engine_cxt> cxt);
 		void on_close();
 		void on_new_stream(::lsquic_stream_t* lsquic_stream);
 		void on_stream_read(::lsquic_stream_t* lsquic_stream);
@@ -55,7 +55,7 @@ namespace mqas::core {
 	protected:
 		::lsquic_conn_t* conn_ = nullptr;
 		void* cxt_;
-		engine_cxt* engine_cxt_;
+		std::shared_ptr<engine_cxt> engine_cxt_;
 		std::vector<uint8_t> datagram_buf_;
 		std::queue<short> datagram_queue_;
 		size_t datagram_buf_write_p_ = 0;
@@ -63,17 +63,6 @@ namespace mqas::core {
 		bool goaway_receive_:1 = false; 
 	};
 
-	struct engine_cxt
-	{
-        EngineFlags engine_flags;
-        io::Context* io_cxt;
-		std::weak_ptr<mqas::core::IEngine> engine; 
-		std::function<void()> process_conns;
-        std::function<void()> process_conns_lazy;
-        std::function<bool(::lsquic_conn_t*,const std::span<uint8_t>&)> write_datagram;
-        std::function<bool(::lsquic_conn_t*,lsquic_stream_t*,const std::span<uint8_t>&)> write_stream;
-        std::function<bool(::lsquic_conn_t*,lsquic_stream_t*)> has_stream;
-	};
 	template<typename C>
 	requires requires{
 		requires std::is_default_constructible_v<C>;
@@ -105,15 +94,13 @@ namespace mqas::core {
 		void on_reset(lsquic_stream_t* s, [[maybe_unused]] lsquic_stream_ctx_t* h, int how);
 		void on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len);
 
-		void init(void* engine_base_ptr); //override
+		void init(std::shared_ptr<engine_cxt> cxt); //override
 		bool contain(::lsquic_conn_t* conn) const;
 		std::weak_ptr<C> add(::lsquic_conn_t* conn);
         bool write_datagram(::lsquic_conn_t* conn,const std::span<uint8_t>&);
         bool write_stream(::lsquic_conn_t* conn,lsquic_stream_t* stream,const std::span<uint8_t>&);
         bool has_stream(lsquic_conn_t* conn,lsquic_stream_t* stream) const;
 		size_t connect_count() const;
-	public:
-		engine_cxt engine_cxt_;
 	protected:
 		std::unordered_map<size_t,std::shared_ptr<C>> conn_map_;
 	};

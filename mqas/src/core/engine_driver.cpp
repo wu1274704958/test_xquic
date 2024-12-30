@@ -5,6 +5,7 @@
 #include <mqas/comm/macro.h>
 #include <mqas/io/udp.h>
 #include <mqas/io/exception.h>
+#include <mqas/io/ip.h>
 
 namespace mqas::core {
 
@@ -17,12 +18,12 @@ namespace mqas::core {
 		return _instance;
 	}
 
-	bool engine_driver::register_engine(engine_base_interface* e, ::lsquic_engine* origin_e, const char* conf)
+	bool engine_driver::register_engine(engine_base_interface* e, ::lsquic_engine* origin_e)
 	{
-		bool res = false;
 		if(!_initialized)
-			res = initialization(conf,e->get_engine_flags());
-		if(!res) return res;
+			return false;
+
+		MQAS_DBG("register_engine " << e << " flags = " << (int)e->get_engine_flags());
 
 		auto v = _engine_map.find(origin_e);
 		if(v != _engine_map.end())
@@ -36,49 +37,39 @@ namespace mqas::core {
 		_engine_map.erase(origin_e);
 	}
 
-	bool engine_driver::initialization(const char* conf, EngineFlags flags)
+	bool engine_driver::initialization(const char* conf)
 	{
-		_golbal_conf = toml::parse(conf);
-		_engine_config = toml::find<engine_config>(_golbal_conf, "engine_config");
+		if(initialized())
+			return true;
+		_golbal_conf = std::make_shared<toml::value>(toml::parse(conf));
+		_engine_config = std::make_shared<engine_config>(toml::find<engine_config>(*_golbal_conf, "engine_config"));
 
 		init_logger();
-		init_setting(_golbal_conf,flags);
 
-		if (contain<uint32_t>(flags, EngineFlags::Server) && !_engine_config.ssl_cert_path.empty() && !_engine_config.ssl_key_path.empty())
-			init_ssl(_engine_config.ssl_cert_path.c_str(), _engine_config.ssl_key_path.c_str());
 		init_lsquic();
-
+		_initialized = true;
 		return true;
 	}
 
-	void engine_driver::init_setting(const toml::value& conf_data,EngineFlags flags)
+	/*void engine_driver::init_setting(const toml::value& conf_data, EngineFlags flags)
 	{
-		::lsquic_engine_init_settings(&_engine_config.lsquic_settings, static_cast<unsigned>(flags));
+		::lsquic_engine_init_settings(&_engine_config->lsquic_settings, static_cast<unsigned>(flags));
 		if (conf_data.contains("lsquic_settings"))
-			settings_from_toml(_engine_config.lsquic_settings, conf_data.at("lsquic_settings"));
-	}
+			settings_from_toml(_engine_config->lsquic_settings, conf_data.at("lsquic_settings"));
+	}*/
 
-	void engine_driver::fill_lsquic_engine_api(::lsquic_engine* origin_e,EngineFlags flags,::lsquic_engine_api& api) const
+	void engine_driver::fill_lsquic_engine_api(engine_base_interface* e,EngineFlags flags,::lsquic_engine_api& api,
+		const engine_config& conf) const
 	{
-		api.ea_settings = &_engine_config.lsquic_settings;
 		api.ea_packets_out = on_packets_out;
 		api.ea_stream_if = &_lsquic_stream_if;
-		api.ea_stream_if_ctx = (void*)this;
-		if (contain<uint32_t>(flags, EngineFlags::Server))
-			api.ea_get_ssl_ctx = on_get_ssl_ctx;
-		else
-		{ 
-			api.ea_get_ssl_ctx = nullptr;
-			api.ea_alpn = _engine_config.alpn.c_str();
-			if (_engine_config.alpn.empty())
-				LOG(WARNING) << "Client alpn is empty!";
-		}
+		api.ea_stream_if_ctx = (void*)e;
 	}
 
 	//
 	void engine_driver::init_logger() const
 	{
-		mqas::log::init("default", _engine_config.log_config, std::nullopt);
+		mqas::log::init("default", _engine_config->log_config, std::nullopt);
 		const auto lsquic_log = el::Loggers::getLogger("lsquic");
 		el::Configurations c;
 		c.setFromBase(el::Loggers::getLogger("default")->configurations());
@@ -90,31 +81,62 @@ namespace mqas::core {
 		el::Loggers::reconfigureLogger(lsquic_log, c);
 	}
 
-	int engine_driver::init_ssl(const char* cert_file, const char* key_file)
+	::SSL_CTX* engine_driver::init_ssl(const std::string& cert_file, const std::string& key_file)
 	{
 		//LOG(INFO) << "initialize ssl ctx";
 		int ret = 0;
-		_ssl_ctx = SSL_CTX_new(TLS_method());
-		if (!_ssl_ctx)
+		auto ssl_ctx = SSL_CTX_new(TLS_method());
+		if (!ssl_ctx)
 		{
 			LOG(ERROR) << "SSL_CTX_new failed";
-			throw std::runtime_error("SSL_CTX_new failed\n");
+			return nullptr;
 		}
-		SSL_CTX_set_min_proto_version(_ssl_ctx, TLS1_3_VERSION);
-		SSL_CTX_set_max_proto_version(_ssl_ctx, TLS1_3_VERSION);
-		SSL_CTX_set_default_verify_paths(_ssl_ctx);
-		SSL_CTX_set_alpn_select_cb(_ssl_ctx, ssl_select_alpn_s, const_cast<char*>(_engine_config.alpn.c_str()));
-		if ((ret = SSL_CTX_use_certificate_chain_file(_ssl_ctx, cert_file)) != 1)
+		SSL_CTX_set_min_proto_version(ssl_ctx, TLS1_3_VERSION);
+		SSL_CTX_set_max_proto_version(ssl_ctx, TLS1_3_VERSION);
+		SSL_CTX_set_default_verify_paths(ssl_ctx);
+		SSL_CTX_set_alpn_select_cb(ssl_ctx, ssl_select_alpn_s, const_cast<char*>(_engine_config->alpn.c_str()));
+		if ((ret = SSL_CTX_use_certificate_chain_file(ssl_ctx, cert_file.c_str())) != 1)
 		{
 			LOG(ERROR) << "SSL_CTX_use_certificate_chain_file failed " << ret;
-			throw std::runtime_error("SSL_CTX_use_certificate_chain_file failed");
+			SSL_CTX_free(ssl_ctx);
+			return nullptr;
 		}
-		if ((ret = SSL_CTX_use_PrivateKey_file(_ssl_ctx, key_file, SSL_FILETYPE_PEM)) != 1)
+		if ((ret = SSL_CTX_use_PrivateKey_file(ssl_ctx, key_file.c_str(), SSL_FILETYPE_PEM)) != 1)
 		{
 			LOG(ERROR) << "SSL_CTX_use_PrivateKey_file failed " << ret;
-			throw std::runtime_error("SSL_CTX_use_PrivateKey_file failed");
+			SSL_CTX_free(ssl_ctx);
+			return nullptr;
 		}
-		return 0;
+		return ssl_ctx;
+	}
+
+	std::string engine_driver::ssl_pair_key(const std::string& cert_file, const std::string& key_file)
+	{
+		std::string res(cert_file);
+		res += '_';
+		res += key_file;
+		return res;
+	}
+
+	::SSL_CTX* engine_driver::get_ssl_or_generate(const std::string& cert_file, const std::string& key_file)
+	{
+		const auto key = ssl_pair_key(cert_file,key_file);
+		if(_ssl_ctx_map.contains(key))
+			return _ssl_ctx_map[key];
+		auto res = init_ssl(cert_file,key_file);
+		if(res == nullptr)
+			return res;
+		_ssl_ctx_map.insert({ std::move(key),res});
+		return res;
+	}
+
+	void engine_driver::close_ssl_ctx()
+	{
+		for (auto it = _ssl_ctx_map.begin();it != _ssl_ctx_map.end();++it)
+		{
+			SSL_CTX_free(it->second);
+		}
+		_ssl_ctx_map.clear();
 	}
 
 	void engine_driver::init_lsquic() noexcept(false)
@@ -122,7 +144,7 @@ namespace mqas::core {
 		_lsquic_logger_if = { lsquic_log_func, };
 
 		lsquic_logger_init(&_lsquic_logger_if, this, LLTS_NONE);
-		lsquic_set_log_level(_engine_config.log_level.c_str());
+		lsquic_set_log_level(_engine_config->log_level.c_str());
 
 		_lsquic_stream_if.on_new_conn = on_new_conn_s;
 		_lsquic_stream_if.on_conn_closed = on_conn_closed_s;
@@ -147,88 +169,83 @@ namespace mqas::core {
 		return 0;
 	}
 
-	engine_base_interface* engine_driver::get_engine_by_cxt(void* cxt,::lsquic_engine* engine)
+	engine_base_interface* engine_driver::get_engine_by_cxt(void* cxt)
 	{
-		auto* self = static_cast<engine_driver*>(cxt);
-		if (self == nullptr || !self->_engine_map.contains(engine))
-		{ 
-			LOG(ERROR) << "get_engine_by_cxt get nullptr";
-			return nullptr;
-		}
-		return self->_engine_map[engine];
+		return static_cast<engine_base_interface*>(cxt);
 	}
 		
 
 	lsquic_conn_ctx_t* engine_driver::on_new_conn_s(void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
 	{
-		auto ptr = get_engine_by_cxt(stream_if_ctx,::lsquic_conn_get_engine(lsquic_conn));
+		auto ptr = get_engine_by_cxt(stream_if_ctx);
 		ptr->on_new_conn_s(stream_if_ctx,lsquic_conn);
 		return reinterpret_cast<lsquic_conn_ctx_t*>(stream_if_ctx);
 	}
 	void engine_driver::on_conn_closed_s(lsquic_conn_t* lsquic_conn)
 	{
-		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(lsquic_conn),::lsquic_conn_get_engine(lsquic_conn));
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(lsquic_conn));
 		ptr->on_conn_closed_s(lsquic_conn);
 	}
 	lsquic_stream_ctx_t* engine_driver::on_new_stream_s(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
 	{
-		auto ptr = get_engine_by_cxt(stream_if_ctx, ::lsquic_conn_get_engine(::lsquic_stream_conn(lsquic_stream)));
+		auto ptr = get_engine_by_cxt(stream_if_ctx);
 		ptr->on_new_stream_s(stream_if_ctx, lsquic_stream);
 		return reinterpret_cast<lsquic_stream_ctx_t*>(stream_if_ctx);
 	}
 	void engine_driver::on_read_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 	{
-		auto ptr = get_engine_by_cxt(lsquic_stream_ctx, ::lsquic_conn_get_engine(::lsquic_stream_conn(lsquic_stream)));
+		auto ptr = get_engine_by_cxt(lsquic_stream_ctx);
 		ptr->on_read_s(lsquic_stream, lsquic_stream_ctx);
 	}
 	void engine_driver::on_write_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 	{
-		auto ptr = get_engine_by_cxt(lsquic_stream_ctx, ::lsquic_conn_get_engine(::lsquic_stream_conn(lsquic_stream)));
+		auto ptr = get_engine_by_cxt(lsquic_stream_ctx);
+		MQAS_DBG("driver on_write_s stream = " << lsquic_stream << " cxt = " << ptr);
 		ptr->on_write_s(lsquic_stream, lsquic_stream_ctx);
 	}
 	void engine_driver::on_close_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 	{
-		auto ptr = get_engine_by_cxt(lsquic_stream_ctx, ::lsquic_conn_get_engine(::lsquic_stream_conn(lsquic_stream)));
+		auto ptr = get_engine_by_cxt(lsquic_stream_ctx);
 		ptr->on_close_s(lsquic_stream, lsquic_stream_ctx);
 	}
 	//optional callback
 	void engine_driver::on_goaway_received(lsquic_conn_t* c)
 	{
-		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c), ::lsquic_conn_get_engine(c));
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c));
 		ptr->on_goaway_received(c);
 	}
 
 	ssize_t engine_driver::on_dg_write(lsquic_conn_t* c, void* buf, size_t buf_sz)
 	{
-		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c), ::lsquic_conn_get_engine(c));
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c));
 		return ptr->on_dg_write(c, buf, buf_sz);
 	}
 
 	void engine_driver::on_datagram(lsquic_conn_t* c, const void* buf, size_t sz)
 	{
-		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c), ::lsquic_conn_get_engine(c));
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c));
 		ptr->on_datagram(c,buf,sz);
 	}
 
 	void engine_driver::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s)
 	{
-		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c), ::lsquic_conn_get_engine(c));
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c));
 		ptr->on_hsk_done(c, s);
 	}
 	void engine_driver::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
 	{
-		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c), ::lsquic_conn_get_engine(c));
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c));
 		ptr->on_new_token(c, token,token_size);
 	}
 	void engine_driver::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)
 	{
-		auto ptr = get_engine_by_cxt(h, ::lsquic_conn_get_engine(::lsquic_stream_conn(s)));
+		auto ptr = get_engine_by_cxt(h);
 		ptr->on_reset(s, h, how);
 	}
 
 	void engine_driver::on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len)
 	{
-		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c), ::lsquic_conn_get_engine(c));
+		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c));
 		ptr->on_conncloseframe_received(c, app_error, error_code,reason,reason_len);
 	}
 
@@ -261,27 +278,6 @@ namespace mqas::core {
 		return static_cast<int>(succ_num);
 	}
 
-	ssl_ctx_st* engine_driver::on_get_ssl_ctx(void* peer_ctx, const sockaddr* local)
-	{
-		const auto engine = static_cast<engine_driver*>(peer_ctx);
-		return engine->_ssl_ctx;
-	}
-}
-
-
-//engine config deserialize
-mqas::core::engine_config toml::from<mqas::core::engine_config>::from_toml(const value& v)
-{
-	mqas::core::engine_config f;
-	f.bind_ip = find_or<std::string			>(v, "bind_ip", "0.0.0.0");
-	f.port = find_or<short					>(v, "port", 8083);
-	f.log_level = find_or<std::string		>(v, "log_level", "warning");
-	f.log_path = find_or<std::string		>(v, "log_path", "log.txt");
-	f.log_config = find_or<std::string		>(v, "log_config", "");
-	f.alpn = find_or<std::string			>(v, "alpn", "");
-	f.ssl_cert_path = find_or<std::string		>(v, "ssl_cert_path", "");
-	f.ssl_key_path = find_or<std::string		>(v, "ssl_key_path", "");
-	return f;
 }
 
 namespace mqas::core {

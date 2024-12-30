@@ -30,7 +30,7 @@ requires requires															\
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-mqas::core::engine_base<E>::engine_base(io::Context& c):cxt(c),socket_(nullptr),
+mqas::core::engine_base<E>::engine_base(io::Context& c):io_cxt(c),socket_(nullptr),
 proc_conns_timer_(nullptr),engine_flags_(EngineFlags::None),local_addr_({}),lsquic_logger_if_({}),
 lsquic_engine_api_({}),lsquic_stream_if_({})
 {}
@@ -53,22 +53,25 @@ void mqas::core::engine_base<E>::init(const char* conf_file,core::EngineFlags en
 	//parse config 
 	const auto conf_data = toml::parse(conf_file);
 	conf_ = std::make_shared<engine_config>(toml::find<engine_config>(conf_data, "engine_config"));
-
-	init_extern_engine();
 	//init logger
 	init_logger();
+
+	//init socket
+	socket_ = io_cxt.make_shared<io::UdpSocket>();
+	sockaddr addr{};
+	io::Ip::str2addr_ipv4(conf_->bind_ip.c_str(), conf_->port, addr);
+	socket_->bind(addr, UV_UDP_REUSEADDR);
+	socket_->get_sock_addr(this->local_addr_);
+
+	init_context();
+	init_extern_engine();
 	
 	init_setting(conf_data);
 	engine_extern_->on_init_config(std::make_shared<toml::value>(conf_data));
-	//init socket
-	socket_ = cxt.make_shared<io::UdpSocket>();
-	sockaddr addr{};
-	io::Ip::str2addr_ipv4(conf_->bind_ip.c_str(),conf_->port, addr);
-	socket_->bind(addr,UV_UDP_REUSEADDR);
-	socket_->get_sock_addr(this->local_addr_);
+	
 	engine_extern_->on_init_socket(socket_);
 	// init timer
-	proc_conns_timer_ = cxt.make_handle<io::Timer>();
+	proc_conns_timer_ = io_cxt.make_handle<io::Timer>();
 	
 	//init ssl
 	if (contain<uint32_t>(engine_flags, EngineFlags::Server) && !conf_->ssl_cert_path.empty() && !conf_->ssl_key_path.empty())
@@ -83,19 +86,23 @@ void mqas::core::engine_base<E>::init(const char* conf_file, core::EngineFlags e
 	//parse config 
 	const auto conf_data = toml::parse(conf_file);
 	conf_ = std::make_shared<engine_config>(toml::find<engine_config>(conf_data, "engine_config"));
-
-	init_extern_engine();
 	//init logger
 	init_logger();
 
-	init_setting(conf_data);
-	engine_extern_->on_init_config(std::make_shared<toml::value>(conf_data));
 	//init socket
 	socket_ = std::move(socket);
 	socket_->get_sock_addr(this->local_addr_);
+
+	init_context();
+
+	init_extern_engine();
+
+	init_setting(conf_data);
+	engine_extern_->on_init_config(std::make_shared<toml::value>(conf_data));
+
 	engine_extern_->on_init_socket(socket_);
 	// init timer
-	proc_conns_timer_ = cxt.make_handle<io::Timer>();
+	proc_conns_timer_ = io_cxt.make_handle<io::Timer>();
 
 	//init ssl
 	if (contain<uint32_t>(engine_flags, EngineFlags::Server) && !conf_->ssl_cert_path.empty() && !conf_->ssl_key_path.empty())
@@ -122,7 +129,7 @@ ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::init_extern_engine()
 {
 	engine_extern_ = std::make_shared<E>();
-	engine_extern_->init(static_cast<void*>(this));
+	engine_extern_->init(context);
 }
 
 ENGINE_BASE_TEMPLATE_DECL
@@ -140,6 +147,17 @@ void mqas::core::engine_base<E>::init_logger() const
 	el::Loggers::reconfigureLogger(lsquic_log, c);
 	engine_extern_->on_init_logger();
 }
+
+ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E>::init_context()
+{
+	context = std::make_shared<engine_cxt>(io_cxt,local_addr_);
+	context->engine_core = engine_;
+	context->engine_flags = engine_flags_;
+	context->process_conns = std::bind(&engine_base::process_conns, this);
+	context->process_conns_lazy = std::bind(&engine_base::process_conns_lazy, this);
+}
+
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::init_lsquic() noexcept(false)
 {
@@ -211,18 +229,6 @@ void mqas::core::engine_base<E>::start_recv()
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-::lsquic_conn_t* mqas::core::engine_base<E>::connect(const ::sockaddr& addr, ::lsquic_version ver, const char* hostname, unsigned short base_plpmtu,
-	const unsigned char* sess_resume, size_t sess_resume_len,
-	const unsigned char* token, size_t token_sz)
-{
-	auto conn = ::lsquic_engine_connect(engine_, ver,&local_addr_, &addr, nullptr, reinterpret_cast<::lsquic_conn_ctx*>(engine_extern_.get()), hostname, base_plpmtu, sess_resume, sess_resume_len, token, token_sz);
-#if !NDEBUG
-    LOG(INFO) << "connect conn = " <<  reinterpret_cast<size_t>(conn);
-#endif
-	process_conns();
-	return conn;
-}
-ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E>::close_socket()
 {
 	
@@ -233,7 +239,7 @@ void mqas::core::engine_base<E>::close_timer()
 	if (proc_conns_timer_)
 	{
 		proc_conns_timer_->stop();
-		cxt.del_handle(proc_conns_timer_);
+		io_cxt.del_handle(proc_conns_timer_);
 		proc_conns_timer_ = nullptr;
 	}
 }
@@ -259,7 +265,19 @@ void mqas::core::engine_base<E>::wait_all_connect_closed()
 {
 	close();
 	while (engine_extern_ && engine_extern_->connect_count() > 0)
-		cxt.run(mqas::io::Context::RunMode::ONCE);
+		io_cxt.run(mqas::io::Context::RunMode::ONCE);
+}
+
+ENGINE_BASE_TEMPLATE_DECL
+mqas::core::engine_base<E>::~engine_base()
+{
+	close_socket();
+	close_timer();
+	close_ssl_ctx();
+	if (engine_)
+		::lsquic_engine_destroy(engine_);
+	if (_recv_connection.connected())
+		_recv_connection.disconnect();
 }
 
 ENGINE_BASE_TEMPLATE_DECL
