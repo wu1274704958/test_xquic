@@ -72,7 +72,6 @@ namespace mqas::core {
 		::sockaddr _local_addr = {};
 		std::shared_ptr<E> _engine_extern;
 		::lsquic_engine_api _lsquic_engine_api = {};
-		::lsquic_engine_settings _lsquic_engine_settings = {};
 		sigc::connection _recv_connection;
 		::SSL_CTX* _ssl_ctx;
 		tools::peer_context_mgr<sub_engine<E,ED>> _peer_context_mgr;

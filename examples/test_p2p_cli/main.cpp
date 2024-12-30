@@ -258,8 +258,15 @@ void tui::on_get_peer_list(std::shared_ptr<mqas::tools::proto::p2p::RespondPeerL
 
 void tui::on_peer_want_connect(const mqas::tools::proto::p2p::PeerData& peer)
 {
-	want_connect_list.emplace_back(peer);
-	append_state(ui_state::pop_want_connect);
+	auto curr = current_state();
+	if(curr == ui_state::select_peer)
+	{ 
+		want_connect_list.emplace_back(peer);
+		append_state(ui_state::pop_want_connect);
+	}
+	else {
+		stream->req_respond(peer.id(), false);
+	}
 }
 
 void tui::on_get_respond(const std::shared_ptr<mqas::tools::proto::p2p::RespondConnectPeer>& code)
@@ -337,20 +344,21 @@ void tui::draw()
 	{
 		wmove(win,0,0);
 		wprintw(win,"chating to %s", p2p_cxt->peer_name.c_str());
-		for (int i = p2p_cxt->min; i <= p2p_cxt->max; ++i)
+		int j = 0;
+		for (int i = p2p_cxt->min; i <= p2p_cxt->max; ++i,++j)
 		{
 			if(i >= p2p_cxt->msg_list.size())
 				continue;
 			const auto& it = p2p_cxt->msg_list[i];
 			if (it.first == 0)	//self
 			{
-				wmove(win, y + i, 1);
+				wmove(win, y + j, 1);
 				attron(COLOR_PAIR(1));
 				wprintw(win, "self: %s", it.second.c_str());
 				attroff(COLOR_PAIR(1));
 			}
 			else {				//peer
-				wmove(win, y + i, 1);
+				wmove(win, y + j, 1);
 				attron(COLOR_PAIR(2));
 				wprintw(win, "peer: %s", it.second.c_str());
 				attroff(COLOR_PAIR(2));

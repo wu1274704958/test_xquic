@@ -131,6 +131,8 @@ namespace mqas::tools::p2p {
 		bool visit_client_stream(uint32_t id,std::function<bool(std::shared_ptr<T>)> f) const
 		{
 			auto client = (*this)[id];
+			if(client == nullptr)
+				return false;
 			auto shared_ptr = client->stream.lock();
 			if(client == nullptr || !shared_ptr)
 				return false;

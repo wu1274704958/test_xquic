@@ -12,12 +12,15 @@
 #include <optional>
 #include <sigc++/sigc++.h>
 #include "engine_interface.h"
+#include "engine_driver.h"
+#include "mqas/tools/peer_context_mgr.h"
 
 namespace mqas::core
 {
-	template<typename E>
+	template<typename E, typename ED = engine_driver>
 	requires requires
 	{
+		requires IsVaildEngineDriver<ED>;
 		requires std::is_default_constructible_v<E>;
 		requires std::is_base_of_v<IEngine, E>;
 	}
@@ -30,8 +33,8 @@ namespace mqas::core
 		engine_base(const engine_base&) = delete;
 		engine_base& operator=(engine_base&&) = delete;
 		engine_base& operator=(const engine_base&) = delete;
-		void init(const char* conf_file, core::EngineFlags engine_flags) noexcept(false);
-		void init(const char* conf_file, core::EngineFlags engine_flags,std::shared_ptr<io::UdpSocket> socket) noexcept(false);
+		void init(const char* conf_file, core::EngineFlags engine_flags,
+			std::shared_ptr<io::UdpSocket> socket = nullptr) noexcept(false);
 		void process_conns() const;
         void process_conns_lazy() const;
 		void start_recv();
@@ -40,12 +43,17 @@ namespace mqas::core
 		void close();
 		~engine_base();
 	protected:
-		void init_setting(const toml::value& conf_data);
-		void init_extern_engine();
+		void init_socket(std::shared_ptr<io::UdpSocket> sock = nullptr);
+		void init_config(const char* conf_file);
+		bool has_engine_setting() const;
+		void init_timer();
+		void init_engine_core();
+
 		void init_logger() const;
-		int init_ssl(const char* cert_file, const char* key_file);
+
 		void init_lsquic() noexcept(false);
 		void init_context();
+
 		void close_socket();
 		void close_timer();
 		void close_ssl_ctx();
@@ -78,6 +86,7 @@ namespace mqas::core
 		std::shared_ptr<io::UdpSocket> socket_;
 		io::Timer* proc_conns_timer_;
 		std::shared_ptr<engine_config> conf_;
+		std::shared_ptr<toml::value> conf_origin_;
 		::lsquic_engine* engine_ = nullptr;
 		::SSL_CTX* ssl_ctx_ = nullptr;
 		EngineFlags engine_flags_;
@@ -87,6 +96,7 @@ namespace mqas::core
 		::lsquic_engine_api lsquic_engine_api_;
 		::lsquic_stream_if lsquic_stream_if_;
 		sigc::connection recv_connection_;
+		tools::peer_context_mgr<engine_base<E,ED>> _peer_context_mgr;
 	};
 }
 

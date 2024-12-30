@@ -42,6 +42,7 @@ namespace mqas::core
 			const engine_config& conf) const {}
 		std::shared_ptr<engine_config> get_engine_conf() const { return nullptr;}
 		::SSL_CTX* get_ssl_or_generate(const std::string&, const std::string&) { return nullptr; }
+		::SSL_CTX* destroy_ssl_ctx(::SSL_CTX*);
 	};
 
 	template <typename T>
@@ -63,11 +64,12 @@ namespace mqas::core
 			const engine_config& conf) const;
 		std::shared_ptr<engine_config> get_engine_conf() const { return _engine_config; }
 		bool initialization(const char* conf);
-		::SSL_CTX* get_ssl_or_generate(const std::string& cert_file, const std::string& key_file);
+		::SSL_CTX* get_ssl_or_generate(const std::string& cert_file, const std::string& key_file,const std::string& alpn);
+		::SSL_CTX* destroy_ssl_ctx(::SSL_CTX* ctx);
 		static void settings_from_toml(::lsquic_engine_settings& s, const toml::value& v);
 		protected:
 		void init_logger() const;
-		::SSL_CTX* init_ssl(const std::string& cert_file, const std::string& key_file);
+		::SSL_CTX* init_ssl(const std::string& cert_file, const std::string& key_file, const std::string& alpn);
 		std::string ssl_pair_key(const std::string&, const std::string& key_file);
 		void close_ssl_ctx();
 		void init_lsquic() noexcept(false);

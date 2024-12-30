@@ -9,6 +9,7 @@
 #include <mqas/tools/stream/p2p_lobby.h>
 #include <mqas/tools/stream/p2p_helper.h>
 #include <mqas/tools/model/p2p_model.h>
+#include <mqas/comm/engine.h>
 
 using namespace mqas;
 MQAS_SHARE_EASYLOGGINGPP
@@ -19,21 +20,13 @@ int main(int argc,const char** argv)
 	Context<core::InitFlags::GLOBAL_SERVER> context;
 	io::Context io_cxt;
 
-	core::engine_base<core::engine<core::Connect<core::StreamVariant<
-		core::StreamVariantPair<1, mqas::tools::p2p::P2PLobbyStream>,
-		core::StreamVariantPair<2, mqas::tools::p2p::P2PHelperStream>
-		>>>> e(io_cxt);
-
 	comm::locator::inst()->deposit<mqas::tools::p2p::p2p_model>();
-	try {
-		e.init("conf.txt", core::EngineFlags::Server);
-		e.start_recv();
-		e.process_conns();
-	}
-	catch (std::exception& e)
-	{
-		std::cerr << e.what() << std::endl;
-	}
+
+	auto e = mqas::comm::engine_util::launch_sub_engine<core::StreamVariant<
+		core::StreamVariantPair<1, mqas::tools::p2p::P2PLobbyStream>,
+		core::StreamVariantPair<2, mqas::tools::p2p::P2PHelperStream>>,
+		core::Connect,core::engine,core::engine_base>(io_cxt,"conf.txt",core::EngineFlags::Server);
+
 	io_cxt.run_until(IsRunning());
 	return 0;
 }

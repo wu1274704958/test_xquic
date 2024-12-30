@@ -67,14 +67,14 @@ namespace mqas::core {
 
 		if (has_engine_setting())
 		{
-			engine_driver::settings_from_toml(_lsquic_engine_settings, _conf_origin->at("lsquic_settings"));
-			_lsquic_engine_api.ea_settings = &_lsquic_engine_settings;
+			engine_driver::settings_from_toml(_conf->lsquic_settings, _conf_origin->at("lsquic_settings"));
+			_lsquic_engine_api.ea_settings = &_conf->lsquic_settings;
 		}
 
 		if (contain<uint32_t>(_engine_flags, EngineFlags::Server))
 		{ 
 			_lsquic_engine_api.ea_get_ssl_ctx = on_get_ssl_ctx;
-			_ssl_ctx = ED::instance()->get_ssl_or_generate(_conf->ssl_cert_path,_conf->ssl_key_path);
+			_ssl_ctx = ED::instance()->get_ssl_or_generate(_conf->ssl_cert_path,_conf->ssl_key_path,_conf->alpn);
 		}
 		if (_engine_flags == EngineFlags::None)
 		{
@@ -167,6 +167,7 @@ namespace mqas::core {
 		{ 
 			::lsquic_engine_destroy(_engine);
 			ED::instance()->unregister_engine(this,_engine);
+			_ssl_ctx = ED::instance()->destroy_ssl_ctx(_ssl_ctx);
 			if (_recv_connection.connected())
 				_recv_connection.disconnect();
 			_engine = nullptr;

@@ -81,7 +81,7 @@ namespace mqas::core {
 		el::Loggers::reconfigureLogger(lsquic_log, c);
 	}
 
-	::SSL_CTX* engine_driver::init_ssl(const std::string& cert_file, const std::string& key_file)
+	::SSL_CTX* engine_driver::init_ssl(const std::string& cert_file, const std::string& key_file, const std::string& alpn)
 	{
 		//LOG(INFO) << "initialize ssl ctx";
 		int ret = 0;
@@ -94,7 +94,7 @@ namespace mqas::core {
 		SSL_CTX_set_min_proto_version(ssl_ctx, TLS1_3_VERSION);
 		SSL_CTX_set_max_proto_version(ssl_ctx, TLS1_3_VERSION);
 		SSL_CTX_set_default_verify_paths(ssl_ctx);
-		SSL_CTX_set_alpn_select_cb(ssl_ctx, ssl_select_alpn_s, const_cast<char*>(_engine_config->alpn.c_str()));
+		SSL_CTX_set_alpn_select_cb(ssl_ctx, ssl_select_alpn_s, const_cast<char*>(alpn.c_str()));
 		if ((ret = SSL_CTX_use_certificate_chain_file(ssl_ctx, cert_file.c_str())) != 1)
 		{
 			LOG(ERROR) << "SSL_CTX_use_certificate_chain_file failed " << ret;
@@ -118,16 +118,32 @@ namespace mqas::core {
 		return res;
 	}
 
-	::SSL_CTX* engine_driver::get_ssl_or_generate(const std::string& cert_file, const std::string& key_file)
+	::SSL_CTX* engine_driver::get_ssl_or_generate(const std::string& cert_file, const std::string& key_file,const std::string& alpn)
 	{
 		const auto key = ssl_pair_key(cert_file,key_file);
 		if(_ssl_ctx_map.contains(key))
 			return _ssl_ctx_map[key];
-		auto res = init_ssl(cert_file,key_file);
+		auto res = init_ssl(cert_file,key_file,alpn);
 		if(res == nullptr)
 			return res;
 		_ssl_ctx_map.insert({ std::move(key),res});
 		return res;
+	}
+
+	::SSL_CTX* engine_driver::destroy_ssl_ctx(::SSL_CTX* ctx)
+	{
+		if(ctx == nullptr)
+			return nullptr;
+		for (auto it = _ssl_ctx_map.begin(); it != _ssl_ctx_map.end(); ++it)
+		{
+			if (it->second == ctx)
+			{
+				SSL_CTX_free(it->second);
+				_ssl_ctx_map.erase(it);
+				return nullptr;
+			}
+		}
+		return nullptr;
 	}
 
 	void engine_driver::close_ssl_ctx()
