@@ -18,7 +18,7 @@ namespace mqas::core {
 	{}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	sub_engine<E,ED>::sub_engine(sub_engine&& oth) noexcept :cxt(oth.cxt), _socket(std::move(oth._socket)),
+	sub_engine<E,ED>::sub_engine(sub_engine&& oth) noexcept :io_cxt(oth.io_cxt), _socket(std::move(oth._socket)),
 		_proc_conns_timer(oth._proc_conns_timer), _engine_flags(oth._engine_flags), _local_addr(oth._local_addr),
 		_lsquic_engine_api(oth._lsquic_engine_api) 
 	{

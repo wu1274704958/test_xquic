@@ -37,7 +37,7 @@ lsquic_engine_api_({}),lsquic_stream_if_({})
 {}
 
 ENGINE_BASE_TEMPLATE_DECL
-mqas::core::engine_base<E,ED>::engine_base(engine_base&& oth) noexcept : cxt(oth.cxt),
+mqas::core::engine_base<E,ED>::engine_base(engine_base&& oth) noexcept : io_cxt(oth.cxt),
 engine_flags_(oth.engine_flags_),local_addr_(oth.local_addr_),lsquic_logger_if_(oth.lsquic_logger_if_),
 lsquic_engine_api_(oth.lsquic_engine_api_),lsquic_stream_if_(oth.lsquic_stream_if_)
 {

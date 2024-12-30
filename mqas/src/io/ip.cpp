@@ -60,13 +60,13 @@ bool mqas::io::Ip::compare_ip(const sockaddr& a, const sockaddr& b, bool ignoreP
 	if (a.sa_family == AF_INET) {
 		auto* addra_in = (const struct sockaddr_in*)&a;
 		auto* addrb_in = (const struct sockaddr_in*)&b;
-		auto addr_same = std::memcmp(&addra_in->sin_addr, &addrb_in->sin_addr,sizeof(IN_ADDR)) == 0;
+		auto addr_same = std::memcmp(&addra_in->sin_addr, &addrb_in->sin_addr,sizeof(addrb_in->sin_addr)) == 0;
 		return ignorePort ? addr_same : addr_same && addra_in->sin_port == addrb_in->sin_port;
 	}
 	else if(a.sa_family == AF_INET6) {
 		auto* addra_in = (const struct sockaddr_in6*)&a;
 		auto* addrb_in = (const struct sockaddr_in6*)&b;
-		auto addr_same = std::memcmp(&addra_in->sin6_addr, &addrb_in->sin6_addr, sizeof(IN6_ADDR)) == 0;
+		auto addr_same = std::memcmp(&addra_in->sin6_addr, &addrb_in->sin6_addr, sizeof(addrb_in->sin6_addr)) == 0;
 		return ignorePort ? addr_same : addr_same && addra_in->sin6_port == addrb_in->sin6_port;
 	}
 	return false;
@@ -124,7 +124,7 @@ void mqas::io::Ip::collect_local_ip(std::vector<std::string>& res)
 			struct sockaddr_in* sa = reinterpret_cast<struct sockaddr_in*>(ifa->ifa_addr);
 			char ipStr[INET_ADDRSTRLEN];
 			inet_ntop(AF_INET, &(sa->sin_addr), ipStr, INET_ADDRSTRLEN);
-			if (is_valid_ip(ipStr))
+			if (is_valid_local_ip(ipStr))
 				res.push_back(ipStr);
 		}
 	}

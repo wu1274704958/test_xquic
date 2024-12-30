@@ -1,5 +1,5 @@
 #pragma once
-#include "..\macro.h"
+#include "mqas/macro.h"
 #include <toml.hpp>
 #include <lsquic.h>
 #include <openssl/ssl.h>
