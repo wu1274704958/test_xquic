@@ -172,8 +172,8 @@ namespace mqas::tools::p2p {
     {
         if (!*this || _merge_id <= 0) return;
         auto controller = locator::inst()->get<tools::controller::p2p_helper_controller>((size_t)_merge_id);
-        if (controller && _self->id == msg->peer_id())
-            controller->get().submit_verify_code(_merge_id, _self->id, msg->verify_code(),msg->ip_index());
+        if (controller && _other_id == msg->peer_id())
+            controller->get().submit_verify_code(_merge_id, _self->id, msg);
     }
 
     core::StreamVariantErrcode P2PHelperStream::on_peer_quit(const std::span<uint8_t>& d, std::vector<uint8_t>& buf)

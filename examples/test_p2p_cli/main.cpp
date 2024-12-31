@@ -157,6 +157,7 @@ int main(int argc, const char** argv)
 		if(!io::Ip::str2addr_ipv4(ip.c_str(), port, addr))
 			throw new std::exception("Not found target address!");
 		auto c = e.get_engine()->connect(addr, N_LSQVER);
+		e.get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(addr));
 		e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(addr));
 		auto conn = c.lock();
 		auto t = io_cxt.make_handle<io::Timer>();
@@ -520,7 +521,7 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 		
 		auto io_cxt = comm::locator::inst()->get_ref<io::Context>();
 		
-		io::Ip::str2addr(msg->address().ip().c_str(), msg->address().port(), p2p_addr);
+		io::Ip::str2addr(msg->peer_addr().ip().c_str(), msg->peer_addr().port(), p2p_addr);
 
 		std::function<void(std::shared_ptr<core::Connect<P2PStreamType>>)> func = std::bind(&tui::on_new_p2p_connect, this, std::placeholders::_1, msg->is_server());
 		std::function<void(const std::exception&)> exception_func = [this](const std::exception&) {
@@ -529,6 +530,7 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 		std::function<void(P2PEngineType&)> on_init_func = [this](P2PEngineType& e)
 		{
 			e.get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(p2p_addr));
+			e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(p2p_addr));
 		};
 		if (msg->is_server())
 		{ 

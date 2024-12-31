@@ -224,6 +224,7 @@ PROTOBUF_CONSTEXPR NotifyConnectResult::NotifyConnectResult(
   , /*decltype(_impl_._cached_size_)*/{}
   , /*decltype(_impl_.reason_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.address_)*/nullptr
+  , /*decltype(_impl_.peer_addr_)*/nullptr
   , /*decltype(_impl_.ret_)*/0
   , /*decltype(_impl_.peer_id_)*/0u
   , /*decltype(_impl_.is_server_)*/false} {}
@@ -251,7 +252,8 @@ struct NotifyPeerWantConnectDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 NotifyPeerWantConnectDefaultTypeInternal _NotifyPeerWantConnect_default_instance_;
 PROTOBUF_CONSTEXPR ReqSubmitRecvPeerKeyCode::ReqSubmitRecvPeerKeyCode(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.peer_id_)*/0u
+    /*decltype(_impl_.peer_addr_)*/nullptr
+  , /*decltype(_impl_.peer_id_)*/0u
   , /*decltype(_impl_.verify_code_)*/0u
   , /*decltype(_impl_.ip_index_)*/0u
   , /*decltype(_impl_._cached_size_)*/{}} {}
@@ -397,11 +399,13 @@ const uint32_t TableStruct_p2p_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.ret_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.peer_id_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.is_server_),
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.peer_addr_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.reason_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.address_),
   ~0u,
   ~0u,
   ~0u,
+  2,
   0,
   1,
   ~0u,  // no _has_bits_
@@ -420,6 +424,7 @@ const uint32_t TableStruct_p2p_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode, _impl_.peer_id_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode, _impl_.verify_code_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode, _impl_.ip_index_),
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode, _impl_.peer_addr_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::mqas::tools::proto::p2p::PeerData)},
@@ -436,9 +441,9 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 87, 96, -1, sizeof(::mqas::tools::proto::p2p::ReqRespondPeerReqConnect)},
   { 99, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondConnectPeer)},
   { 107, -1, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectPeerData)},
-  { 115, 126, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectResult)},
-  { 131, -1, -1, sizeof(::mqas::tools::proto::p2p::NotifyPeerWantConnect)},
-  { 138, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode)},
+  { 115, 127, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectResult)},
+  { 133, -1, -1, sizeof(::mqas::tools::proto::p2p::NotifyPeerWantConnect)},
+  { 140, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -486,22 +491,25 @@ const char descriptor_table_protodef_p2p_2eproto[] PROTOBUF_SECTION_VARIABLE(pro
   "\003ret\030\002 \001(\0162\035.mqas.tools.proto.p2p.RetCod"
   "e\"e\n\025NotifyConnectPeerData\022\017\n\007peer_id\030\001 "
   "\001(\r\022;\n\014connect_data\030\002 \001(\0132%.mqas.tools.p"
-  "roto.p2p.ConnectPeerData\"\306\001\n\023NotifyConne"
+  "roto.p2p.ConnectPeerData\"\213\002\n\023NotifyConne"
   "ctResult\022*\n\003ret\030\001 \001(\0162\035.mqas.tools.proto"
   ".p2p.RetCode\022\017\n\007peer_id\030\002 \001(\r\022\021\n\tis_serv"
-  "er\030\005 \001(\010\022\023\n\006reason\030\003 \001(\tH\000\210\001\001\0223\n\007address"
-  "\030\004 \001(\0132\035.mqas.tools.proto.p2p.AddressH\001\210"
-  "\001\001B\t\n\007_reasonB\n\n\010_address\"E\n\025NotifyPeerW"
-  "antConnect\022,\n\004peer\030\001 \001(\0132\036.mqas.tools.pr"
-  "oto.p2p.PeerData\"R\n\030ReqSubmitRecvPeerKey"
-  "Code\022\017\n\007peer_id\030\001 \001(\r\022\023\n\013verify_code\030\002 \001"
-  "(\r\022\020\n\010ip_index\030\003 \001(\r*T\n\007RetCode\022\006\n\002ok\020\000\022"
+  "er\030\005 \001(\010\0225\n\tpeer_addr\030\006 \001(\0132\035.mqas.tools"
+  ".proto.p2p.AddressH\000\210\001\001\022\023\n\006reason\030\003 \001(\tH"
+  "\001\210\001\001\0223\n\007address\030\004 \001(\0132\035.mqas.tools.proto"
+  ".p2p.AddressH\002\210\001\001B\014\n\n_peer_addrB\t\n\007_reas"
+  "onB\n\n\010_address\"E\n\025NotifyPeerWantConnect\022"
+  ",\n\004peer\030\001 \001(\0132\036.mqas.tools.proto.p2p.Pee"
+  "rData\"\204\001\n\030ReqSubmitRecvPeerKeyCode\022\017\n\007pe"
+  "er_id\030\001 \001(\r\022\023\n\013verify_code\030\002 \001(\r\022\020\n\010ip_i"
+  "ndex\030\003 \001(\r\0220\n\tpeer_addr\030\004 \001(\0132\035.mqas.too"
+  "ls.proto.p2p.Address*T\n\007RetCode\022\006\n\002ok\020\000\022"
   "\022\n\016already_exists\020\001\022\016\n\nnot_exists\020\002\022\021\n\rp"
   "eer_rejected\020\003\022\n\n\006failed\020\004b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_p2p_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_p2p_2eproto = {
-    false, false, 1434, descriptor_table_protodef_p2p_2eproto,
+    false, false, 1554, descriptor_table_protodef_p2p_2eproto,
     "p2p.proto",
     &descriptor_table_p2p_2eproto_once, nullptr, 0, 17,
     schemas, file_default_instances, TableStruct_p2p_2eproto::offsets,
@@ -3354,6 +3362,10 @@ void NotifyConnectPeerData::InternalSwap(NotifyConnectPeerData* other) {
 class NotifyConnectResult::_Internal {
  public:
   using HasBits = decltype(std::declval<NotifyConnectResult>()._impl_._has_bits_);
+  static const ::mqas::tools::proto::p2p::Address& peer_addr(const NotifyConnectResult* msg);
+  static void set_has_peer_addr(HasBits* has_bits) {
+    (*has_bits)[0] |= 4u;
+  }
   static void set_has_reason(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
@@ -3363,6 +3375,10 @@ class NotifyConnectResult::_Internal {
   }
 };
 
+const ::mqas::tools::proto::p2p::Address&
+NotifyConnectResult::_Internal::peer_addr(const NotifyConnectResult* msg) {
+  return *msg->_impl_.peer_addr_;
+}
 const ::mqas::tools::proto::p2p::Address&
 NotifyConnectResult::_Internal::address(const NotifyConnectResult* msg) {
   return *msg->_impl_.address_;
@@ -3381,6 +3397,7 @@ NotifyConnectResult::NotifyConnectResult(const NotifyConnectResult& from)
     , /*decltype(_impl_._cached_size_)*/{}
     , decltype(_impl_.reason_){}
     , decltype(_impl_.address_){nullptr}
+    , decltype(_impl_.peer_addr_){nullptr}
     , decltype(_impl_.ret_){}
     , decltype(_impl_.peer_id_){}
     , decltype(_impl_.is_server_){}};
@@ -3397,6 +3414,9 @@ NotifyConnectResult::NotifyConnectResult(const NotifyConnectResult& from)
   if (from._internal_has_address()) {
     _this->_impl_.address_ = new ::mqas::tools::proto::p2p::Address(*from._impl_.address_);
   }
+  if (from._internal_has_peer_addr()) {
+    _this->_impl_.peer_addr_ = new ::mqas::tools::proto::p2p::Address(*from._impl_.peer_addr_);
+  }
   ::memcpy(&_impl_.ret_, &from._impl_.ret_,
     static_cast<size_t>(reinterpret_cast<char*>(&_impl_.is_server_) -
     reinterpret_cast<char*>(&_impl_.ret_)) + sizeof(_impl_.is_server_));
@@ -3412,6 +3432,7 @@ inline void NotifyConnectResult::SharedCtor(
     , /*decltype(_impl_._cached_size_)*/{}
     , decltype(_impl_.reason_){}
     , decltype(_impl_.address_){nullptr}
+    , decltype(_impl_.peer_addr_){nullptr}
     , decltype(_impl_.ret_){0}
     , decltype(_impl_.peer_id_){0u}
     , decltype(_impl_.is_server_){false}
@@ -3435,6 +3456,7 @@ inline void NotifyConnectResult::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.reason_.Destroy();
   if (this != internal_default_instance()) delete _impl_.address_;
+  if (this != internal_default_instance()) delete _impl_.peer_addr_;
 }
 
 void NotifyConnectResult::SetCachedSize(int size) const {
@@ -3448,13 +3470,17 @@ void NotifyConnectResult::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000003u) {
+  if (cached_has_bits & 0x00000007u) {
     if (cached_has_bits & 0x00000001u) {
       _impl_.reason_.ClearNonDefaultToEmpty();
     }
     if (cached_has_bits & 0x00000002u) {
       GOOGLE_DCHECK(_impl_.address_ != nullptr);
       _impl_.address_->Clear();
+    }
+    if (cached_has_bits & 0x00000004u) {
+      GOOGLE_DCHECK(_impl_.peer_addr_ != nullptr);
+      _impl_.peer_addr_->Clear();
     }
   }
   ::memset(&_impl_.ret_, 0, static_cast<size_t>(
@@ -3510,6 +3536,14 @@ const char* NotifyConnectResult::_InternalParse(const char* ptr, ::_pbi::ParseCo
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
           _impl_.is_server_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // optional .mqas.tools.proto.p2p.Address peer_addr = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          ptr = ctx->ParseMessage(_internal_mutable_peer_addr(), ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -3580,6 +3614,13 @@ uint8_t* NotifyConnectResult::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteBoolToArray(5, this->_internal_is_server(), target);
   }
 
+  // optional .mqas.tools.proto.p2p.Address peer_addr = 6;
+  if (_internal_has_peer_addr()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(6, _Internal::peer_addr(this),
+        _Internal::peer_addr(this).GetCachedSize(), target, stream);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -3597,7 +3638,7 @@ size_t NotifyConnectResult::ByteSizeLong() const {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000003u) {
+  if (cached_has_bits & 0x00000007u) {
     // optional string reason = 3;
     if (cached_has_bits & 0x00000001u) {
       total_size += 1 +
@@ -3610,6 +3651,13 @@ size_t NotifyConnectResult::ByteSizeLong() const {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
           *_impl_.address_);
+    }
+
+    // optional .mqas.tools.proto.p2p.Address peer_addr = 6;
+    if (cached_has_bits & 0x00000004u) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+          *_impl_.peer_addr_);
     }
 
   }
@@ -3648,13 +3696,17 @@ void NotifyConnectResult::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, co
   (void) cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000003u) {
+  if (cached_has_bits & 0x00000007u) {
     if (cached_has_bits & 0x00000001u) {
       _this->_internal_set_reason(from._internal_reason());
     }
     if (cached_has_bits & 0x00000002u) {
       _this->_internal_mutable_address()->::mqas::tools::proto::p2p::Address::MergeFrom(
           from._internal_address());
+    }
+    if (cached_has_bits & 0x00000004u) {
+      _this->_internal_mutable_peer_addr()->::mqas::tools::proto::p2p::Address::MergeFrom(
+          from._internal_peer_addr());
     }
   }
   if (from._internal_ret() != 0) {
@@ -3901,8 +3953,13 @@ void NotifyPeerWantConnect::InternalSwap(NotifyPeerWantConnect* other) {
 
 class ReqSubmitRecvPeerKeyCode::_Internal {
  public:
+  static const ::mqas::tools::proto::p2p::Address& peer_addr(const ReqSubmitRecvPeerKeyCode* msg);
 };
 
+const ::mqas::tools::proto::p2p::Address&
+ReqSubmitRecvPeerKeyCode::_Internal::peer_addr(const ReqSubmitRecvPeerKeyCode* msg) {
+  return *msg->_impl_.peer_addr_;
+}
 ReqSubmitRecvPeerKeyCode::ReqSubmitRecvPeerKeyCode(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
@@ -3913,12 +3970,16 @@ ReqSubmitRecvPeerKeyCode::ReqSubmitRecvPeerKeyCode(const ReqSubmitRecvPeerKeyCod
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   ReqSubmitRecvPeerKeyCode* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.peer_id_){}
+      decltype(_impl_.peer_addr_){nullptr}
+    , decltype(_impl_.peer_id_){}
     , decltype(_impl_.verify_code_){}
     , decltype(_impl_.ip_index_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  if (from._internal_has_peer_addr()) {
+    _this->_impl_.peer_addr_ = new ::mqas::tools::proto::p2p::Address(*from._impl_.peer_addr_);
+  }
   ::memcpy(&_impl_.peer_id_, &from._impl_.peer_id_,
     static_cast<size_t>(reinterpret_cast<char*>(&_impl_.ip_index_) -
     reinterpret_cast<char*>(&_impl_.peer_id_)) + sizeof(_impl_.ip_index_));
@@ -3930,7 +3991,8 @@ inline void ReqSubmitRecvPeerKeyCode::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.peer_id_){0u}
+      decltype(_impl_.peer_addr_){nullptr}
+    , decltype(_impl_.peer_id_){0u}
     , decltype(_impl_.verify_code_){0u}
     , decltype(_impl_.ip_index_){0u}
     , /*decltype(_impl_._cached_size_)*/{}
@@ -3948,6 +4010,7 @@ ReqSubmitRecvPeerKeyCode::~ReqSubmitRecvPeerKeyCode() {
 
 inline void ReqSubmitRecvPeerKeyCode::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  if (this != internal_default_instance()) delete _impl_.peer_addr_;
 }
 
 void ReqSubmitRecvPeerKeyCode::SetCachedSize(int size) const {
@@ -3960,6 +4023,10 @@ void ReqSubmitRecvPeerKeyCode::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  if (GetArenaForAllocation() == nullptr && _impl_.peer_addr_ != nullptr) {
+    delete _impl_.peer_addr_;
+  }
+  _impl_.peer_addr_ = nullptr;
   ::memset(&_impl_.peer_id_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.ip_index_) -
       reinterpret_cast<char*>(&_impl_.peer_id_)) + sizeof(_impl_.ip_index_));
@@ -3992,6 +4059,14 @@ const char* ReqSubmitRecvPeerKeyCode::_InternalParse(const char* ptr, ::_pbi::Pa
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
           _impl_.ip_index_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .mqas.tools.proto.p2p.Address peer_addr = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          ptr = ctx->ParseMessage(_internal_mutable_peer_addr(), ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -4043,6 +4118,13 @@ uint8_t* ReqSubmitRecvPeerKeyCode::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteUInt32ToArray(3, this->_internal_ip_index(), target);
   }
 
+  // .mqas.tools.proto.p2p.Address peer_addr = 4;
+  if (this->_internal_has_peer_addr()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(4, _Internal::peer_addr(this),
+        _Internal::peer_addr(this).GetCachedSize(), target, stream);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -4058,6 +4140,13 @@ size_t ReqSubmitRecvPeerKeyCode::ByteSizeLong() const {
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
+
+  // .mqas.tools.proto.p2p.Address peer_addr = 4;
+  if (this->_internal_has_peer_addr()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.peer_addr_);
+  }
 
   // uint32 peer_id = 1;
   if (this->_internal_peer_id() != 0) {
@@ -4092,6 +4181,10 @@ void ReqSubmitRecvPeerKeyCode::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_ms
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (from._internal_has_peer_addr()) {
+    _this->_internal_mutable_peer_addr()->::mqas::tools::proto::p2p::Address::MergeFrom(
+        from._internal_peer_addr());
+  }
   if (from._internal_peer_id() != 0) {
     _this->_internal_set_peer_id(from._internal_peer_id());
   }
@@ -4121,9 +4214,9 @@ void ReqSubmitRecvPeerKeyCode::InternalSwap(ReqSubmitRecvPeerKeyCode* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(ReqSubmitRecvPeerKeyCode, _impl_.ip_index_)
       + sizeof(ReqSubmitRecvPeerKeyCode::_impl_.ip_index_)
-      - PROTOBUF_FIELD_OFFSET(ReqSubmitRecvPeerKeyCode, _impl_.peer_id_)>(
-          reinterpret_cast<char*>(&_impl_.peer_id_),
-          reinterpret_cast<char*>(&other->_impl_.peer_id_));
+      - PROTOBUF_FIELD_OFFSET(ReqSubmitRecvPeerKeyCode, _impl_.peer_addr_)>(
+          reinterpret_cast<char*>(&_impl_.peer_addr_),
+          reinterpret_cast<char*>(&other->_impl_.peer_addr_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata ReqSubmitRecvPeerKeyCode::GetMetadata() const {

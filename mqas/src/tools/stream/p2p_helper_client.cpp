@@ -88,11 +88,16 @@ namespace mqas::tools::p2p {
 		{
 			sockaddr addr;
 			if(io::Ip::str2addr(msg->connect_data().ip().c_str(),msg->connect_data().port(),addr))
-				_socket->try_send(*data,addr);
+			{
+				try{
+					_socket->try_send(*data,addr);
+				}catch(io::Exception e) {}
+			}
 		}
 	}
 
-	std::optional<proto::p2p::ReqSubmitRecvPeerKeyCode> P2PHelperClientStream::try_parse_verify_msg(const core::proto::simple_pkg<uint32_t>& pkg) const
+	std::optional<proto::p2p::ReqSubmitRecvPeerKeyCode> P2PHelperClientStream::try_parse_verify_msg(const core::proto::simple_pkg<uint32_t>& pkg,
+		const sockaddr* addr) const
 	{
 		if (pkg.body.size() == sizeof(uint32_t) * 2 + sizeof(uint16_t))
 		{
@@ -105,7 +110,12 @@ namespace mqas::tools::p2p {
 			msg.set_ip_index(ip_index);
 			msg.set_verify_code(code);
 			msg.set_peer_id(peer_id);
-
+			auto peer_addr = msg.mutable_peer_addr();
+			peer_addr->set_ip(io::Ip::addr2str(*addr));
+			peer_addr->set_port(io::Ip::addr_get_port(*addr));
+			#if !NDEBUG
+			LOG(INFO) << "ReqSubmitRecvPeerKeyCode " << "peer addr = " << peer_addr->ip() << ':' << peer_addr->port() << " ip idx = " << ip_index;
+			#endif
 			return { msg };
 		}
 
@@ -121,7 +131,7 @@ namespace mqas::tools::p2p {
 			auto [pkg,size] = core::proto::simple_pkg<uint32_t>::parse_command(*buf);
 			if (pkg)
 			{
-				auto msg = try_parse_verify_msg(*pkg);
+				auto msg = try_parse_verify_msg(*pkg, addr);
 				if (msg)
 					send<ReqSubmitRecvPeerKeyCodePair>(*msg);
 			}

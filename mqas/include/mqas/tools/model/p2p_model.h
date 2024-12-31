@@ -86,6 +86,7 @@ namespace mqas::tools::p2p {
 	};
 
 	struct connect_cxt {
+		static constexpr int16_t ExternalIpIndex = 9999;
 		uint64_t id;
 		std::array<uint32_t, 2> pid;
 		std::array<std::vector<std::string>, 2> ip_list;
@@ -97,6 +98,7 @@ namespace mqas::tools::p2p {
 		bool is_same_external;
 		std::array<uint32_t,2> verify_code;
 		std::array<std::weak_ptr<mqas::core::IStreamVariant>, 2> stream;
+		std::array<std::unordered_map<int16_t,std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>>,2> submit_code_map;
 		connect_cxt() : port_list({0,0}) {}
 		inline operator bool() const { return tag[0] >= 0 && tag[1] >= 0; }
 		bool is_receive(uint32_t id) const;
@@ -170,7 +172,7 @@ namespace mqas::tools::p2p {
 		std::pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>> next_cxt(uint64_t id, uint32_t self);
 		std::pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>> current_cxt(uint64_t id, uint32_t self) const;
 		std::optional<proto::p2p::NotifyConnectPeerData> generate_connect_data(const connect_cxt& cxt, uint32_t self) const;
-		bool submit_verify_code(uint64_t id, uint32_t who, uint32_t code, uint16_t ip_index);
+		bool submit_verify_code(uint64_t merge_id, uint32_t id, const std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>& msg);
 		#ifndef NDEBUG  
 		void test_step_cxt();
 		#endif
@@ -184,7 +186,7 @@ namespace mqas::tools::p2p {
 		//helper
 		bool init_cxt(connect_cxt& cxt,const peer_data& a, const peer_data& b, const proto::p2p::ClientIpList& a_ip,
 			const proto::p2p::ClientIpList& b_ip) const;
-		bool set_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b,uint32_t id,const proto::p2p::ClientIpList& oth_ip,
+		bool set_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b,uint32_t id,const proto::p2p::ClientIpList& self_ip,
 			std::weak_ptr<mqas::core::IStreamVariant> self_stream) const;
 		StepResult next_cxt(connect_cxt& cxt) const;
 		void generate_verify_code(std::array<uint32_t, 2>& cxt) const;

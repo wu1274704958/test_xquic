@@ -1,6 +1,7 @@
 #include "mqas/core/engine_interface.h"
 #include "mqas/log.h"
 #include "mqas/io/ip.h"
+#include <algorithm>
 
 void mqas::core::IEngine::init(std::shared_ptr<mqas::core::engine_cxt> cxt)
 {
@@ -25,15 +26,15 @@ bool mqas::core::IEngine::on_recv(const std::optional<std::span<uint8_t>>& buf, 
 	if (!whitelist_port.empty())
 	{
 		auto port = io::Ip::addr_get_port(*addr);
-		for(auto p : whitelist_port)
-			if(p != port)
-				return false;
+		auto it = std::find(whitelist_port.begin(),whitelist_port.end(),port);
+		if(it == whitelist_port.end())
+			return false;
 	}
 	if (!whitelist_addr.empty())
 	{
-		for (const auto& p : whitelist_addr)
-			if (!io::Ip::compare_ip(*addr,*p,true))
-				return false;
+		auto it = std::find_if(whitelist_addr.begin(), whitelist_addr.end(), [addr](const std::unique_ptr<sockaddr>& a){ return io::Ip::compare_ip(*addr, *a, true); });
+		if (it == whitelist_addr.end())
+			return false;
 	}
 	return true;
 }

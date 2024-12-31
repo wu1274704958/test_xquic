@@ -42,12 +42,12 @@ namespace mqas::tools::controller {
 		return *this;
 	}
 
-	void p2p_helper_controller::submit_verify_code(uint64_t id, uint32_t who, uint32_t code, uint16_t ip_index)
+	void p2p_helper_controller::submit_verify_code(uint64_t merge_id,uint32_t id,const std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>& msg)
 	{
 		auto model = comm::locator::inst()->get<p2p::p2p_model>();
 		if (!*this && !model)
 			return;
-		if (model.value().get().submit_verify_code(id, who, code,ip_index))
+		if (model.value().get().submit_verify_code(merge_id,id,msg))
 		{
 			if (is_start())
 				stop_step();
@@ -142,6 +142,23 @@ namespace mqas::tools::controller {
 		_notify_connect_signal[idx] = notify_connect;
 	}
 
+	void p2p_helper_controller::set_peer_address(uint32_t id, proto::p2p::Address* addr) const
+	{
+		if (!*this && !*_cxt)
+			return;
+		auto model = comm::locator::inst()->get<p2p::p2p_model>();
+		if (!model)
+			return;
+		const auto idx = p2p::self_idx(_cxt->pid, id);
+		auto ip_idx = _cxt->tag[idx];
+		auto& map = _cxt->submit_code_map[idx];
+		if (map.contains(ip_idx))
+		{
+			addr->set_ip(map.at(ip_idx)->peer_addr().ip());
+			addr->set_port(map.at(ip_idx)->peer_addr().port());
+		}
+	}
+
 	void p2p_helper_controller::set_current_address(uint32_t id,proto::p2p::Address* addr) const
 	{
 		if (!*this && !*_cxt)
@@ -149,7 +166,7 @@ namespace mqas::tools::controller {
 		auto model = comm::locator::inst()->get<p2p::p2p_model>();
 		if (!model)
 			return;
-		const auto idx = p2p::oth_idx(_cxt->pid, id);
+		const auto idx = p2p::self_idx(_cxt->pid, id);
 		switch (_cxt->state)
 		{
 		case p2p::ConnectState::TryExternal:
@@ -187,7 +204,9 @@ namespace mqas::tools::controller {
 		msg.set_ret(mqas::tools::proto::p2p::RetCode::ok);
 		msg.set_is_server(idx == 0);
 		auto address = msg.mutable_address();
+		auto peer_addr = msg.mutable_peer_addr();
 		set_current_address(oth_id,address);
+		set_peer_address(oth_id, peer_addr);
 		_notify_connect_result[idx](msg);
 	}
 	void p2p_helper_controller::notify_failed(uint32_t id, const std::optional<std::string>& reason) const

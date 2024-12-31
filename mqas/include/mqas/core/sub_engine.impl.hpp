@@ -260,6 +260,7 @@ namespace mqas::core {
 	{
 		MQAS_DBG("conn on close " << lsquic_conn);
 		_engine_extern->on_conn_closed(lsquic_conn);
+		::lsquic_conn_set_ctx(lsquic_conn, NULL);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
 	void sub_engine<E, ED>::on_new_stream_s(void* stream_if_ctx, lsquic_stream_t* lsquic_stream) 

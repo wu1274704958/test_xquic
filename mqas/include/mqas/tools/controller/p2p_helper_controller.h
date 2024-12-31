@@ -15,7 +15,7 @@ namespace mqas::tools::controller {
 		bool init(uint32_t a, uint32_t b);
 		bool peer_exist(uint32_t a) const;
 		void start();
-		void submit_verify_code(uint64_t id, uint32_t who, uint32_t code,uint16_t ip_index);
+		void submit_verify_code(uint64_t merge_id, uint32_t id, const std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>& msg);
 		void on_verify_success() const;
 		void on_timeout() const;
 		void register_event(uint32_t id, std::function<void(const proto::p2p::NotifyConnectPeerData&)> notify_connect,
@@ -26,6 +26,7 @@ namespace mqas::tools::controller {
 		void on_step(io::Timer*);
 		void notify_success(uint32_t id) const;
 		void set_current_address(uint32_t id,proto::p2p::Address* addr) const;
+		void set_peer_address(uint32_t id, proto::p2p::Address* addr) const;
 		void notify_failed(uint32_t id,const std::optional<std::string>& reason) const;
 		void set_reason(const std::string&);
 	protected:

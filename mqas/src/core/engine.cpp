@@ -5,7 +5,9 @@ namespace mqas::core{
 		this->conn_ = conn;
 		this->engine_cxt_ = std::move(cxt);
 	}
-	void IConnect::on_close() {}
+	void IConnect::on_close() {
+        lsquic_conn_set_ctx(conn_, nullptr);
+    }
 	void IConnect::on_new_stream(::lsquic_stream_t* lsquic_stream) {}
 	void IConnect::on_stream_read(::lsquic_stream_t* lsquic_stream) {}
 	void IConnect::on_stream_write(::lsquic_stream_t* lsquic_stream) {}
