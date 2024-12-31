@@ -152,7 +152,10 @@ int main(int argc, const char** argv)
 		e.start_recv();
 		e.process_conns();
 		sockaddr addr{};
-		io::Ip::str2addr_ipv4("127.0.0.1", 8084, addr);
+		auto ip = toml::find<std::string>(*e.get_engine()->get_config(),"client", "ip");
+		auto port = toml::find<int>(*e.get_engine()->get_config(), "client", "port");
+		if(!io::Ip::str2addr_ipv4(ip.c_str(), port, addr))
+			throw new std::exception("Not found target address!");
 		auto c = e.get_engine()->connect(addr, N_LSQVER);
 		e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(addr));
 		auto conn = c.lock();
