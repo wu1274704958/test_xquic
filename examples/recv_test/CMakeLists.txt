@@ -12,6 +12,7 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
     ZLIB::ZLIB
     $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
     mqas
+    sigc-3.0
 )
 
 get_target_property(mqas_TARGET_TYPE mqas TYPE)

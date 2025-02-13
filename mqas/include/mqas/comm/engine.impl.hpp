@@ -5,7 +5,7 @@ namespace mqas::comm {
 	template<class S,
 		template< class > class C,
 		template< class > class E,
-		template< class, class> class SE , class ED>
+		template< class, class, class> class SE , class ED, class SC>
 		requires requires
 	{
 		requires std::is_default_constructible_v<E<C<S>>>;
@@ -13,14 +13,15 @@ namespace mqas::comm {
 		requires std::is_default_constructible_v<C<S>>;
 		requires std::is_base_of_v<core::IConnect, C<S>>;
 		requires core::IsVaildEngineDriver<ED>;
+		requires core::IsVaildSocket<SC>;
 	}
 	auto engine_util::launch_sub_engine(io::Context& io_cxt, const char* conf_file, mqas::core::EngineFlags engine_flags,
-		std::shared_ptr<io::UdpSocket> socket, std::function<void(std::shared_ptr<C<S>>)> on_connected,
+		std::shared_ptr<SC> socket, std::function<void(std::shared_ptr<C<S>>)> on_connected,
 		const sockaddr* addr, std::function<void(const std::exception&)> on_exception,
-		std::function<void(SE<E<C<S>>,ED>&)> on_engine_init)
-		-> std::shared_ptr<SE<E<C<S>>, ED>>
+		std::function<void(SE<E<C<S>>,ED,SC>&)> on_engine_init)
+		-> std::shared_ptr<SE<E<C<S>>, ED,SC>>
 	{
-		auto engine = std::make_shared<SE<E<C<S>>, ED>>(io_cxt);
+		auto engine = std::make_shared<SE<E<C<S>>, ED, SC>>(io_cxt);
 		try {
 			if (socket)
 				engine->init(conf_file, engine_flags, socket);

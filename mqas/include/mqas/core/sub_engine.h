@@ -2,15 +2,17 @@
 #include "engine_driver.h"
 #include "engine_interface.h"
 #include "mqas/tools/peer_context_mgr.h"
+#include "core_concept.h"
 
 namespace mqas::core {
 	
-	template<typename E,typename ED = engine_driver>
+	template<typename E,typename ED = engine_driver,typename SC = io::UdpSocket>
 	requires requires
 	{
 		requires IsVaildEngineDriver<ED>;
 		requires std::is_default_constructible_v<E>;
 		requires std::is_base_of_v<IEngine, E>;
+		requires IsVaildSocket<SC>;
 	}
 	class MQAS_EXTERN sub_engine : public engine_base_interface {
 		friend ED; 
@@ -58,12 +60,12 @@ namespace mqas::core {
 		void on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len) override;
 		/////
 		static ssl_ctx_st* on_get_ssl_ctx(void* peer_ctx, const sockaddr* local);
-
+		static int on_packets_out(void* packets_out_ctx, const lsquic_out_spec* out_spec,unsigned n_packets_out);
 	public:
 		std::shared_ptr<engine_cxt> context;
 		io::Context& io_cxt;
 	protected:
-		std::shared_ptr<io::UdpSocket> _socket;
+		std::shared_ptr<SC> _socket;
 		io::Timer* _proc_conns_timer;
 		std::shared_ptr<engine_config> _conf;
 		std::shared_ptr<toml::value> _conf_origin;

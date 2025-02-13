@@ -2,23 +2,24 @@
 
 namespace mqas::core {
 
-	#define SUB_ENGINE_TEMPLATE_DECL					\
-	template<typename E,typename ED>					\
-	requires requires									\
-	{													\
-		requires IsVaildEngineDriver<ED>;				\
-		requires std::is_default_constructible_v<E>;	\
-		requires std::is_base_of_v<IEngine, E>;			\
+	#define SUB_ENGINE_TEMPLATE_DECL								\
+	template<typename E,typename ED,typename SC>					\
+	requires requires												\
+	{																\
+		requires IsVaildEngineDriver<ED>;							\
+		requires std::is_default_constructible_v<E>;				\
+		requires std::is_base_of_v<IEngine, E>;						\
+		requires IsVaildSocket<SC>;									\
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	sub_engine<E,ED>::sub_engine(io::Context& c):io_cxt(c), _socket(nullptr),
+	sub_engine<E,ED,SC>::sub_engine(io::Context& c):io_cxt(c), _socket(nullptr),
 		_proc_conns_timer(nullptr), _engine_flags(EngineFlags::None), _local_addr({}),
 		_lsquic_engine_api({})
 	{}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	sub_engine<E,ED>::sub_engine(sub_engine&& oth) noexcept :io_cxt(oth.io_cxt), _socket(std::move(oth._socket)),
+	sub_engine<E,ED,SC>::sub_engine(sub_engine&& oth) noexcept :io_cxt(oth.io_cxt), _socket(std::move(oth._socket)),
 		_proc_conns_timer(oth._proc_conns_timer), _engine_flags(oth._engine_flags), _local_addr(oth._local_addr),
 		_lsquic_engine_api(oth._lsquic_engine_api) 
 	{
@@ -26,7 +27,7 @@ namespace mqas::core {
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<io::UdpSocket> socket) noexcept(false)
+	void sub_engine<E,ED,SC>::init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<io::UdpSocket> socket) noexcept(false)
 	{
 		if (!ED::instance()->initialization(conf_file))
 			throw std::runtime_error("Initialize engine driver failed!");
@@ -47,23 +48,25 @@ namespace mqas::core {
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::init_config(const char* conf_file)
+	void sub_engine<E,ED,SC>::init_config(const char* conf_file)
 	{
 		_conf_origin = std::make_shared<toml::value>(toml::parse(conf_file));
 		_conf = std::make_shared<engine_config>(toml::find<engine_config>(*_conf_origin, "engine_config"));
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	bool sub_engine<E, ED>::has_engine_setting() const
+	bool sub_engine<E,ED,SC>::has_engine_setting() const
 	{
 		return _conf_origin != nullptr && _conf_origin->contains("lsquic_settings");
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::init_engine_core()
+	void sub_engine<E,ED,SC>::init_engine_core()
 	{
 		_lsquic_engine_api.ea_packets_out_ctx = _socket.get();
 		ED::instance()->fill_lsquic_engine_api(this, _engine_flags, _lsquic_engine_api,*_conf);
+
+		_lsquic_engine_api.ea_packets_out = on_packets_out;
 
 		if (has_engine_setting())
 		{
@@ -104,10 +107,13 @@ namespace mqas::core {
 		LOG(INFO) << "Create engine success!";
 
 		_engine_extern->on_init_config(_conf_origin);
-		_engine_extern->on_init_socket(_socket);
+		if constexpr (std::is_same_v<SC, io::UdpSocket>)
+		{ 
+			_engine_extern->on_init_socket(_socket);
+		}
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::init_socket(std::shared_ptr<io::UdpSocket> sock)
+	void sub_engine<E,ED,SC>::init_socket(std::shared_ptr<io::UdpSocket> sock)
 	{
 		if(sock == nullptr)
 		{ 
@@ -121,13 +127,13 @@ namespace mqas::core {
 
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::init_timer()
+	void sub_engine<E,ED,SC>::init_timer()
 	{
 		_proc_conns_timer = io_cxt.make_handle<io::Timer>();
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::init_context()
+	void sub_engine<E,ED,SC>::init_context()
 	{
 		context = std::make_shared<engine_cxt>(io_cxt, _local_addr);
 		context->engine_core = _engine;
@@ -137,7 +143,7 @@ namespace mqas::core {
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::close_timer()
+	void sub_engine<E,ED,SC>::close_timer()
 	{
 		if (_proc_conns_timer)
 		{
@@ -147,20 +153,20 @@ namespace mqas::core {
 		}
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::close()
+	void sub_engine<E,ED,SC>::close()
 	{
 		if (_engine_extern)
 			_engine_extern->close();
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::wait_all_connect_closed()
+	void sub_engine<E,ED,SC>::wait_all_connect_closed()
 	{
 		close();
 		while (_engine_extern && _engine_extern->connect_count() > 0)
 			io_cxt.run(mqas::io::Context::RunMode::ONCE);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	sub_engine<E, ED>::~sub_engine()
+	sub_engine<E,ED,SC>::~sub_engine()
 	{
 		close_timer();
 		if(_engine != nullptr)
@@ -174,7 +180,7 @@ namespace mqas::core {
 		}
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::process_conns() const
+	void sub_engine<E,ED,SC>::process_conns() const
 	{
 		_proc_conns_timer->stop();
 		if (_engine == nullptr) return;
@@ -201,7 +207,7 @@ namespace mqas::core {
 		}
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::process_conns_lazy() const
+	void sub_engine<E,ED,SC>::process_conns_lazy() const
 	{
 		_proc_conns_timer->stop();
 		_proc_conns_timer->start([this](io::Timer* t)
@@ -210,7 +216,7 @@ namespace mqas::core {
 			}, 0, 0);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::start_recv()
+	void sub_engine<E,ED,SC>::start_recv()
 	{
 		if (_recv_connection.connected())
 			return;
@@ -237,93 +243,121 @@ namespace mqas::core {
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	std::shared_ptr<E> sub_engine<E, ED>::get_engine() const
+	std::shared_ptr<E> sub_engine<E,ED,SC>::get_engine() const
 	{
 		return _engine_extern;
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	ssl_ctx_st* sub_engine<E, ED>::on_get_ssl_ctx(void* peer_ctx, const sockaddr* local)
+	ssl_ctx_st* sub_engine<E,ED,SC>::on_get_ssl_ctx(void* peer_ctx, const sockaddr* local)
 	{
 		auto ptr = static_cast<peer_context<sub_engine<E, ED>>*>(peer_ctx);
 		return ptr->engine->_ssl_ctx;
 	}
+
+	SUB_ENGINE_TEMPLATE_DECL
+	int sub_engine<E, ED, SC>::on_packets_out(void* packets_out_ctx, const lsquic_out_spec* out_spec,
+			unsigned n_packets_out)
+	{
+		const auto sock = static_cast<SC*>(packets_out_ctx);
+
+		std::vector<std::span<uint8_t>> bufs;
+		unsigned succ_num = n_packets_out;
+		for (unsigned n = 0; n < n_packets_out; ++n)
+		{
+			if (bufs.size() < out_spec[n].iovlen)
+				bufs.resize(out_spec[n].iovlen);
+			for (unsigned i = 0; i < out_spec[n].iovlen; ++i)
+			{
+				bufs[i] = std::span<uint8_t>(static_cast<uint8_t*>(out_spec[n].iov[i].iov_base), out_spec[n].iov[i].iov_len);
+			}
+			try {
+				sock->try_send(bufs, *out_spec[n].dest_sa);
+			}
+			catch (io::Exception& e)
+			{
+				--succ_num;
+				LOG(ERROR) << "packets_out send failed exception = " << e.what();
+			}
+		}
+		return static_cast<int>(succ_num);
+	}
 	///// lsquic event
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::on_new_conn_s(void* stream_if_ctx, lsquic_conn_t* lsquic_conn) 
+	void sub_engine<E,ED,SC>::on_new_conn_s(void* stream_if_ctx, lsquic_conn_t* lsquic_conn) 
 	{
 		MQAS_DBG("new conn " << lsquic_conn);
 		_engine_extern->on_new_conn(stream_if_ctx, lsquic_conn);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::on_conn_closed_s(lsquic_conn_t* lsquic_conn) 
+	void sub_engine<E,ED,SC>::on_conn_closed_s(lsquic_conn_t* lsquic_conn) 
 	{
 		MQAS_DBG("conn on close " << lsquic_conn);
 		_engine_extern->on_conn_closed(lsquic_conn);
 		::lsquic_conn_set_ctx(lsquic_conn, NULL);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::on_new_stream_s(void* stream_if_ctx, lsquic_stream_t* lsquic_stream) 
+	void sub_engine<E,ED,SC>::on_new_stream_s(void* stream_if_ctx, lsquic_stream_t* lsquic_stream) 
 	{
 		MQAS_DBG("new stream " << lsquic_stream);
 		_engine_extern->on_new_stream(stream_if_ctx, lsquic_stream);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::on_read_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+	void sub_engine<E,ED,SC>::on_read_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 	{
 		MQAS_DBG("stream on read " << lsquic_stream);
 		_engine_extern->on_read(lsquic_stream, lsquic_stream_ctx);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::on_write_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+	void sub_engine<E,ED,SC>::on_write_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 	{
 		MQAS_DBG("stream on write " << lsquic_stream);
 		_engine_extern->on_write(lsquic_stream, lsquic_stream_ctx);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::on_close_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+	void sub_engine<E,ED,SC>::on_close_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 	{
 		MQAS_DBG("stream on close " << lsquic_stream);
 		_engine_extern->on_close(lsquic_stream, lsquic_stream_ctx);
 	}
 	//optional
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::on_goaway_received(lsquic_conn_t* c)
+	void sub_engine<E,ED,SC>::on_goaway_received(lsquic_conn_t* c)
 	{
 		MQAS_DBG("conn on goaway received " << c);
 		_engine_extern->on_goaway_received(c);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	ssize_t sub_engine<E, ED>::on_dg_write(lsquic_conn_t* c, void* buf, size_t buf_sz) {
+	ssize_t sub_engine<E,ED,SC>::on_dg_write(lsquic_conn_t* c, void* buf, size_t buf_sz) {
 		MQAS_DBG("conn on dg write " << c << " buf size = " << buf_sz);
 		return _engine_extern->on_dg_write(c, buf, buf_sz);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::on_datagram(lsquic_conn_t* c, const void* buf, size_t buf_sz)
+	void sub_engine<E,ED,SC>::on_datagram(lsquic_conn_t* c, const void* buf, size_t buf_sz)
 	{
 		MQAS_DBG("conn on datagram " << c << " buf size = " << buf_sz);
 		_engine_extern->on_datagram(c, buf, buf_sz);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s)
+	void sub_engine<E,ED,SC>::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s)
 	{
 		MQAS_DBG("conn on hsk done " << c << " status = " << s);
 		_engine_extern->on_hsk_done(c, s);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
+	void sub_engine<E,ED,SC>::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
 	{
 		MQAS_DBG("conn on new token " << c << " token = " << token);
 		_engine_extern->on_new_token(c, token, token_size);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)
+	void sub_engine<E,ED,SC>::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)
 	{
 		MQAS_DBG("stream on reset " << s << " how = " << how);
 		_engine_extern->on_reset(s, h, how);
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E, ED>::on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len)
+	void sub_engine<E,ED,SC>::on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len)
 	{
 		MQAS_DBG("conn on conncloseframe received " << c << " error_code = " << error_code << " reason " << reason);
 		_engine_extern->on_conncloseframe_received(c, app_error, error_code, reason, reason_len);

@@ -14,15 +14,17 @@
 #include "engine_interface.h"
 #include "engine_driver.h"
 #include "mqas/tools/peer_context_mgr.h"
+#include "core_concept.h"
 
 namespace mqas::core
 {
-	template<typename E, typename ED = engine_driver>
+	template<typename E, typename ED = engine_driver,typename SC = io::UdpSocket>
 	requires requires
 	{
 		requires IsVaildEngineDriver<ED>;
 		requires std::is_default_constructible_v<E>;
 		requires std::is_base_of_v<IEngine, E>;
+		requires IsVaildSocket<SC>;
 	}
 	class MQAS_EXTERN engine_base
 	{
@@ -83,7 +85,7 @@ namespace mqas::core
 		io::Context& io_cxt;
 		std::shared_ptr<engine_cxt> context;
 	protected:
-		std::shared_ptr<io::UdpSocket> socket_;
+		std::shared_ptr<SC> socket_;
 		io::Timer* proc_conns_timer_;
 		std::shared_ptr<engine_config> conf_;
 		std::shared_ptr<toml::value> conf_origin_;

@@ -17,7 +17,7 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
         ZLIB::ZLIB
         $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
         mqas
-        ${easyloggingpp_LIBRARY}
+        ${easyloggingpp_LIBRARY} sigc-3.0
         protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
         sigc-3.0
         unofficial::pdcurses::pdcurses

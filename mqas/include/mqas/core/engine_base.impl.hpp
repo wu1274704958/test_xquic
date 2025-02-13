@@ -22,22 +22,23 @@ int MQAS_EXTERN ssl_select_alpn_s(SSL* ssl, const unsigned char** out, unsigned 
 	const unsigned char* in, unsigned inlen, void* arg);
 
 #define ENGINE_BASE_TEMPLATE_DECL											\
-template<typename E,typename ED>											\
+template<typename E,typename ED,typename SC>								\
 requires requires															\
 {																			\
-	requires mqas::core::IsVaildEngineDriver<ED>;										\
+	requires mqas::core::IsVaildEngineDriver<ED>;							\
 	requires std::is_default_constructible_v<E>;							\
 	requires std::is_base_of_v<mqas::core::IEngine, E>;						\
+	requires mqas::core::IsVaildSocket<SC>;									\
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-mqas::core::engine_base<E,ED>::engine_base(io::Context& c):io_cxt(c),socket_(nullptr),
+mqas::core::engine_base<E,ED,SC>::engine_base(io::Context& c):io_cxt(c),socket_(nullptr),
 proc_conns_timer_(nullptr),engine_flags_(EngineFlags::None),local_addr_({}),lsquic_logger_if_({}),
 lsquic_engine_api_({}),lsquic_stream_if_({})
 {}
 
 ENGINE_BASE_TEMPLATE_DECL
-mqas::core::engine_base<E,ED>::engine_base(engine_base&& oth) noexcept : io_cxt(oth.cxt),
+mqas::core::engine_base<E,ED,SC>::engine_base(engine_base&& oth) noexcept : io_cxt(oth.cxt),
 engine_flags_(oth.engine_flags_),local_addr_(oth.local_addr_),lsquic_logger_if_(oth.lsquic_logger_if_),
 lsquic_engine_api_(oth.lsquic_engine_api_),lsquic_stream_if_(oth.lsquic_stream_if_)
 {
@@ -49,7 +50,7 @@ lsquic_engine_api_(oth.lsquic_engine_api_),lsquic_stream_if_(oth.lsquic_stream_i
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E, ED>::init_socket(std::shared_ptr<io::UdpSocket> sock)
+void mqas::core::engine_base<E,ED,SC>::init_socket(std::shared_ptr<io::UdpSocket> sock)
 {
 	if (sock == nullptr)
 	{
@@ -64,7 +65,7 @@ void mqas::core::engine_base<E, ED>::init_socket(std::shared_ptr<io::UdpSocket> 
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<io::UdpSocket> socket)
+void mqas::core::engine_base<E,ED,SC>::init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<io::UdpSocket> socket)
 {
 	//parse config 
 	init_config(conf_file);
@@ -92,24 +93,24 @@ void mqas::core::engine_base<E,ED>::init(const char* conf_file, core::EngineFlag
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E, ED>::init_config(const char* conf_file)
+void mqas::core::engine_base<E,ED,SC>::init_config(const char* conf_file)
 {
 	conf_origin_ = std::make_shared<toml::value>(toml::parse(conf_file));
 	conf_ = std::make_shared<engine_config>(toml::find<engine_config>(*conf_origin_, "engine_config"));
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-bool mqas::core::engine_base<E, ED>::has_engine_setting() const
+bool mqas::core::engine_base<E,ED,SC>::has_engine_setting() const
 {
 	return conf_origin_ != nullptr && conf_origin_->contains("lsquic_settings");
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E, ED>::init_timer()
+void mqas::core::engine_base<E,ED,SC>::init_timer()
 {
 	proc_conns_timer_ = io_cxt.make_handle<io::Timer>();
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E, ED>::init_engine_core()
+void mqas::core::engine_base<E,ED,SC>::init_engine_core()
 {
 	lsquic_engine_api_.ea_packets_out_ctx = socket_.get();
 	
@@ -156,11 +157,14 @@ void mqas::core::engine_base<E, ED>::init_engine_core()
 	LOG(INFO) << "Create engine success!";
 
 	engine_extern_->on_init_config(conf_origin_);
-	engine_extern_->on_init_socket(socket_);
+	if constexpr(std::is_same_v<SC,io::UdpSocket>)
+	{
+		engine_extern_->on_init_socket(socket_);
+	}
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::init_logger() const
+void mqas::core::engine_base<E,ED,SC>::init_logger() const
 {
 	mqas::log::init("default",conf_->log_config,std::nullopt);
 	const auto lsquic_log = el::Loggers::getLogger("lsquic");
@@ -176,7 +180,7 @@ void mqas::core::engine_base<E,ED>::init_logger() const
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::init_context()
+void mqas::core::engine_base<E,ED,SC>::init_context()
 {
 	context = std::make_shared<engine_cxt>(io_cxt,local_addr_);
 	context->engine_core = engine_;
@@ -186,7 +190,7 @@ void mqas::core::engine_base<E,ED>::init_context()
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::init_lsquic() noexcept(false)
+void mqas::core::engine_base<E,ED,SC>::init_lsquic() noexcept(false)
 {
 	lsquic_logger_if_ = { lsquic_log_func, };
 
@@ -209,7 +213,7 @@ void mqas::core::engine_base<E,ED>::init_lsquic() noexcept(false)
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::start_recv()
+void mqas::core::engine_base<E,ED,SC>::start_recv()
 {
 	if(recv_connection_.connected())
 		return;
@@ -234,12 +238,12 @@ void mqas::core::engine_base<E,ED>::start_recv()
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::close_socket()
+void mqas::core::engine_base<E,ED,SC>::close_socket()
 {
 	
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::close_timer()
+void mqas::core::engine_base<E,ED,SC>::close_timer()
 {
 	if (proc_conns_timer_)
 	{
@@ -249,20 +253,20 @@ void mqas::core::engine_base<E,ED>::close_timer()
 	}
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::close_ssl_ctx()
+void mqas::core::engine_base<E,ED,SC>::close_ssl_ctx()
 {
 	ssl_ctx_ = ED::instance()->destroy_ssl_ctx(ssl_ctx_);
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::close()
+void mqas::core::engine_base<E,ED,SC>::close()
 {
 	if (engine_extern_)
 		engine_extern_->close();
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::wait_all_connect_closed()
+void mqas::core::engine_base<E,ED,SC>::wait_all_connect_closed()
 {
 	close();
 	while (engine_extern_ && engine_extern_->connect_count() > 0)
@@ -270,7 +274,7 @@ void mqas::core::engine_base<E,ED>::wait_all_connect_closed()
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-mqas::core::engine_base<E,ED>::~engine_base()
+mqas::core::engine_base<E,ED,SC>::~engine_base()
 {
 	close_socket();
 	close_timer();
@@ -282,7 +286,7 @@ mqas::core::engine_base<E,ED>::~engine_base()
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-std::string mqas::core::engine_base<E,ED>::load_config(const char* conf_file)
+std::string mqas::core::engine_base<E,ED,SC>::load_config(const char* conf_file)
 {
 	std::stringstream ss;
 #ifdef PF_ANDROID
@@ -300,53 +304,53 @@ std::string mqas::core::engine_base<E,ED>::load_config(const char* conf_file)
 
 //lsquic callback function implement
 ENGINE_BASE_TEMPLATE_DECL
-int mqas::core::engine_base<E,ED>::lsquic_log_func(void* logger_ctx, const char* buf, size_t len)
+int mqas::core::engine_base<E,ED,SC>::lsquic_log_func(void* logger_ctx, const char* buf, size_t len)
 {
 	CLOG(ERROR, "lsquic") << buf;
 	return 0;
 }
 ENGINE_BASE_TEMPLATE_DECL
-lsquic_conn_ctx_t* mqas::core::engine_base<E,ED>::on_new_conn_s(void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
+lsquic_conn_ctx_t* mqas::core::engine_base<E,ED,SC>::on_new_conn_s(void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
 {
 	const auto engine = static_cast<E*>(stream_if_ctx);
 	engine->on_new_conn(stream_if_ctx,lsquic_conn);
 	return reinterpret_cast<lsquic_conn_ctx_t*>(engine);
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::on_conn_closed_s(lsquic_conn_t* lsquic_conn)
+void mqas::core::engine_base<E,ED,SC>::on_conn_closed_s(lsquic_conn_t* lsquic_conn)
 {
 	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(lsquic_conn));
 	engine->on_conn_closed(lsquic_conn);
 	::lsquic_conn_set_ctx(lsquic_conn, NULL);
 }
 ENGINE_BASE_TEMPLATE_DECL
-lsquic_stream_ctx_t* mqas::core::engine_base<E,ED>::on_new_stream_s(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
+lsquic_stream_ctx_t* mqas::core::engine_base<E,ED,SC>::on_new_stream_s(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
 {
 	const auto engine = static_cast<E*>(stream_if_ctx);
 	engine->on_new_stream(stream_if_ctx, lsquic_stream);
 	return reinterpret_cast<lsquic_stream_ctx_t*>(engine);
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::on_read_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+void mqas::core::engine_base<E,ED,SC>::on_read_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 {
 	const auto engine = reinterpret_cast<E*>(lsquic_stream_ctx);
 	engine->on_read(lsquic_stream,lsquic_stream_ctx);
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::on_write_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+void mqas::core::engine_base<E,ED,SC>::on_write_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 {
 	const auto engine = reinterpret_cast<E*>(lsquic_stream_ctx);
 	engine->on_write(lsquic_stream, lsquic_stream_ctx);
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::on_close_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
+void mqas::core::engine_base<E,ED,SC>::on_close_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 {
 	const auto engine = reinterpret_cast<E*>(lsquic_stream_ctx);
 	engine->on_close(lsquic_stream, lsquic_stream_ctx);
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::process_conns() const
+void mqas::core::engine_base<E,ED,SC>::process_conns() const
 {
 	proc_conns_timer_->stop();
 	if (engine_ == nullptr) return;
@@ -373,7 +377,7 @@ void mqas::core::engine_base<E,ED>::process_conns() const
 	}
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::process_conns_lazy() const
+void mqas::core::engine_base<E,ED,SC>::process_conns_lazy() const
 {
     proc_conns_timer_->stop();
     proc_conns_timer_->start([this](io::Timer* t)
@@ -382,15 +386,15 @@ void mqas::core::engine_base<E,ED>::process_conns_lazy() const
         },0,0);
 }
 ENGINE_BASE_TEMPLATE_DECL
-std::shared_ptr<E> mqas::core::engine_base<E,ED>::get_engine() const
+std::shared_ptr<E> mqas::core::engine_base<E,ED,SC>::get_engine() const
 {
 	return engine_extern_;
 }
 ENGINE_BASE_TEMPLATE_DECL
-int mqas::core::engine_base<E,ED>::on_packets_out(void* packets_out_ctx, const lsquic_out_spec* out_spec,
+int mqas::core::engine_base<E,ED,SC>::on_packets_out(void* packets_out_ctx, const lsquic_out_spec* out_spec,
 	unsigned n_packets_out)
 {
-	const auto sock = static_cast<io::UdpSocket*>(packets_out_ctx);
+	const auto sock = static_cast<SC*>(packets_out_ctx);
 
 	std::vector<std::span<uint8_t>> bufs;
 	unsigned succ_num = n_packets_out;
@@ -403,10 +407,10 @@ int mqas::core::engine_base<E,ED>::on_packets_out(void* packets_out_ctx, const l
 			bufs[i] = std::span<uint8_t>(static_cast<uint8_t *>(out_spec[n].iov[i].iov_base),out_spec[n].iov[i].iov_len);
 		}
 		try{
-            sock->send(bufs,*out_spec[n].dest_sa,[](io::UdpSocket* s,int status){
-                if(status != 0) LOG(ERROR) << "packets_out send failed status = " << status;
-            });
-			//sock->try_send(bufs, *out_spec[n].dest_sa);
+            //sock->send(bufs,*out_spec[n].dest_sa,[](io::UdpSocket* s,int status){
+            //    if(status != 0) LOG(ERROR) << "packets_out send failed status = " << status;
+            //});
+			sock->try_send(bufs, *out_spec[n].dest_sa);
 		}catch (io::Exception& e)
 		{
 			--succ_num;
@@ -416,7 +420,7 @@ int mqas::core::engine_base<E,ED>::on_packets_out(void* packets_out_ctx, const l
 	return static_cast<int>(succ_num);
 }
 ENGINE_BASE_TEMPLATE_DECL
-ssl_ctx_st* mqas::core::engine_base<E,ED>::on_get_ssl_ctx(void* peer_ctx, const sockaddr* local)
+ssl_ctx_st* mqas::core::engine_base<E,ED,SC>::on_get_ssl_ctx(void* peer_ctx, const sockaddr* local)
 {
 	auto ptr = static_cast<peer_context<engine_base<E, ED>>*>(peer_ctx);
 	return ptr->engine->ssl_ctx_;
@@ -424,43 +428,43 @@ ssl_ctx_st* mqas::core::engine_base<E,ED>::on_get_ssl_ctx(void* peer_ctx, const 
 
 //lsquic optional stream callback
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::on_goaway_received(lsquic_conn_t* c)
+void mqas::core::engine_base<E,ED,SC>::on_goaway_received(lsquic_conn_t* c)
 {
 	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
 	engine->on_goaway_received(c);
 }
 ENGINE_BASE_TEMPLATE_DECL
-ssize_t mqas::core::engine_base<E,ED>::on_dg_write(lsquic_conn_t* c, void* buf, size_t buf_sz)
+ssize_t mqas::core::engine_base<E,ED,SC>::on_dg_write(lsquic_conn_t* c, void* buf, size_t buf_sz)
 {
 	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
 	return engine->on_dg_write(c,buf,buf_sz);
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::on_datagram(lsquic_conn_t* c, const void* buf, size_t buf_sz)
+void mqas::core::engine_base<E,ED,SC>::on_datagram(lsquic_conn_t* c, const void* buf, size_t buf_sz)
 {
 	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
 	engine->on_datagram(c, buf, buf_sz);
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s)
+void mqas::core::engine_base<E,ED,SC>::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s)
 {
 	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
 	engine->on_hsk_done(c, s);
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
+void mqas::core::engine_base<E,ED,SC>::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
 {
 	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
 	engine->on_new_token(c,token, token_size);
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)
+void mqas::core::engine_base<E,ED,SC>::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)
 {
 	const auto engine = reinterpret_cast<E*>(h);
 	engine->on_reset(s,h,how);
 }
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED>::on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len)
+void mqas::core::engine_base<E,ED,SC>::on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len)
 {
 	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
 	engine->on_conncloseframe_received(c,app_error,error_code,reason, reason_len);
