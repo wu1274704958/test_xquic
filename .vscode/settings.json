@@ -4,5 +4,6 @@
         "-DBUILD_SHARED_LIBS=OFF",
         "-DCMAKE_TOOLCHAIN_FILE=$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
     ],
-    "cmake.generator": "Ninja"
+    "cmake.generator": "Ninja",
+    "cmake.buildDirectory": "${workspaceFolder}/build-${command:cmake.buildType}"
 }
