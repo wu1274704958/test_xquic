@@ -432,7 +432,7 @@ namespace mqas::core {
     MQAS_PB_STREAM_TEMPLATE_DECL
     template<class SM,stream_variant_cmd C>
     requires IsProtoBufMsgConf<SM>
-    bool ProtoBufStream<S,M...>::send_sv_msg(const typename SM::PB_MSG_TYPE& m,uint32_t p1,uint16_t p2,uint8_t p3,StreamVariantErrcode errcode)
+    bool ProtoBufStream<S,M...>::send_sv_msg(const typename SM::PB_MSG_TYPE& m,uint32_t p1,uint16_t p2,uint8_t p3,StreamVariantErrcode errcode,bool lazy)
     {
         stream_variant_msg msg;
         msg.cmd = C;
@@ -453,7 +453,10 @@ namespace mqas::core {
             assert(false);
             return false;
         }
-        return (outer_ret == 1 || outer_ret == 2) ? outer_ret == 1 : write({*data});
+        if(outer_ret == 1 || outer_ret == 2)
+            return outer_ret == 1;
+        else
+            return lazy ? (write_lazy({*data}),true) : write({*data});
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
     size_t ProtoBufStream<S, M...>::try_parse_outer(const std::span<const uint8_t>& current)

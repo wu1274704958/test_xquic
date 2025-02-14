@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package mqas.tools.proto.relay;
+
+message Address {
+  string ip = 1;
+  uint32 port = 2;
+}
+
+message ReqRelay{
+  Address address = 1;
+  optional uint32 option = 2;
+}
+
+message RespondRelay{
+  enum Code{
+    success = 0;
+    already_exists = 1;
+    waiting_peer = 2;
+    timeout = 3;
+    bad_arguments = 4;
+  };
+  Code code = 1;
+  uint32 id = 2;
+}
+
