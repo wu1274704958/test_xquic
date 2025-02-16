@@ -405,7 +405,6 @@ namespace mqas::core{
             if (stream_tag_ != 0)
             {
                 stream_tag_ = 0;
-                on_close();
                 stream_var_ = std::monostate{};
                 current_state = variant_stream_state::none;
             }

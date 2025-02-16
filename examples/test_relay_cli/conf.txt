@@ -1,0 +1,24 @@
+[engine_config]
+bind_ip="0.0.0.0"
+port=8089
+log_level="info"
+log_config="""
+* GLOBAL:
+   FORMAT               =  "%datetime [%logger] [%level] %msg"
+   FILENAME             =  "log.log"
+   ENABLED              =  true
+   TO_FILE              =  true
+   TO_STANDARD_OUTPUT   =  false
+   SUBSECOND_PRECISION  =  6
+   PERFORMANCE_TRACKING =  true
+"""
+alpn="echo"
+ssl_cert_path="cert-def.pem"
+ssl_key_path="key-def.pem"
+[client]
+ip="127.0.0.1"
+port=8085
+[relay]
+ip="127.0.0.1"
+port=8090
+active=true

@@ -11,13 +11,13 @@ class MQAS_EXTERN RelayStream : public core::ProtoBufStream<RelayStream,tools::r
 {
     public:
     core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::relay::ReqRelay>& req,std::vector<uint8_t> &ret_buf);
+    void on_close();
+    size_t on_read(const std::span<const uint8_t>& buf);
     private:
     void send_respond(uint32_t id,proto::relay::RespondRelay_Code code,bool lazy,std::weak_ptr<RelayStream> other_peer);
-    size_t on_read(const std::span<uint8_t>& buf);
     void launch_timeout_timer();
     void stop_timeout_timer();
     void on_timeout(io::Timer* t);
-    void on_close();
 
     private:
     uint32_t _id = 0;

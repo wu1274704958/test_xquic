@@ -71,12 +71,12 @@ namespace mqas::tools{
             0,1, code == proto::relay::RespondRelay_Code::RespondRelay_Code_success ? core::StreamVariantErrcode::ok : core::StreamVariantErrcode::failed,lazy);
     }
 
-    size_t RelayStream::on_read(const std::span<uint8_t>& buf)
+    size_t RelayStream::on_read(const std::span<const uint8_t>& buf)
     {
         auto ptr = _other_peer.lock();
         if(ptr)
         {
-            ptr->write_lazy(buf);
+            ptr->write_lazy(*reinterpret_cast<const std::span<uint8_t>*>(&buf));
             return buf.size();
         }else{
             close();
@@ -101,13 +101,12 @@ namespace mqas::tools{
     }
     void RelayStream::on_timeout(io::Timer* t)
     {
-        if(_id == 0)
-            return;
         auto model = comm::locator::inst()->get<relay::relay_model>();
         if(model)
         {
             model.value().get().remove_waiting(_addr,_connect_addr);
         }
+        close();
     }
 
     void RelayStream::on_close() 
