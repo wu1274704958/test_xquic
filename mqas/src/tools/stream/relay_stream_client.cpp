@@ -47,10 +47,19 @@ namespace mqas::tools {
         int bytes = 0;
         for (auto& it : d)
         {
+            if(it.size() == 0)
+                continue;
             write_lazy(it);
             bytes += d.size();
         }
         return bytes;
+    }
+    int RelayStreamClient::try_send(const std::span<uint8_t>& d, const sockaddr& addr)
+    {
+        if(!io::Ip::compare_ip(addr,_peer_addr) || d.size() == 0)
+            return 0;
+        write_lazy(d);
+        return d.size();
     }
     void RelayStreamClient::recv_start(){}
 }

@@ -67,7 +67,7 @@ namespace mqas::tools{
         respond.set_id(_id);
         respond.set_code(code);
 
-        send_sv_msg<tools::relay::RespondRelayPair,core::stream_variant_cmd::req_use_stream_tag>(respond,(uint32_t)tools::relay::RespondRelayPair::PB_MSG_ID,
+        send_sv_msg<tools::relay::RespondRelayPair,core::stream_variant_cmd::req_use_stream_tag>(respond,stream_tag_,
             0,1, code == proto::relay::RespondRelay_Code::RespondRelay_Code_success ? core::StreamVariantErrcode::ok : core::StreamVariantErrcode::failed,lazy);
     }
 
@@ -119,6 +119,9 @@ namespace mqas::tools{
             else
                 model->get().remove_waiting(_addr,_connect_addr);
         }
+        auto ptr = _other_peer.lock();
+        if(ptr)
+            ptr->close();
         IStream::on_close();
     }
 }

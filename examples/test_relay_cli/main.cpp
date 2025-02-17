@@ -6,6 +6,7 @@
 #include <mqas/core/connect.h>
 #include <mqas/core/stream.h>
 #include <mqas/tools/stream/relay_stream_client.h>
+#include <mqas/comm/binary.hpp>
 using namespace mqas;
 
 using StreamTy = core::StreamVariant<core::StreamVariantPair<1,tools::RelayStreamClient>>;
@@ -54,25 +55,30 @@ int main(int argc,const char** argv)
 			printf("stream closed\n");	
 			IsRunning() = false;
 		});
-		s_->on_change_stream_signal.connect([relay_active,&relay_addr](std::shared_ptr<core::IStreamVariant> s){
-			auto relay = std::dynamic_pointer_cast<tools::RelayStreamClient>(s);
-			relay->on_recv_signal.connect([](io::UdpSocket*, const std::optional<std::span<uint8_t>>& data, ssize_t nread, const sockaddr* addr, unsigned){
-				if(data.has_value())
-				{
-					std::vector<uint8_t> buf;
-					buf.resize(data.value().size() + 1,0);
-					memcpy(buf.data(),data.value().data(),data.value().size());
-					printf("recv %s\n",(const char*)buf.data());
-				}
-			});
-			if(relay_active)
+
+		auto relay = s_->get_holds_stream<tools::RelayStreamClient>();
+		relay->on_recv_signal.connect([relay,&relay_addr](io::UdpSocket*, const std::optional<std::span<uint8_t>>& data, ssize_t nread, const sockaddr* addr, unsigned){
+			if(data.has_value())
 			{
-				std::vector<std::span<uint8_t>> buf;
-				std::string str = "hello!!!";
-				buf.push_back( { (uint8_t*)str.c_str(), str.size() } );
+				auto num = comm::from_big_endian<uint32_t>(data.value());
+				printf("recv %d\n",num);
+
+				std::array<uint8_t,4> buf;
+				comm::to_big_endian(num + 1,buf);
 				relay->try_send(buf,relay_addr);
 			}
 		});
+		if(relay_active)
+		{
+			relay->on_connect_result.connect([relay,&relay_addr](core::StreamVariantErrcode code,std::optional<tools::proto::relay::RespondRelay_Code> ret){
+				if(ret.has_value() && ret.value() == tools::proto::relay::RespondRelay_Code::RespondRelay_Code_success)
+				{
+					std::array<uint8_t,4> buf;
+					comm::to_big_endian(1,buf);
+					relay->try_send(buf,relay_addr);
+				}
+			});
+		}
     });
 	io_cxt.run_until(IsRunning());
 	
