@@ -78,10 +78,8 @@ namespace mqas::tools{
         {
             ptr->write_lazy(*reinterpret_cast<const std::span<uint8_t>*>(&buf));
             return buf.size();
-        }else{
+        }else
             close();
-            ptr->close();
-        }
         return 0;
     }
 
