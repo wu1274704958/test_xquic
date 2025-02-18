@@ -10,7 +10,7 @@ namespace mqas::tools{
 class MQAS_EXTERN RelayStreamClient : public core::ProtoBufStream<RelayStreamClient,relay::ReqRelayPair,relay::RespondRelayPair> 
 {
 public://udp same
-
+RelayStreamClient(){}
 void bind(const sockaddr& addr,unsigned int flags);
 void get_sock_addr(sockaddr& addr) const;
 int try_send(const std::vector<std::span<uint8_t>>& d, const sockaddr& addr);

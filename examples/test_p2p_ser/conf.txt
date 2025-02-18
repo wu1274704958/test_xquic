@@ -15,3 +15,7 @@ log_config="""
 alpn="echo"
 ssl_cert_path="cert-def.pem"
 ssl_key_path="key-def.pem"
+[p2p.relay]
+ip="127.0.0.1"
+port=8085
+always=false

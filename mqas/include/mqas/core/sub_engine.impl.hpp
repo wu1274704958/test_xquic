@@ -27,7 +27,7 @@ namespace mqas::core {
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E,ED,SC>::init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<io::UdpSocket> socket) noexcept(false)
+	void sub_engine<E,ED,SC>::init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<SC> socket) noexcept(false)
 	{
 		if (!ED::instance()->initialization(conf_file))
 			throw std::runtime_error("Initialize engine driver failed!");
@@ -113,14 +113,17 @@ namespace mqas::core {
 		}
 	}
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E,ED,SC>::init_socket(std::shared_ptr<io::UdpSocket> sock)
+	void sub_engine<E,ED,SC>::init_socket(std::shared_ptr<SC> sock)
 	{
 		if(sock == nullptr)
 		{ 
-			_socket = io_cxt.make_shared<io::UdpSocket>();
-			sockaddr addr{};
-			io::Ip::str2addr_ipv4(_conf->bind_ip.c_str(), _conf->port, addr);
-			_socket->bind(addr, UV_UDP_REUSEADDR);
+			if constexpr(std::is_same_v<SC,io::UdpSocket>)
+			{
+				_socket = io_cxt.make_shared<SC>();
+				sockaddr addr{};
+				io::Ip::str2addr_ipv4(_conf->bind_ip.c_str(), _conf->port, addr);
+				_socket->bind(addr, UV_UDP_REUSEADDR);
+			}
 		}else
 			_socket = std::move(sock);
 		_socket->get_sock_addr(this->_local_addr);
@@ -251,7 +254,7 @@ namespace mqas::core {
 	SUB_ENGINE_TEMPLATE_DECL
 	ssl_ctx_st* sub_engine<E,ED,SC>::on_get_ssl_ctx(void* peer_ctx, const sockaddr* local)
 	{
-		auto ptr = static_cast<peer_context<sub_engine<E, ED>>*>(peer_ctx);
+		auto ptr = static_cast<peer_context<sub_engine<E, ED, SC>>*>(peer_ctx);
 		return ptr->engine->_ssl_ctx;
 	}
 

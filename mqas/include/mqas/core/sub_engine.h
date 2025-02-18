@@ -23,7 +23,7 @@ namespace mqas::core {
 		sub_engine(const sub_engine&) = delete;
 		sub_engine& operator=(sub_engine&&) = delete;
 		sub_engine& operator=(const sub_engine&) = delete;
-		void init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<io::UdpSocket> socket = nullptr) noexcept(false);
+		void init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<SC> socket = nullptr) noexcept(false);
 		void process_conns() const;
 		void process_conns_lazy() const;
 		void start_recv();
@@ -32,7 +32,7 @@ namespace mqas::core {
 		void wait_all_connect_closed();
 	protected:
 		void init_engine_core();
-		void init_socket(std::shared_ptr<io::UdpSocket> sock = nullptr);
+		void init_socket(std::shared_ptr<SC> sock = nullptr);
 		void init_timer();
 		void init_context();
 
@@ -76,7 +76,7 @@ namespace mqas::core {
 		::lsquic_engine_api _lsquic_engine_api = {};
 		sigc::connection _recv_connection;
 		::SSL_CTX* _ssl_ctx;
-		tools::peer_context_mgr<sub_engine<E,ED>> _peer_context_mgr;
+		tools::peer_context_mgr<sub_engine<E,ED,SC>> _peer_context_mgr;
 	};
 
 }

@@ -89,6 +89,8 @@ message NotifyConnectResult{
     optional Address peer_addr = 6;
     optional string reason = 3;
     optional Address address = 4;
+    optional Address relay_addr = 7;
+    optional bool use_relay = 8;
 }
 
 message NotifyPeerWantConnect{

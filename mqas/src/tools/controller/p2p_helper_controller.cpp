@@ -3,8 +3,8 @@
 #include <format>
 
 namespace mqas::tools::controller {
-	p2p_helper_controller::p2p_helper_controller(uint32_t a, uint32_t b,io::Context* io_cxt) : _is_start(false), _cxt(nullptr),
-		_io_cxt(io_cxt)
+	p2p_helper_controller::p2p_helper_controller(uint32_t a, uint32_t b,io::Context* io_cxt,std::optional<toml::value> config) : _is_start(false), _cxt(nullptr),
+		_io_cxt(io_cxt),_config(config)
 	{
 		init(a, b);
 	}
@@ -192,6 +192,20 @@ namespace mqas::tools::controller {
 			break;
 		}
 	}
+	
+	void p2p_helper_controller::set_external_address(uint32_t id,proto::p2p::Address* addr) const
+	{
+		if (!*this && !*_cxt)
+			return;
+		auto model = comm::locator::inst()->get<p2p::p2p_model>();
+		if (!model)
+			return;
+		const auto peer = model->get()[id];
+		if (peer == nullptr)
+			return;
+		addr->set_ip(peer->ip);
+		addr->set_port(peer->port);
+	}
 
 	void p2p_helper_controller::notify_success(uint32_t id) const
 	{
@@ -203,10 +217,14 @@ namespace mqas::tools::controller {
 		msg.set_peer_id(tools::p2p::other(_cxt->pid, id));
 		msg.set_ret(mqas::tools::proto::p2p::RetCode::ok);
 		msg.set_is_server(idx == 0);
-		auto address = msg.mutable_address();
-		auto peer_addr = msg.mutable_peer_addr();
-		set_current_address(oth_id,address);
-		set_peer_address(oth_id, peer_addr);
+		if (has_relay_config() && always_use_relay())
+			append_relay(id,msg);
+		else{
+			auto address = msg.mutable_address();
+			auto peer_addr = msg.mutable_peer_addr();
+			set_current_address(id,address);
+			set_peer_address(oth_id, peer_addr);
+		}
 		_notify_connect_result[idx](msg);
 	}
 	void p2p_helper_controller::notify_failed(uint32_t id, const std::optional<std::string>& reason) const
@@ -220,6 +238,8 @@ namespace mqas::tools::controller {
 		msg.set_ret(mqas::tools::proto::p2p::RetCode::failed);
 		if (reason)
 			msg.set_reason(reason.value());
+		if (has_relay_config())
+			append_relay(id,msg);
 		_notify_connect_result[idx](msg);
 	}
 	bool p2p_helper_controller::peer_exist(uint32_t id) const
@@ -243,5 +263,30 @@ namespace mqas::tools::controller {
 		if(reason)
 			set_reason(reason.value());
 		on_timeout();
+	}
+
+	bool p2p_helper_controller::has_relay_config() const
+	{
+		return _config && _config->contains("relay") && _config->at("relay").contains("ip") && _config->at("relay").contains("port");
+	}
+	bool p2p_helper_controller::always_use_relay() const
+	{
+		return _config && toml::find_or<bool>(*_config,"relay","always",false);
+	}
+	void p2p_helper_controller::append_relay(uint32_t id,proto::p2p::NotifyConnectResult& msg) const
+	{
+		auto relay_addr = msg.mutable_relay_addr();
+		relay_addr->set_ip(toml::find<std::string>(*_config,"relay","ip"));
+		relay_addr->set_port(toml::find<uint16_t>(*_config,"relay","port"));
+
+		auto address = msg.mutable_address();
+		auto peer_addr = msg.mutable_peer_addr();
+
+		const auto oth_id = p2p::other(_cxt->pid, id);
+
+		set_external_address(id,address);
+		set_external_address(oth_id, peer_addr);
+
+		msg.set_use_relay(true);
 	}
 }

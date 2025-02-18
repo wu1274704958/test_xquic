@@ -14,6 +14,7 @@
 #include <mqas/comm/locator.h>
 #include <algorithm>
 #include <mqas/core/sub_engine.h>
+#include <mqas/tools/stream/relay_stream_client.h>
 
 using namespace mqas;
 MQAS_SHARE_EASYLOGGINGPP
@@ -37,7 +38,14 @@ using StreamType = core::StreamVariant<
 using P2PStreamType = core::StreamVariant<
 	core::StreamVariantPair<1,P2PChatStream>>;
 
+using RelayStreamType = core::StreamVariant<
+	core::StreamVariantPair<1,mqas::tools::RelayStreamClient>>;
+
 using P2PEngineType = core::sub_engine<core::engine<core::Connect<P2PStreamType>>>;
+using P2PEngineRelayType = core::sub_engine<core::engine<core::Connect<P2PStreamType>>,core::engine_driver,tools::RelayStreamClient>;
+
+using RelayEngineType = core::sub_engine<core::engine<core::Connect<RelayStreamType>>>;
+
 enum class ui_state {
 	none = 0,
 	main = 1,
@@ -117,6 +125,12 @@ protected:
 	void clean_up_p2p(bool active = true);
 	ui_state pop_state();
 	ui_state current_state() const;
+	template<typename SOCK>
+	requires core::IsVaildSocket<SOCK>
+	void launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg,std::shared_ptr<SOCK> sock);
+	bool launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg,std::function<void(bool)> callback);
+	void clean_relay();
+
 protected:
 	std::stack<ui_state> stack;
 	std::shared_ptr<LobbyStream> stream;
@@ -129,7 +143,7 @@ protected:
 	std::shared_ptr<mqas::tools::proto::p2p::RespondConnectPeer> respond_change_helper;
 	std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult> helper_result;
 	std::vector<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectPeerData>> try_connect_list;
-	std::shared_ptr<P2PEngineType> p2p_engine;
+	std::shared_ptr<core::engine_base_interface> p2p_engine;
 	std::weak_ptr<P2PChatStream> p2p_stream;
 	std::shared_ptr<p2p_chat_cxt> p2p_cxt;
 	int rows, cols;
@@ -137,6 +151,10 @@ protected:
 	std::vector<std::function<void()>> lazy_task;
 	std::shared_ptr<io::Timer> p2p_server_wait_timer;
 	sockaddr p2p_addr;
+	//relay
+	std::shared_ptr<RelayEngineType> relay_engine;
+	std::shared_ptr<mqas::tools::RelayStreamClient> relay_stream;
+	bool use_relay = false;
 };
 
 int main(int argc, const char** argv)
@@ -332,6 +350,11 @@ void tui::draw()
 			wmove(win, ++y, 1);
 			wprintw(win, "try connect to %s:%d", try_connect_list[i]->connect_data().ip().c_str(), try_connect_list[i]->connect_data().port());
 		}
+		if(helper_result && helper_result->use_relay())
+		{
+			wmove(win, ++y, 1);
+			wprintw(win, "use relay connect %s:%d", helper_result->peer_addr().ip().c_str(), helper_result->peer_addr().port());
+		}
 	}
 		break;
 	case ui_state::helper_result_failed:
@@ -508,6 +531,26 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 {
 	helper_result = msg;
 	try_connect_list.clear();
+
+	if(msg->use_relay())
+	{
+		launch_relay(msg,[this,msg](bool success){
+			if(!success)
+			{
+				clean_relay();
+				if (current_state() == ui_state::helper_main)
+					pop_state();
+				append_state(ui_state::helper_result_failed);
+			}else{
+				if (current_state() == ui_state::helper_main)
+					pop_state();
+				append_state(ui_state::p2p_main);
+				launch_p2p(msg,relay_stream);
+			}
+		});
+		return;
+	}
+
 	if (msg->ret() != mqas::tools::proto::p2p::RetCode::ok)
 	{
 		if (current_state() == ui_state::helper_main)
@@ -519,39 +562,7 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 			pop_state();
 		append_state(ui_state::p2p_main);
 		
-		auto io_cxt = comm::locator::inst()->get_ref<io::Context>();
-		
-		io::Ip::str2addr(msg->peer_addr().ip().c_str(), msg->peer_addr().port(), p2p_addr);
-
-		std::function<void(std::shared_ptr<core::Connect<P2PStreamType>>)> func = std::bind(&tui::on_new_p2p_connect, this, std::placeholders::_1, msg->is_server());
-		std::function<void(const std::exception&)> exception_func = [this](const std::exception&) {
-			on_p2p_peer_quit(nullptr);
-		};
-		std::function<void(P2PEngineType&)> on_init_func = [this](P2PEngineType& e)
-		{
-			e.get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(p2p_addr));
-			e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(p2p_addr));
-		};
-		if (msg->is_server())
-		{ 
-			p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), "conf.txt",
-				core::EngineFlags::Server, sock, func, nullptr,exception_func, on_init_func);
-			if(!p2p_server_wait_timer)
-				p2p_server_wait_timer = io_cxt.value().get().make_shared<io::Timer>();
-			p2p_server_wait_timer->start([this](io::Timer* t){  
-				t->stop();
-				quit_p2p();
-			},10 * 1000,0);
-		}else
-		{
-			p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), "conf.txt",
-				core::EngineFlags::None, sock, func, &p2p_addr,exception_func, on_init_func);
-		}
-		p2p_engine->get_engine()->on_connect_closed_signal.connect([this](std::shared_ptr<core::Connect<P2PStreamType>>) {
-			lazy_task.push_back([this]() {
-				quit_p2p();
-			});
-		});
+		launch_p2p(msg,sock);
 	}
 }
 
@@ -576,6 +587,8 @@ void tui::quit_helper()
 		helper_stream->req_quit(helper_stream->getStreamTag());
 		helper_stream = nullptr;
 		try_connect_list.clear();
+
+		clean_relay();
 	}
 }
 
@@ -583,9 +596,14 @@ void tui::quit_p2p()
 {
 	if (p2p_engine)
 	{
-		p2p_engine->wait_all_connect_closed();
+		if(use_relay)
+			std::static_pointer_cast<P2PEngineRelayType>(p2p_engine)->wait_all_connect_closed();
+		else
+			std::static_pointer_cast<P2PEngineType>(p2p_engine)->wait_all_connect_closed();
 		on_p2p_peer_quit(nullptr);
 	}
+
+	clean_relay();
 }
 
 void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_server)
@@ -661,4 +679,103 @@ void tui::clean_up_p2p(bool active)
 	p2p_cxt.reset();
 	if (p2p_server_wait_timer)
 		p2p_server_wait_timer->stop();
+}
+
+
+template<typename SOCK>
+requires core::IsVaildSocket<SOCK>
+void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg,std::shared_ptr<SOCK> sock)
+{
+	using EngineTy = core::sub_engine<core::engine<core::Connect<P2PStreamType>>,core::engine_driver,SOCK>;
+
+	use_relay = std::is_same_v<SOCK,tools::RelayStreamClient>;
+
+	auto io_cxt = comm::locator::inst()->get_ref<io::Context>();
+		
+	io::Ip::str2addr(msg->peer_addr().ip().c_str(), msg->peer_addr().port(), p2p_addr);
+
+	std::function<void(std::shared_ptr<core::Connect<P2PStreamType>>)> func = std::bind(&tui::on_new_p2p_connect, this, std::placeholders::_1, msg->is_server());
+	std::function<void(const std::exception&)> exception_func = [this](const std::exception&) {
+		on_p2p_peer_quit(nullptr);
+	};
+	std::function<void(EngineTy&)> on_init_func = [this](EngineTy& e)
+	{
+		e.get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(p2p_addr));
+		e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(p2p_addr));
+	};
+	if (msg->is_server())
+	{ 
+		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), "conf.txt",
+			core::EngineFlags::Server, sock, func, nullptr,exception_func, on_init_func);
+		if(!p2p_server_wait_timer)
+			p2p_server_wait_timer = io_cxt.value().get().make_shared<io::Timer>();
+		p2p_server_wait_timer->start([this](io::Timer* t){  
+			t->stop();
+			quit_p2p();
+		},10 * 1000,0);
+	}else
+	{
+		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), "conf.txt",
+			core::EngineFlags::None, sock, func, &p2p_addr,exception_func, on_init_func);
+	}
+	std::static_pointer_cast<EngineTy>(p2p_engine)->get_engine()->on_connect_closed_signal.connect([this](std::shared_ptr<core::Connect<P2PStreamType>>) {
+		lazy_task.push_back([this]() {
+			quit_p2p();
+		});
+	});
+}
+
+
+bool tui::launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg,std::function<void(bool)> callback)
+{
+	auto io_cxt = comm::locator::inst()->get_ref<io::Context>();
+	::sockaddr relay_addr;
+	if(!io::Ip::str2addr(msg->relay_addr().ip().c_str(),msg->relay_addr().port(),relay_addr))
+	{
+		callback(false);
+		return false;
+	}
+	::sockaddr peer_addr;
+	if(!io::Ip::str2addr(msg->peer_addr().ip().c_str(),msg->peer_addr().port(),peer_addr))
+	{
+		callback(false);
+		return false;
+	}
+	tui* ui = this;	
+	std::function<void(std::shared_ptr<core::Connect<RelayStreamType>>)> on_connect = [&msg,callback,ui](std::shared_ptr<core::Connect<RelayStreamType>> conn)
+	{
+		conn->make_stream([&msg,callback,ui](std::shared_ptr<RelayStreamType> stream){
+			tools::proto::relay::ReqRelay req;
+			auto address = req.mutable_address();
+			address->set_ip(msg->peer_addr().ip());
+			address->set_port(msg->peer_addr().port());
+        	stream->req_change<tools::RelayStreamClient,tools::relay::ReqRelayPair>(req);
+			ui->relay_stream = stream->get_holds_stream<tools::RelayStreamClient>();
+			ui->relay_stream->on_connect_result.connect([callback](core::StreamVariantErrcode code,std::optional<tools::proto::relay::RespondRelay_Code> ret){
+				if(ret.has_value() && ret.value() == tools::proto::relay::RespondRelay_Code::RespondRelay_Code_success)
+					callback(true);
+				else
+					callback(false);
+			});
+		});
+	};
+
+	std::function<void(const std::exception&)> exception_func = [this,callback](const std::exception&) {
+		callback(false);
+	};
+	std::shared_ptr<io::UdpSocket> sock = nullptr;
+	relay_engine = comm::engine_util::launch_sub_engine<RelayStreamType>(io_cxt.value().get(), "conf_relay.txt",
+			core::EngineFlags::None, sock, on_connect, &relay_addr,exception_func);
+
+	return true;
+}
+
+void tui::clean_relay()
+{
+	if (relay_stream)
+		relay_stream.reset();
+	if (relay_engine)
+	{
+		relay_engine->wait_all_connect_closed();
+	}
 }

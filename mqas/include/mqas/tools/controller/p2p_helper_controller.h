@@ -3,12 +3,13 @@
 #include "mqas/tools/model/p2p_model.h"
 #include "mqas/io/timer.h"
 #include <functional>
+#include <toml.hpp>
 
 
 namespace mqas::tools::controller {
 	class p2p_helper_controller {
 	public:
-		p2p_helper_controller(uint32_t a,uint32_t b,io::Context* io_cxt);
+		p2p_helper_controller(uint32_t a,uint32_t b,io::Context* io_cxt,std::optional<toml::value> config = {});
 		operator bool() const;
 		bool ready() const;
 		bool is_start() const;
@@ -29,6 +30,10 @@ namespace mqas::tools::controller {
 		void set_peer_address(uint32_t id, proto::p2p::Address* addr) const;
 		void notify_failed(uint32_t id,const std::optional<std::string>& reason) const;
 		void set_reason(const std::string&);
+		bool has_relay_config() const;
+		bool always_use_relay() const;
+		void set_external_address(uint32_t id,proto::p2p::Address* addr) const;
+		void append_relay(uint32_t id,proto::p2p::NotifyConnectResult& msg) const;
 	protected:
 		const p2p::connect_cxt* _cxt;
 		io::Context* _io_cxt;
@@ -38,6 +43,7 @@ namespace mqas::tools::controller {
 		std::shared_ptr<io::Timer> _timer;
 		bool _is_start : 1;
 		std::optional<std::string> _reason;
+		std::optional<toml::value> _config;
 	};
 }
 

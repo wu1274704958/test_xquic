@@ -1,6 +1,6 @@
 [engine_config]
 bind_ip="0.0.0.0"
-port=8089
+port=9090
 log_level="info"
 log_config="""
 * GLOBAL:
@@ -15,8 +15,3 @@ log_config="""
 alpn="echo"
 ssl_cert_path="cert-def.pem"
 ssl_key_path="key-def.pem"
-[p2p]
-name="client_a"
-[client]
-ip="127.0.0.1"
-port=8084
