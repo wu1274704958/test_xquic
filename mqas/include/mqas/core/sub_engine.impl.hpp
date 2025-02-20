@@ -70,7 +70,8 @@ namespace mqas::core {
 
 		if (has_engine_setting())
 		{
-			engine_driver::settings_from_toml(_conf->lsquic_settings, _conf_origin->at("lsquic_settings"));
+			engine_driver::settings_from_toml(_conf->lsquic_settings, _conf_origin->at("lsquic_settings"),
+				contain<uint32_t>(_engine_flags, EngineFlags::Server));
 			_lsquic_engine_api.ea_settings = &_conf->lsquic_settings;
 		}
 
@@ -160,26 +161,24 @@ namespace mqas::core {
 	{
 		if (_engine_extern)
 			_engine_extern->close();
-	}
-	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E,ED,SC>::wait_all_connect_closed()
-	{
-		close();
 		while (_engine_extern && _engine_extern->connect_count() > 0)
 			io_cxt.run(mqas::io::Context::RunMode::ONCE);
+		_engine_extern.reset();
 	}
+
 	SUB_ENGINE_TEMPLATE_DECL
 	sub_engine<E,ED,SC>::~sub_engine()
 	{
-		close_timer();
 		if(_engine != nullptr)
 		{ 
+			close();
 			::lsquic_engine_destroy(_engine);
 			ED::instance()->unregister_engine(this,_engine);
 			_ssl_ctx = ED::instance()->destroy_ssl_ctx(_ssl_ctx);
 			if (_recv_connection.connected())
 				_recv_connection.disconnect();
 			_engine = nullptr;
+			close_timer();
 		}
 	}
 	SUB_ENGINE_TEMPLATE_DECL

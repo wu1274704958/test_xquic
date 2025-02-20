@@ -324,85 +324,84 @@ namespace mqas::core {
 	}
 
 	///read lsquic setting from config
-#define CK_READ_SETTING(k,t) if (v.contains(#k)) s.k = toml::find<t>(v, #k)
-#define CK_READ_SETTING_Str(k) if (v.contains(#k)) s.k = toml::find<std::string>(v, #k).c_str()
-	void engine_driver::settings_from_toml(::lsquic_engine_settings& s, const toml::value& v)
+#define CK_READ_SETTING(k,t,def) s.k = toml::find_or<t>(v, #k, def)
+#define CK_READ_SETTING_Str(k,def) if (v.contains(#k)) s.k = toml::find<std::string>(v, #k).c_str(); else s.k = #def
+	void engine_driver::settings_from_toml(::lsquic_engine_settings& s, const toml::value& v,bool is_server)
 	{
-		CK_READ_SETTING(es_versions, unsigned);
-		CK_READ_SETTING(es_sfcw, unsigned);
-		CK_READ_SETTING(es_max_cfcw, unsigned);
-		CK_READ_SETTING(es_max_sfcw, unsigned);
-		CK_READ_SETTING(es_max_streams_in, unsigned);
-		CK_READ_SETTING(es_handshake_to, unsigned long);
-		CK_READ_SETTING(es_idle_conn_to, unsigned long);
-		CK_READ_SETTING(es_silent_close, int);
-		CK_READ_SETTING(es_max_header_list_size, unsigned);
-		CK_READ_SETTING(es_silent_close, int);
-		CK_READ_SETTING_Str(es_ua);
-		CK_READ_SETTING(es_sttl, uint64_t);
-		CK_READ_SETTING(es_pdmd, uint64_t);
-		CK_READ_SETTING(es_aead, uint64_t);
-		CK_READ_SETTING(es_kexs, uint64_t);
-		CK_READ_SETTING(es_max_inchoate, unsigned);
-		CK_READ_SETTING(es_support_push, unsigned);
-		CK_READ_SETTING(es_support_tcid0, int);
-		CK_READ_SETTING(es_support_nstp, int);
-		CK_READ_SETTING(es_honor_prst, int);
-		CK_READ_SETTING(es_send_prst, int);
-		CK_READ_SETTING(es_progress_check, unsigned);
-		CK_READ_SETTING(es_rw_once, int);
-		CK_READ_SETTING(es_proc_time_thresh, unsigned);
-		CK_READ_SETTING(es_pace_packets, int);
-		CK_READ_SETTING(es_clock_granularity, unsigned);
-		CK_READ_SETTING(es_cc_algo, unsigned);
-		CK_READ_SETTING(es_cc_rtt_thresh, unsigned);
-		CK_READ_SETTING(es_noprogress_timeout, unsigned);
-		CK_READ_SETTING(es_init_max_data, unsigned);
-		CK_READ_SETTING(es_init_max_stream_data_bidi_remote, unsigned);
-		CK_READ_SETTING(es_init_max_stream_data_bidi_local, unsigned);
-		CK_READ_SETTING(es_init_max_stream_data_uni, unsigned);
-		CK_READ_SETTING(es_init_max_streams_bidi, unsigned);
-		CK_READ_SETTING(es_init_max_streams_uni, unsigned);
-		CK_READ_SETTING(es_idle_timeout, unsigned);
-		CK_READ_SETTING(es_ping_period, unsigned);
-		CK_READ_SETTING(es_scid_len, unsigned);
-		CK_READ_SETTING(es_scid_iss_rate, unsigned);
-		CK_READ_SETTING(es_qpack_dec_max_size, unsigned);
-		CK_READ_SETTING(es_qpack_dec_max_blocked, unsigned);
-		CK_READ_SETTING(es_qpack_enc_max_size, unsigned);
-		CK_READ_SETTING(es_qpack_enc_max_blocked, unsigned);
-		CK_READ_SETTING(es_ecn, int);
-		CK_READ_SETTING(es_allow_migration, int);
-		CK_READ_SETTING(es_ql_bits, int);
-		CK_READ_SETTING(es_spin, int);
-		CK_READ_SETTING(es_delayed_acks, int);
-		CK_READ_SETTING(es_timestamps, int);
-		CK_READ_SETTING(es_max_udp_payload_size_rx, int);
-		CK_READ_SETTING(es_grease_quic_bit, int);
-		CK_READ_SETTING(es_dplpmtud, int);
-		CK_READ_SETTING(es_base_plpmtu, unsigned short);
-		CK_READ_SETTING(es_max_plpmtu, unsigned short);
-		CK_READ_SETTING(es_mtu_probe_timer, unsigned);
-		CK_READ_SETTING(es_datagrams, int);
-		CK_READ_SETTING(es_optimistic_nat, int);
-		CK_READ_SETTING(es_ext_http_prio, int);
-		CK_READ_SETTING(es_qpack_experiment, int);
-		/**
-		*WARNING.The library comes with sane defaults.Only fiddle with
-		* these knobs if you know what you are doing.
-		*/
-		CK_READ_SETTING(es_ptpc_periodicity, unsigned);
-		CK_READ_SETTING(es_ptpc_max_packtol, unsigned);
-		CK_READ_SETTING(es_ptpc_dyn_target, int);
-		CK_READ_SETTING(es_ptpc_target, float);
-		CK_READ_SETTING(es_ptpc_prop_gain, float);
-		CK_READ_SETTING(es_ptpc_int_gain, float);
-		CK_READ_SETTING(es_ptpc_err_thresh, float);
-		CK_READ_SETTING(es_ptpc_err_divisor, float);
+CK_READ_SETTING(es_versions, unsigned,55);
+CK_READ_SETTING(es_sfcw, unsigned,is_server ? LSQUIC_DF_SFCW_SERVER : LSQUIC_DF_SFCW_CLIENT);
+CK_READ_SETTING(es_cfcw, unsigned,is_server ? LSQUIC_DF_CFCW_SERVER : LSQUIC_DF_CFCW_CLIENT);
+CK_READ_SETTING(es_max_cfcw, unsigned, is_server ? LSQUIC_DF_INIT_MAX_DATA_SERVER : LSQUIC_DF_INIT_MAX_DATA_CLIENT);
+CK_READ_SETTING(es_max_sfcw, unsigned,is_server ? LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_SERVER : LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_CLIENT);
+CK_READ_SETTING(es_max_streams_in, unsigned,is_server ? LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_SERVER : LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_CLIENT);
+CK_READ_SETTING(es_handshake_to, unsigned long, LSQUIC_DF_HANDSHAKE_TO); // Handshake timeout in milliseconds
+CK_READ_SETTING(es_idle_conn_to, unsigned long, LSQUIC_DF_IDLE_CONN_TO); // Idle connection timeout in milliseconds
+CK_READ_SETTING(es_silent_close, int, LSQUIC_DF_SILENT_CLOSE); // Default silent close behavior (0 = false)
+CK_READ_SETTING(es_max_header_list_size, unsigned, LSQUIC_DF_MAX_HEADER_LIST_SIZE); // Maximum header list size
 
-		CK_READ_SETTING(es_delay_onclose, int);
-		CK_READ_SETTING(es_max_batch_size, unsigned);
-		CK_READ_SETTING(es_check_tp_sanity, int);
+CK_READ_SETTING_Str(es_ua, LSQUIC_DF_UA); // User agent string for QUIC, default can be a generic value
+CK_READ_SETTING(es_sttl, uint64_t, LSQUIC_DF_STTL); // Default server TTL (1 hour)
+CK_READ_SETTING(es_pdmd, uint64_t, 5000); // Peer data message delay (5 seconds)
+CK_READ_SETTING(es_aead, uint64_t, 0); // Default AEAD algorithm (no specific algorithm set)
+CK_READ_SETTING(es_kexs, uint64_t, 0); // Default key exchange algorithm
+CK_READ_SETTING(es_max_inchoate, unsigned, LSQUIC_DF_MAX_INCHOATE); // Max number of inchoate streams
+CK_READ_SETTING(es_support_push, unsigned, LSQUIC_DF_SUPPORT_PUSH); // Support for server push (1 = true)
+CK_READ_SETTING(es_support_tcid0, int, LSQUIC_DF_SUPPORT_TCID0); // Support for TCID 0 (1 = true)
+CK_READ_SETTING(es_support_nstp, int, LSQUIC_DF_SUPPORT_NSTP); // Support for NSTP (0 = false)
+CK_READ_SETTING(es_honor_prst, int, LSQUIC_DF_HONOR_PRST); // Honor prst (1 = true)
+CK_READ_SETTING(es_send_prst, int, LSQUIC_DF_SEND_PRST); // Send prst (0 = false)
+CK_READ_SETTING(es_progress_check, unsigned, LSQUIC_DF_PROGRESS_CHECK); // Progress check enabled
+CK_READ_SETTING(es_rw_once, int, LSQUIC_DF_RW_ONCE); // Only read/write once
+CK_READ_SETTING(es_proc_time_thresh, unsigned, LSQUIC_DF_PROC_TIME_THRESH); // Process time threshold in milliseconds
+CK_READ_SETTING(es_pace_packets, int, LSQUIC_DF_PACE_PACKETS); // Pace packets (0 = no pacing)
+CK_READ_SETTING(es_clock_granularity, unsigned, LSQUIC_DF_CLOCK_GRANULARITY); // Granularity of clock
+CK_READ_SETTING(es_cc_algo, unsigned, LSQUIC_DF_CC_ALGO); // Default congestion control algorithm (2 could refer to CUBIC)
+CK_READ_SETTING(es_cc_rtt_thresh, unsigned, LSQUIC_DF_CC_RTT_THRESH); // RTT threshold for congestion control (200 ms)
+CK_READ_SETTING(es_noprogress_timeout, unsigned, is_server ? LSQUIC_DF_NOPROGRESS_TIMEOUT_SERVER : LSQUIC_DF_NOPROGRESS_TIMEOUT_CLIENT); // No progress timeout in milliseconds
+CK_READ_SETTING(es_init_max_data, unsigned, is_server ? LSQUIC_DF_INIT_MAX_DATA_SERVER:LSQUIC_DF_INIT_MAX_DATA_CLIENT); // Initial max data (1 MB)
+CK_READ_SETTING(es_init_max_stream_data_bidi_remote, unsigned, is_server ? LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_SERVER : LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_CLIENT); // Max stream data for bidi remote
+CK_READ_SETTING(es_init_max_stream_data_bidi_local, unsigned, LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_LOCAL_CLIENT); // Max stream data for bidi local
+CK_READ_SETTING(es_init_max_stream_data_uni, unsigned, is_server ? LSQUIC_DF_INIT_MAX_STREAM_DATA_UNI_SERVER : LSQUIC_DF_INIT_MAX_STREAM_DATA_UNI_CLIENT); // Max stream data for uni streams
+CK_READ_SETTING(es_init_max_streams_bidi, unsigned, LSQUIC_DF_INIT_MAX_STREAMS_BIDI); // Max bidirectional streams
+CK_READ_SETTING(es_init_max_streams_uni, unsigned, is_server ? LSQUIC_DF_INIT_MAX_STREAMS_UNI_SERVER : LSQUIC_DF_INIT_MAX_STREAMS_UNI_CLIENT ); // Max unidirectional streams
+CK_READ_SETTING(es_idle_timeout, unsigned, LSQUIC_DF_IDLE_TIMEOUT); // Idle timeout in milliseconds (5 minutes)
+CK_READ_SETTING(es_ping_period, unsigned, LSQUIC_DF_PING_PERIOD); // Ping period in milliseconds (10 seconds)
+CK_READ_SETTING(es_scid_len, unsigned, LSQUIC_DF_SCID_LEN); // SCID length (default 32 bytes)
+CK_READ_SETTING(es_scid_iss_rate, unsigned, LSQUIC_DF_SCID_ISS_RATE); // SCID issue rate
+CK_READ_SETTING(es_qpack_dec_max_size, unsigned, LSQUIC_DF_QPACK_DEC_MAX_SIZE); // QPACK decoder max size
+CK_READ_SETTING(es_qpack_dec_max_blocked, unsigned, LSQUIC_DF_QPACK_DEC_MAX_SIZE); // Max blocked for QPACK decoder
+CK_READ_SETTING(es_qpack_enc_max_size, unsigned,LSQUIC_DF_QPACK_ENC_MAX_SIZE ); // QPACK encoder max size
+CK_READ_SETTING(es_qpack_enc_max_blocked, unsigned, LSQUIC_DF_QPACK_ENC_MAX_BLOCKED); // Max blocked for QPACK encoder
+CK_READ_SETTING(es_ecn, int, LSQUIC_DF_ECN); // ECN support (1 = true)
+CK_READ_SETTING(es_allow_migration, int, LSQUIC_DF_ALLOW_MIGRATION); // Allow connection migration (1 = true)
+CK_READ_SETTING(es_ql_bits, int, LSQUIC_DF_QL_BITS); // QUIC load bits
+CK_READ_SETTING(es_spin, int, LSQUIC_DF_SPIN); // Spin bit (1 = true)
+CK_READ_SETTING(es_delayed_acks, int, LSQUIC_DF_DELAYED_ACKS); // Delayed acks (1 = true)
+CK_READ_SETTING(es_timestamps, int, LSQUIC_DF_TIMESTAMPS); // Timestamps (1 = enabled)
+CK_READ_SETTING(es_max_udp_payload_size_rx, int, LSQUIC_DF_MAX_UDP_PAYLOAD_SIZE_RX); // Max UDP payload size (default 1200 bytes)
+CK_READ_SETTING(es_grease_quic_bit, int, LSQUIC_DF_GREASE_QUIC_BIT); // Grease QUIC bit (0 = false)
+CK_READ_SETTING(es_dplpmtud, int, LSQUIC_DF_DPLPMTUD); // Use DPLPMTU Discovery (1 = true)
+CK_READ_SETTING(es_base_plpmtu, unsigned short, LSQUIC_DF_BASE_PLPMTU); // Base Path MTU (default 1200 bytes)
+CK_READ_SETTING(es_max_plpmtu, unsigned short, LSQUIC_DF_MAX_PLPMTU); // Max Path MTU (default 1350 bytes)
+CK_READ_SETTING(es_mtu_probe_timer, unsigned, LSQUIC_DF_MTU_PROBE_TIMER); // MTU probe timer (10 seconds)
+CK_READ_SETTING(es_datagrams, int, LSQUIC_DF_DATAGRAMS); // Datagrams (1 = enabled)
+
+CK_READ_SETTING(es_optimistic_nat, int, LSQUIC_DF_OPTIMISTIC_NAT); // Default: Optimistic NAT disabled (0)
+CK_READ_SETTING(es_ext_http_prio, int, LSQUIC_DF_EXT_HTTP_PRIO); // Default: HTTP priority extension enabled (1)
+CK_READ_SETTING(es_qpack_experiment, int, LSQUIC_DF_QPACK_EXPERIMENT); // Default: QPACK experiment disabled (0)
+
+CK_READ_SETTING(es_ptpc_periodicity, unsigned, LSQUIC_DF_PTPC_PERIODICITY); // Default: Periodicity of 1000 ms (1 second)
+CK_READ_SETTING(es_ptpc_max_packtol, unsigned, LSQUIC_DF_PTPC_MAX_PACKTOL); // Default: Max packet tolerance 100
+CK_READ_SETTING(es_ptpc_dyn_target, int, LSQUIC_DF_PTPC_DYN_TARGET); // Default: Dynamic target disabled (0)
+CK_READ_SETTING(es_ptpc_target, float, LSQUIC_DF_PTPC_TARGET); // Default: Target value of 1.0
+CK_READ_SETTING(es_ptpc_prop_gain, float, LSQUIC_DF_PTPC_PROP_GAIN); // Default: Proportional gain 0.1
+CK_READ_SETTING(es_ptpc_int_gain, float, LSQUIC_DF_PTPC_INT_GAIN); // Default: Integral gain 0.05
+CK_READ_SETTING(es_ptpc_err_thresh, float, LSQUIC_DF_PTPC_ERR_THRESH); // Default: Error threshold 0.1
+CK_READ_SETTING(es_ptpc_err_divisor, float, LSQUIC_DF_PTPC_ERR_DIVISOR); // Default: Error divisor 1.0
+
+CK_READ_SETTING(es_delay_onclose, int, LSQUIC_DF_DELAY_ONCLOSE); // Default: No delay on close (0)
+CK_READ_SETTING(es_max_batch_size, unsigned, LSQUIC_DF_MAX_BATCH_SIZE); // Default: Max batch size 100
+CK_READ_SETTING(es_check_tp_sanity, int, LSQUIC_DF_CHECK_TP_SANITY); // Default: Check transport parameters sanity enabled (1)
 	}
 #undef CK_READ_SETTING
 #undef CK_READ_SETTING_Str

@@ -18,6 +18,8 @@ class MQAS_EXTERN RelayStream : public core::ProtoBufStream<RelayStream,tools::r
     void launch_timeout_timer();
     void stop_timeout_timer();
     void on_timeout(io::Timer* t);
+    void reg_on_recv_datagram();
+    void on_recv_datagram(const uint8_t* buf,size_t size);
 
     private:
     uint32_t _id = 0;
@@ -25,6 +27,7 @@ class MQAS_EXTERN RelayStream : public core::ProtoBufStream<RelayStream,tools::r
     ::sockaddr _connect_addr;
     std::weak_ptr<RelayStream> _other_peer;
     std::shared_ptr<io::Timer> _timeout_timer;
+    sigc::connection _on_recv_datagram_conn;
 };
 
 }

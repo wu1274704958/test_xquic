@@ -25,11 +25,15 @@ core::StreamVariantErrcode on_local_change_msg_s(const std::shared_ptr<proto::re
 void on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code,const std::shared_ptr<proto::relay::RespondRelay>& msg);
 void on_peer_change_ret_msg(core::StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&);
 size_t on_read(const std::span<const uint8_t>& buffer);
+void on_close();
+protected:
+void on_recv_datagram(const uint8_t* buf,size_t size);
 
 private:
     uint32_t _id;
     ::sockaddr _peer_addr;
     ::sockaddr _bind_addr;
+    sigc::connection _on_recv_datagram_conn;
 };
 
 }

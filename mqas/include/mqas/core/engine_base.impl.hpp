@@ -17,7 +17,6 @@
 #ifdef PF_ANDROID
 #endif
 
-void MQAS_EXTERN settings_from_toml(::lsquic_engine_settings& s, const toml::value& v);
 int MQAS_EXTERN ssl_select_alpn_s(SSL* ssl, const unsigned char** out, unsigned char* outlen,
 	const unsigned char* in, unsigned inlen, void* arg);
 
@@ -120,7 +119,8 @@ void mqas::core::engine_base<E,ED,SC>::init_engine_core()
 
 	if (has_engine_setting())
 	{
-		engine_driver::settings_from_toml(conf_->lsquic_settings, conf_origin_->at("lsquic_settings"));
+		engine_driver::settings_from_toml(conf_->lsquic_settings, conf_origin_->at("lsquic_settings"),
+			contain<uint32_t>(engine_flags_, EngineFlags::Server));
 		lsquic_engine_api_.ea_settings = &conf_->lsquic_settings;
 	}
 
@@ -263,26 +263,22 @@ void mqas::core::engine_base<E,ED,SC>::close()
 {
 	if (engine_extern_)
 		engine_extern_->close();
-}
-
-ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED,SC>::wait_all_connect_closed()
-{
-	close();
 	while (engine_extern_ && engine_extern_->connect_count() > 0)
 		io_cxt.run(mqas::io::Context::RunMode::ONCE);
+	engine_extern_.reset();
 }
 
 ENGINE_BASE_TEMPLATE_DECL
 mqas::core::engine_base<E,ED,SC>::~engine_base()
 {
-	close_socket();
-	close_timer();
+	close();
 	close_ssl_ctx();
 	if (engine_)
 		::lsquic_engine_destroy(engine_);
 	if (recv_connection_.connected())
 		recv_connection_.disconnect();
+	close_socket();
+	close_timer();
 }
 
 ENGINE_BASE_TEMPLATE_DECL

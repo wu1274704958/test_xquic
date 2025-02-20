@@ -48,7 +48,10 @@ namespace mqas::core{
 		}
 		return static_cast<ssize_t>(dg_sz);
 	}
-	void IConnect::on_datagram(const void* buf, size_t){}
+	void IConnect::on_datagram(const void* buf, size_t size)
+    {
+        on_recv_datagram.emit(reinterpret_cast<const uint8_t*>(buf),size);
+    }
 	void IConnect::on_hsk_done(enum lsquic_hsk_status s)
 	{
 		hsk_status_ = s;
@@ -74,7 +77,7 @@ namespace mqas::core{
         datagram_buf_.resize(old_len + data.size());
         std::memcpy(&datagram_buf_[old_len],data.data(),data.size());
         datagram_queue_.push(static_cast<short>(data.size()));
-        engine_cxt_->process_conns();
+        engine_cxt_->process_conns_lazy();
         return true;
     }
     bool IConnect::flush_datagram() const

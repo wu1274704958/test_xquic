@@ -66,7 +66,7 @@ namespace mqas::core
 		bool initialization(const char* conf);
 		::SSL_CTX* get_ssl_or_generate(const std::string& cert_file, const std::string& key_file,const std::string& alpn);
 		::SSL_CTX* destroy_ssl_ctx(::SSL_CTX* ctx);
-		static void settings_from_toml(::lsquic_engine_settings& s, const toml::value& v);
+		static void settings_from_toml(::lsquic_engine_settings& s, const toml::value& v,bool is_server);
 		protected:
 		void init_logger() const;
 		::SSL_CTX* init_ssl(const std::string& cert_file, const std::string& key_file, const std::string& alpn);

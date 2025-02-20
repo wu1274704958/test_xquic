@@ -19,6 +19,11 @@ namespace mqas::tools{
         proto::relay::RespondRelay respond;
         respond.set_id(0);
 
+#if !NDEBUG
+        LOG(INFO) << "relay req " << io::Ip::addr2str(_addr) << ':' << io::Ip::addr_get_port(_addr) << 
+        " connect " <<  req->address().ip().c_str() << ':' << req->address().port();
+#endif
+
         if(!io::Ip::str2addr(req->address().ip().c_str(),req->address().port(),_connect_addr))
         {
             respond.set_code(proto::relay::RespondRelay_Code::RespondRelay_Code_bad_arguments);
@@ -42,6 +47,7 @@ namespace mqas::tools{
                 _other_peer = ptr;
                 ptr->send_respond(id,proto::relay::RespondRelay_Code::RespondRelay_Code_success,true,
                     std::dynamic_pointer_cast<RelayStream>(this->shared_from_this()));
+                reg_on_recv_datagram();
             }
             respond.set_id(_id);
             respond.set_code(proto::relay::RespondRelay_Code::RespondRelay_Code_success);
@@ -63,6 +69,7 @@ namespace mqas::tools{
             _id = id;
             _other_peer = other_peer;
             stop_timeout_timer();
+            reg_on_recv_datagram();
         }
         respond.set_id(_id);
         respond.set_code(code);
@@ -73,13 +80,6 @@ namespace mqas::tools{
 
     size_t RelayStream::on_read(const std::span<const uint8_t>& buf)
     {
-        auto ptr = _other_peer.lock();
-        if(ptr)
-        {
-            ptr->write_lazy(*reinterpret_cast<const std::span<uint8_t>*>(&buf));
-            return buf.size();
-        }else
-            close();
         return 0;
     }
 
@@ -120,6 +120,30 @@ namespace mqas::tools{
         auto ptr = _other_peer.lock();
         if(ptr)
             ptr->close();
+        if(_on_recv_datagram_conn)
+            _on_recv_datagram_conn.disconnect();
         IStream::on_close();
+    }
+
+    void RelayStream::reg_on_recv_datagram()
+    {
+        if(_on_recv_datagram_conn)
+            return;
+        auto conn = connect.lock();
+        _on_recv_datagram_conn = conn->on_recv_datagram.connect(sigc::mem_fun(*this,&RelayStream::on_recv_datagram));
+    }
+
+    void RelayStream::on_recv_datagram(const uint8_t* buf,size_t size)
+    {
+        std::span<uint8_t> span((uint8_t*)buf,size);
+        auto ptr = _other_peer.lock();
+        if(ptr)
+        {
+            auto conn = ptr->connect.lock();
+            conn->write_datagram(span);
+            if(!conn->flush_datagram())
+                close();
+        }else
+            close();
     }
 }

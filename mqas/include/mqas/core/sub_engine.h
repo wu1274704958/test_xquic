@@ -29,7 +29,6 @@ namespace mqas::core {
 		void start_recv();
 		std::shared_ptr<E> get_engine() const;
 		void close();
-		void wait_all_connect_closed();
 	protected:
 		void init_engine_core();
 		void init_socket(std::shared_ptr<SC> sock = nullptr);

@@ -40,8 +40,7 @@ namespace mqas::core
 		void process_conns() const;
         void process_conns_lazy() const;
 		void start_recv();
-		std::shared_ptr<E> get_engine() const; 
-		void wait_all_connect_closed();
+		std::shared_ptr<E> get_engine() const;
 		void close();
 		~engine_base();
 	protected:

@@ -620,6 +620,7 @@ namespace mqas::core{
             case variant_stream_state::none:
             break;
             default:
+            LOG(ERROR) << "try_push_curr_stream incorrect state current is " << (size_t)current_state;
             return StreamVariantErrcode::incorrect_state;
         }
         if (stream_tag_ == 0)

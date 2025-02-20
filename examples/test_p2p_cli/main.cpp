@@ -128,9 +128,12 @@ protected:
 	template<typename SOCK>
 	requires core::IsVaildSocket<SOCK>
 	void launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg,std::shared_ptr<SOCK> sock);
-	bool launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg,std::function<void(bool)> callback);
+	bool launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg,std::function<void(bool)> callback,
+		std::shared_ptr<io::UdpSocket> sock);
 	void clean_relay();
-
+public:
+	//conf
+	std::shared_ptr<toml::value> config;
 protected:
 	std::stack<ui_state> stack;
 	std::shared_ptr<LobbyStream> stream;
@@ -166,7 +169,7 @@ int main(int argc, const char** argv)
 	ui.init();
 	core::sub_engine<core::engine<core::Connect<StreamType>>> e(io_cxt);
 	try {
-		e.init("conf.txt", core::EngineFlags::None);
+		e.init(argc > 1 ? argv[1] : "conf.txt", core::EngineFlags::None);
 		e.start_recv();
 		e.process_conns();
 		sockaddr addr{};
@@ -177,6 +180,7 @@ int main(int argc, const char** argv)
 		auto c = e.get_engine()->connect(addr, N_LSQVER);
 		e.get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(addr));
 		e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(addr));
+		ui.config = e.get_engine()->get_config();
 		auto conn = c.lock();
 		auto t = io_cxt.make_handle<io::Timer>();
 		std::weak_ptr<StreamType> stream_out;
@@ -531,10 +535,11 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 {
 	helper_result = msg;
 	try_connect_list.clear();
+	helper_stream = nullptr;
 
 	if(msg->use_relay())
 	{
-		launch_relay(msg,[this,msg](bool success){
+		launch_relay(helper_result,[this,sock](bool success){
 			if(!success)
 			{
 				clean_relay();
@@ -545,9 +550,12 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 				if (current_state() == ui_state::helper_main)
 					pop_state();
 				append_state(ui_state::p2p_main);
-				launch_p2p(msg,relay_stream);
+				::sockaddr addr;
+				sock->get_sock_addr(addr);
+				relay_stream->bind(addr,0);
+				launch_p2p(helper_result,relay_stream);
 			}
-		});
+		},sock);
 		return;
 	}
 
@@ -587,9 +595,8 @@ void tui::quit_helper()
 		helper_stream->req_quit(helper_stream->getStreamTag());
 		helper_stream = nullptr;
 		try_connect_list.clear();
-
-		clean_relay();
 	}
+	clean_relay();
 }
 
 void tui::quit_p2p()
@@ -597,9 +604,9 @@ void tui::quit_p2p()
 	if (p2p_engine)
 	{
 		if(use_relay)
-			std::static_pointer_cast<P2PEngineRelayType>(p2p_engine)->wait_all_connect_closed();
+			std::static_pointer_cast<P2PEngineRelayType>(p2p_engine)->close();
 		else
-			std::static_pointer_cast<P2PEngineType>(p2p_engine)->wait_all_connect_closed();
+			std::static_pointer_cast<P2PEngineType>(p2p_engine)->close();
 		on_p2p_peer_quit(nullptr);
 	}
 
@@ -675,7 +682,16 @@ void tui::on_p2p_connected(const std::string& name)
 void tui::clean_up_p2p(bool active)
 {
 	p2p_stream.reset();
-	p2p_engine.reset();
+	if(use_relay)
+	{
+		auto ptr = std::static_pointer_cast<P2PEngineRelayType>(p2p_engine);
+		p2p_engine.reset();
+	}
+	else
+	{
+		auto ptr = std::static_pointer_cast<P2PEngineType>(p2p_engine);
+		p2p_engine.reset();
+	}
 	p2p_cxt.reset();
 	if (p2p_server_wait_timer)
 		p2p_server_wait_timer->stop();
@@ -726,9 +742,10 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 }
 
 
-bool tui::launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg,std::function<void(bool)> callback)
+bool tui::launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg,std::function<void(bool)> callback,std::shared_ptr<io::UdpSocket> sock)
 {
 	auto io_cxt = comm::locator::inst()->get_ref<io::Context>();
+	
 	::sockaddr relay_addr;
 	if(!io::Ip::str2addr(msg->relay_addr().ip().c_str(),msg->relay_addr().port(),relay_addr))
 	{
@@ -763,10 +780,12 @@ bool tui::launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConn
 	std::function<void(const std::exception&)> exception_func = [this,callback](const std::exception&) {
 		callback(false);
 	};
-	std::shared_ptr<io::UdpSocket> sock = nullptr;
-	relay_engine = comm::engine_util::launch_sub_engine<RelayStreamType>(io_cxt.value().get(), "conf_relay.txt",
+	auto relay_conf = toml::find<std::string>(*config,"relay","conf");
+	relay_engine = comm::engine_util::launch_sub_engine<RelayStreamType>(io_cxt.value().get(), relay_conf.c_str(),
 			core::EngineFlags::None, sock, on_connect, &relay_addr,exception_func);
 
+	relay_engine->get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(relay_addr));
+	relay_engine->get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(relay_addr));
 	return true;
 }
 
@@ -775,7 +794,5 @@ void tui::clean_relay()
 	if (relay_stream)
 		relay_stream.reset();
 	if (relay_engine)
-	{
-		relay_engine->wait_all_connect_closed();
-	}
+		relay_engine.reset();
 }

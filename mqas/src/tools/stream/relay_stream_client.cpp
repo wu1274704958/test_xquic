@@ -16,6 +16,8 @@ namespace mqas::tools {
         if (code == core::StreamVariantErrcode::ok) 
         {
             _id = msg->id();
+            auto conn = connect.lock();
+            _on_recv_datagram_conn = conn->on_recv_datagram.connect(sigc::mem_fun(*this,&RelayStreamClient::on_recv_datagram));
         }
         on_connect_result.emit(code, msg->code());
     }
@@ -27,8 +29,7 @@ namespace mqas::tools {
 
     size_t RelayStreamClient::on_read(const std::span<const uint8_t>& buffer)
     {
-        on_recv_signal.emit(nullptr,*reinterpret_cast<const std::span<uint8_t>*>(&buffer),buffer.size(),&_peer_addr,0);
-        return buffer.size();
+        return 0;
     }
 
     //same udp socket interface
@@ -42,24 +43,48 @@ namespace mqas::tools {
     }
     int RelayStreamClient::try_send(const std::vector<std::span<uint8_t>>& d, const sockaddr& addr)
     {
-        if(!io::Ip::compare_ip(addr,_peer_addr))
+        if(!io::Ip::compare_ip(addr,_peer_addr) || _id == 0)
             return 0;
         int bytes = 0;
+        auto conn = connect.lock();
         for (auto& it : d)
         {
             if(it.size() == 0)
                 continue;
-            write_lazy(it);
-            bytes += d.size();
+            //write_lazy(it);
+            conn->write_datagram(it);
+            if(conn->flush_datagram())
+                bytes += it.size();
         }
+        #if !NDEBUG
+        LOG(INFO) << "relay try send " << bytes << " bytes";
+        #endif
         return bytes;
     }
     int RelayStreamClient::try_send(const std::span<uint8_t>& d, const sockaddr& addr)
     {
-        if(!io::Ip::compare_ip(addr,_peer_addr) || d.size() == 0)
+        if(_id == 0 || !io::Ip::compare_ip(addr,_peer_addr) || d.size() == 0)
             return 0;
-        write_lazy(d);
+        //write_lazy(d);
+        auto conn = connect.lock();
+        conn->write_datagram(d);
+        if(!conn->flush_datagram())
+            return 0;
         return d.size();
     }
     void RelayStreamClient::recv_start(){}
+
+    void RelayStreamClient::on_close()
+    {
+        _id = 0;
+        if(_on_recv_datagram_conn)
+            _on_recv_datagram_conn.disconnect();
+        IStream::on_close();
+    }
+
+    void RelayStreamClient::on_recv_datagram(const uint8_t* buf,size_t size)
+    {
+        std::span<uint8_t> span((uint8_t*)buf,size);
+        on_recv_signal.emit(nullptr,span,span.size(),&_peer_addr,0);
+    }
 }
