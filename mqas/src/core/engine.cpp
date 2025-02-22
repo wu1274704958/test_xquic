@@ -4,6 +4,10 @@ namespace mqas::core{
 	{
 		this->conn_ = conn;
 		this->engine_cxt_ = std::move(cxt);
+
+        auto engine = engine_cxt_->engine.lock();
+        if(engine->get_engine_config()->lsquic_settings.es_datagrams == 1)
+            datagram_supported_ = true;
 	}
 	void IConnect::on_close() {
         lsquic_conn_set_ctx(conn_, nullptr);
@@ -25,15 +29,16 @@ namespace mqas::core{
 	ssize_t IConnect::on_dg_write(void* buf, size_t sz)
 	{
 		if(datagram_queue_.empty())
+        { 
+            ::lsquic_conn_want_datagram_write(conn_, 0);
 			return 0;
+        }
 		size_t dg_sz = datagram_queue_.front();
 		if (dg_sz > sz)
-		{
-			datagram_queue_.pop();
-			LOG(WARNING) << "skip this datagram! cause by size "<< dg_sz << " too large, safe size is" << sz; 
-			datagram_buf_write_p_ = datagram_buf_write_p_ + dg_sz;
-			return on_dg_write(buf,sz);
-		}
+        {
+            LOG(ERROR) << "datagram write failed buf size" << '(' << sz << ')' << " insufficient need " << dg_sz;
+			return 0;
+        }
 		std::memcpy(buf,datagram_buf_.data() + datagram_buf_write_p_,dg_sz);
 #if !NDEBUG
 		LOG(INFO) << "datagram write " << dg_sz << "bytes";
@@ -70,21 +75,32 @@ namespace mqas::core{
     }
     bool IConnect::write_datagram(const std::span<uint8_t>& data)
     {
-        if(data.empty()) return false;
-        if (::lsquic_conn_want_datagram_write(conn_, 1) == -1)
+        if(data.empty()) 
             return false;
+        if(!datagram_supported_)
+        {
+            LOG(ERROR) << "datagram not supported !!!";
+            return false;
+        }
         const auto old_len = datagram_buf_.size();
         datagram_buf_.resize(old_len + data.size());
         std::memcpy(&datagram_buf_[old_len],data.data(),data.size());
         datagram_queue_.push(static_cast<short>(data.size()));
-        engine_cxt_->process_conns_lazy();
         return true;
     }
     bool IConnect::flush_datagram() const
     {
+        if(!datagram_supported_)
+        {
+            LOG(ERROR) << "datagram not supported !!!";
+            return false;
+        }
         if (!datagram_queue_.empty()) {
             if (::lsquic_conn_want_datagram_write(conn_, 1) != -1)
+            {
+                engine_cxt_->process_conns_lazy();
                 return true;
+            }
         }
         return false;
     }

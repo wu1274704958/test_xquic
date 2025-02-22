@@ -17,6 +17,7 @@ namespace mqas::core
 		void on_new_lsquic_engine(::lsquic_engine_api&, EngineFlags);
 		void on_init_socket(std::shared_ptr<io::UdpSocket> socket);
 		void on_init_config(std::shared_ptr<toml::value> config);
+		void on_init_engine_config(std::shared_ptr<engine_config> config);
 		void on_init_logger();
 		bool on_recv(const std::optional<std::span<uint8_t>>& buf, ssize_t nread, const sockaddr* addr, unsigned flags);
 
@@ -37,6 +38,7 @@ namespace mqas::core
 		void on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len);
 		const std::shared_ptr<toml::value> get_config() const;
 		const std::shared_ptr<io::UdpSocket> get_socket() const;
+		const std::shared_ptr<engine_config> get_engine_config() const;
 		std::vector<uint16_t> whitelist_port;
 		std::vector<std::unique_ptr<sockaddr>> whitelist_addr;
 	public:
@@ -44,6 +46,7 @@ namespace mqas::core
 	protected:
 		std::shared_ptr<toml::value> config;
 		std::shared_ptr<io::UdpSocket> socket_;
+		std::shared_ptr<engine_config> _engine_config;
 	};
 
 }

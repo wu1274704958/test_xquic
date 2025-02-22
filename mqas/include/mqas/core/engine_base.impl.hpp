@@ -157,6 +157,7 @@ void mqas::core::engine_base<E,ED,SC>::init_engine_core()
 	LOG(INFO) << "Create engine success!";
 
 	engine_extern_->on_init_config(conf_origin_);
+	engine_extern_->on_init_engine_config(conf_);
 	if constexpr(std::is_same_v<SC,io::UdpSocket>)
 	{
 		engine_extern_->on_init_socket(socket_);

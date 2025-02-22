@@ -131,6 +131,9 @@ namespace mqas::tools{
             return;
         auto conn = connect.lock();
         _on_recv_datagram_conn = conn->on_recv_datagram.connect(sigc::mem_fun(*this,&RelayStream::on_recv_datagram));
+        auto min_size = try_load_datagram_min_size();
+        if(min_size)
+            conn->set_min_datagram_size(min_size.value());
     }
 
     void RelayStream::on_recv_datagram(const uint8_t* buf,size_t size)
@@ -145,5 +148,15 @@ namespace mqas::tools{
                 close();
         }else
             close();
+    }
+
+    std::optional<uint16_t> RelayStream::try_load_datagram_min_size() const
+    {
+        auto e = connect_cxt_->engine_cxt_->engine.lock();
+        auto size = toml::find_or<int>(*e->get_config(),"relay","datagram_min_size",-1);
+        if(size < 0)
+            return {};
+        else
+            return { (uint16_t)size };
     }
 }

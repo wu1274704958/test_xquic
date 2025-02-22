@@ -62,6 +62,7 @@ namespace mqas::core {
 		size_t datagram_buf_write_p_ = 0;
 		::lsquic_hsk_status hsk_status_ = ::lsquic_hsk_status::LSQ_HSK_FAIL;
 		bool goaway_receive_:1 = false; 
+		bool datagram_supported_:1 = false;
 	};
 
 	template<typename C>

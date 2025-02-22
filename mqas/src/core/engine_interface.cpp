@@ -18,6 +18,12 @@ void mqas::core::IEngine::on_init_config(std::shared_ptr<toml::value> config) {
 	this->config = std::move(config);
 }
 
+void mqas::core::IEngine::on_init_engine_config(std::shared_ptr<mqas::core::engine_config> config)
+{
+	this->_engine_config = std::move(config);
+}
+
+
 void mqas::core::IEngine::on_init_logger() {}
 
 bool mqas::core::IEngine::on_recv(const std::optional<std::span<uint8_t>>& buf, ssize_t nread, const sockaddr* addr, unsigned flags)
@@ -133,6 +139,11 @@ const std::shared_ptr<toml::value> mqas::core::IEngine::get_config() const
 const std::shared_ptr<mqas::io::UdpSocket> mqas::core::IEngine::get_socket() const
 {
 	return socket_;
+}
+
+const std::shared_ptr<mqas::core::engine_config> mqas::core::IEngine::get_engine_config() const
+{
+	return _engine_config;
 }
 
 void mqas::core::IEngine::close() {}

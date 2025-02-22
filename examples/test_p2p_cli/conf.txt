@@ -20,3 +20,5 @@ name="client_a"
 [client]
 ip="127.0.0.1"
 port=8084
+[relay]
+conf="conf_relay.txt"

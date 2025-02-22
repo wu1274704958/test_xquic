@@ -357,7 +357,7 @@ CK_READ_SETTING(es_pace_packets, int, LSQUIC_DF_PACE_PACKETS); // Pace packets (
 CK_READ_SETTING(es_clock_granularity, unsigned, LSQUIC_DF_CLOCK_GRANULARITY); // Granularity of clock
 CK_READ_SETTING(es_cc_algo, unsigned, LSQUIC_DF_CC_ALGO); // Default congestion control algorithm (2 could refer to CUBIC)
 CK_READ_SETTING(es_cc_rtt_thresh, unsigned, LSQUIC_DF_CC_RTT_THRESH); // RTT threshold for congestion control (200 ms)
-CK_READ_SETTING(es_noprogress_timeout, unsigned, is_server ? LSQUIC_DF_NOPROGRESS_TIMEOUT_SERVER : LSQUIC_DF_NOPROGRESS_TIMEOUT_CLIENT); // No progress timeout in milliseconds
+CK_READ_SETTING(es_noprogress_timeout, unsigned, false ? LSQUIC_DF_NOPROGRESS_TIMEOUT_SERVER : LSQUIC_DF_NOPROGRESS_TIMEOUT_CLIENT); // No progress timeout in milliseconds
 CK_READ_SETTING(es_init_max_data, unsigned, is_server ? LSQUIC_DF_INIT_MAX_DATA_SERVER:LSQUIC_DF_INIT_MAX_DATA_CLIENT); // Initial max data (1 MB)
 CK_READ_SETTING(es_init_max_stream_data_bidi_remote, unsigned, is_server ? LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_SERVER : LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_CLIENT); // Max stream data for bidi remote
 CK_READ_SETTING(es_init_max_stream_data_bidi_local, unsigned, LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_LOCAL_CLIENT); // Max stream data for bidi local

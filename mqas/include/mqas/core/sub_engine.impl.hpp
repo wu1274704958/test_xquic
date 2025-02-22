@@ -1,4 +1,5 @@
 #pragma once
+#include <string_view>
 
 namespace mqas::core {
 
@@ -108,6 +109,7 @@ namespace mqas::core {
 		LOG(INFO) << "Create engine success!";
 
 		_engine_extern->on_init_config(_conf_origin);
+		_engine_extern->on_init_engine_config(_conf);
 		if constexpr (std::is_same_v<SC, io::UdpSocket>)
 		{ 
 			_engine_extern->on_init_socket(_socket);
@@ -361,7 +363,8 @@ namespace mqas::core {
 	SUB_ENGINE_TEMPLATE_DECL
 	void sub_engine<E,ED,SC>::on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len)
 	{
-		MQAS_DBG("conn on conncloseframe received " << c << " error_code = " << error_code << " reason " << reason);
+		std::string_view reason_str(reason,reason_len);
+		MQAS_DBG("conn on conncloseframe received " << c << " error_code = " << error_code << " reason " << reason_str);
 		_engine_extern->on_conncloseframe_received(c, app_error, error_code, reason, reason_len);
 	}
 	/////

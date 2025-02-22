@@ -28,6 +28,7 @@ size_t on_read(const std::span<const uint8_t>& buffer);
 void on_close();
 protected:
 void on_recv_datagram(const uint8_t* buf,size_t size);
+std::optional<uint16_t> try_load_datagram_min_size() const;
 
 private:
     uint32_t _id;

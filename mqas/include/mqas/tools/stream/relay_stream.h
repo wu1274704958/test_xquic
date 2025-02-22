@@ -20,6 +20,7 @@ class MQAS_EXTERN RelayStream : public core::ProtoBufStream<RelayStream,tools::r
     void on_timeout(io::Timer* t);
     void reg_on_recv_datagram();
     void on_recv_datagram(const uint8_t* buf,size_t size);
+    std::optional<uint16_t> try_load_datagram_min_size() const;
 
     private:
     uint32_t _id = 0;

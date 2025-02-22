@@ -7,6 +7,9 @@ namespace mqas::tools {
     {
         if(!io::Ip::str2addr(req->address().ip().c_str(),req->address().port(),_peer_addr))
             return core::StreamVariantErrcode::failed;
+
+        auto conn = connect.lock();
+        _on_recv_datagram_conn = conn->on_recv_datagram.connect(sigc::mem_fun(*this,&RelayStreamClient::on_recv_datagram));
         return core::StreamVariantErrcode::not_support;
     }
 
@@ -16,8 +19,11 @@ namespace mqas::tools {
         if (code == core::StreamVariantErrcode::ok) 
         {
             _id = msg->id();
+
             auto conn = connect.lock();
-            _on_recv_datagram_conn = conn->on_recv_datagram.connect(sigc::mem_fun(*this,&RelayStreamClient::on_recv_datagram));
+            auto min_size = try_load_datagram_min_size();
+            if(min_size)
+                conn->set_min_datagram_size(min_size.value());
         }
         on_connect_result.emit(code, msg->code());
     }
@@ -52,10 +58,11 @@ namespace mqas::tools {
             if(it.size() == 0)
                 continue;
             //write_lazy(it);
-            conn->write_datagram(it);
-            if(conn->flush_datagram())
+            if(conn->write_datagram(it))
                 bytes += it.size();
         }
+        if(!conn->flush_datagram())
+            return 0;
         #if !NDEBUG
         LOG(INFO) << "relay try send " << bytes << " bytes";
         #endif
@@ -86,5 +93,15 @@ namespace mqas::tools {
     {
         std::span<uint8_t> span((uint8_t*)buf,size);
         on_recv_signal.emit(nullptr,span,span.size(),&_peer_addr,0);
+    }
+
+    std::optional<uint16_t> RelayStreamClient::try_load_datagram_min_size() const
+    {
+        auto e = connect_cxt_->engine_cxt_->engine.lock();
+        auto size = toml::find_or<int>(*e->get_config(),"relay","datagram_min_size",-1);
+        if(size < 0)
+            return {};
+        else
+            return { (uint16_t)size };
     }
 }
