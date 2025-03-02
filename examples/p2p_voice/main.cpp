@@ -15,7 +15,6 @@
 #include <mqas/core/sub_engine.h>
 #include <mqas/tools/stream/relay_stream_client.h>
 #include "VoiceStream.h"
-#include "main2.cpp"
 using namespace mqas;
 MQAS_SHARE_EASYLOGGINGPP
 
@@ -159,6 +158,8 @@ protected:
 	std::shared_ptr<mqas::tools::RelayStreamClient> relay_stream;
 	bool use_relay = false;
 };
+
+extern int main2();
 
 int main(int argc, const char** argv)
 {
