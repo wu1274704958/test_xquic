@@ -9,6 +9,7 @@
 #include <speex/speex_preprocess.h>
 #include <speex/speex_echo.h>
 #include <array>
+#include <mqas/io/idle.h>
 
 class AudioStream
 {
@@ -16,15 +17,15 @@ public:
     AudioStream();
     ~AudioStream();
 
-    bool start(int sample_rate = 48000, int channels = 1, int frame_size = 480, int max_packet_size = 4000,
+    bool start(mqas::io::Context* io_cxt,int sample_rate = 48000, int channels = 1, int frame_size = 480, int max_packet_size = 4000,
          int noise_suppress = -30);
     void close();
     
     sigc::connection reg_on_record_callback(sigc::slot<void(const std::span<uint8_t>&,uint16_t)> callback);
     void unreg_on_record_callback(sigc::connection conn);
 
-    size_t on_receive_data(const std::span<uint8_t>& data);
-    size_t on_receive_data_def(const std::span<uint8_t>& data);
+    void on_receive_data(const std::span<uint8_t>& data);
+    void on_receive_data_def(const std::span<uint8_t>& data);
 private:
     static int port_audio_callback_static(const void* inputBuffer, void* outputBuffer,
                                unsigned long framesPerBuffer,
@@ -35,6 +36,7 @@ private:
                                 unsigned long framesPerBuffer,
                                 const PaStreamCallbackTimeInfo* timeInfo,
                                 PaStreamCallbackFlags statusFlags);
+    void emit_idle_callback(mqas::io::Idle* idle);
 
 private:
     sigc::signal<void(const std::span<uint8_t>&,uint16_t)> on_record_signal;
@@ -64,4 +66,11 @@ private:
     //swap index
     std::atomic<int> swap_index_record = 0;
     std::atomic<int> swap_index_far_end = 0;
+
+    mqas::io::Context* io_cxt;
+    //record emit timer run on main thread
+    std::shared_ptr<mqas::io::Idle> idle;
+    int last_record_index = -1;
+    int last_record_size = 0;
+    int last_record_frames = 0;
 };

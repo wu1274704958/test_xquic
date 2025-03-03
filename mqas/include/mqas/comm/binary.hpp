@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <vector>
 #include <cstring>
+#include <bit>
+
 namespace mqas::comm {
     template<typename T>
     std::vector<uint8_t> to_big_endian(T val) {

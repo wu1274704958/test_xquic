@@ -8,7 +8,7 @@ extern void PaUtil_SetDebugPrintFunction(PaUtilLogCallback  cb);
 }
         
 //initialize easylogging
-void EasyLogInitForPortAudio()
+void PortAudioGlobal::EasyLogInitForPortAudio()
 {
     const auto logger = el::Loggers::getLogger("portaudio");
 	el::Configurations c;
@@ -21,7 +21,7 @@ void EasyLogInitForPortAudio()
 	el::Loggers::reconfigureLogger(logger, c);
 }
 
-static void PaLogCallback(const char *log)
+void PortAudioGlobal::PaLogCallback(const char *log)
 {
     CLOG(INFO,"portaudio") << log;
 }

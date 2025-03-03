@@ -15,6 +15,7 @@
 #include <mqas/core/sub_engine.h>
 #include <mqas/tools/stream/relay_stream_client.h>
 #include "VoiceStream.h"
+#include "PortAudioGlobal.h"
 using namespace mqas;
 MQAS_SHARE_EASYLOGGINGPP
 
@@ -120,7 +121,7 @@ protected:
 	void on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_server);
 	void on_recive_p2p_msg(const std::string&,const std::string&);
 	void on_p2p_peer_quit(std::shared_ptr<core::IStreamVariant> stream);
-	void on_p2p_connected(const std::string&);
+	void on_p2p_connected(bool success);
 	void clean_up_p2p(bool active = true);
 	ui_state pop_state();
 	ui_state current_state() const;
@@ -163,8 +164,7 @@ extern int main2();
 
 int main(int argc, const char** argv)
 {
-	main2();
-	return 0;
+	PortAudioGlobal port_audio_global;
 	Context<core::InitFlags::BOTH> context;
 	io::Context io_cxt;
 	comm::locator::inst()->deposit<std::reference_wrapper<io::Context>>(io_cxt);
@@ -377,7 +377,7 @@ void tui::draw()
 	case ui_state::p2p_chat:
 	{
 		wmove(win,0,0);
-		wprintw(win,"chating to %s", p2p_cxt->peer_name.c_str());
+		wprintw(win,"chating to %s, relay:%d", p2p_cxt->peer_name.c_str(),use_relay);
 		int j = 0;
 		for (int i = p2p_cxt->min; i <= p2p_cxt->max; ++i,++j)
 		{
@@ -608,67 +608,79 @@ void tui::quit_p2p()
 void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_server)
 {
 	auto self = this;
-	// std::function<void(std::shared_ptr<P2PChatStream>)> func = [self](std::shared_ptr<P2PChatStream> ptr){
-	// 	self->p2p_stream = ptr;
-	// 	ptr->on_received_message.connect(sigc::mem_fun(*self,&tui::on_recive_p2p_msg));
-	// 	ptr->on_connected.connect(sigc::mem_fun(*self,&tui::on_p2p_connected));
-	// };
-	// if (is_server)
-	// {
-	// 	stream->on_change_stream_signal.connect([func](std::shared_ptr<core::IStreamVariant> p) {
-	// 		auto ptr = std::dynamic_pointer_cast<P2PChatStream>(p);
-	// 		if(ptr)
-	// 			func(ptr);
-	// 	});
-	// }
-	// else {
-	// 	test::ReqDirectChat m;
-	// 	LOG(INFO) << "req_change p2p chat";
-	// 	if (stream->req_change<P2PChatStream, ReqDirectChatPair>(m))
-	// 	{
-	// 		auto ptr = stream->get_holds_stream<P2PChatStream>();
-	// 		if(ptr)
-	// 			func(ptr);
-	// 	}
-	// }
+	std::function<void(std::shared_ptr<VoiceStream>)> func = [self](std::shared_ptr<VoiceStream> ptr)
+	{
+		self->p2p_stream = ptr;
+		// ptr->on_connected_signal.connect(sigc::mem_fun(*self,&tui::on_recive_p2p_msg));
+		ptr->on_connected_signal.connect(sigc::mem_fun(*self, &tui::on_p2p_connected));
+	};
+	if (is_server)
+	{
+		stream->on_change_stream_signal.connect([func](std::shared_ptr<core::IStreamVariant> p)
+		{
+			auto ptr = std::dynamic_pointer_cast<VoiceStream>(p);
+			if(ptr)
+				func(ptr); 
+		});
+	}
+	else
+	{
+		LOG(INFO) << "req_change p2p voice";
+		if (stream->req_change<VoiceStream>())
+		{
+			auto ptr = stream->get_holds_stream<VoiceStream>();
+			if (ptr)
+				func(ptr);
+		}
+	}
 }
 
-void tui::on_recive_p2p_msg(const std::string& name, const std::string& msg)
+void tui::on_recive_p2p_msg(const std::string &name, const std::string &msg)
 {
-	p2p_cxt->msg_list.push_back({1,msg});
-	//handle sliding window
+	p2p_cxt->msg_list.push_back({1, msg});
+	// handle sliding window
 	p2p_cxt->scroll_end();
 }
 
-void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,bool is_server)
+void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn, bool is_server)
 {
 	if (is_server)
 		conn->on_new_stream_signal.connect(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1, is_server));
 	else
-		conn->make_stream(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1,is_server));
+		conn->make_stream(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1, is_server));
 }
 
 void tui::on_p2p_peer_quit(std::shared_ptr<core::IStreamVariant> stream)
 {
 	clean_up_p2p(false);
 	auto curr = current_state();
-	if(curr == ui_state::p2p_chat || curr == ui_state::p2p_main)
+	if (curr == ui_state::p2p_chat || curr == ui_state::p2p_main)
 		pop_state();
 }
 
-void tui::on_p2p_connected(const std::string& name)
+void tui::on_p2p_connected(bool success)
 {
 	if (p2p_server_wait_timer)
 		p2p_server_wait_timer->stop();
-	if (current_state() == ui_state::p2p_main)
-		pop_state();
-	append_state(ui_state::p2p_chat);
-	
-	p2p_cxt = std::make_shared<p2p_chat_cxt>();
-	p2p_cxt->height = rows - 1 - 2;
-	p2p_cxt->width = cols - 2;
-	p2p_cxt->input_pos = rows - 1;
-	p2p_cxt->peer_name = name;
+	if (success)
+	{
+		if (current_state() == ui_state::p2p_main)
+			pop_state();
+		append_state(ui_state::p2p_chat);
+
+		p2p_cxt = std::make_shared<p2p_chat_cxt>();
+		p2p_cxt->height = rows - 1 - 2;
+		p2p_cxt->width = cols - 2;
+		p2p_cxt->input_pos = rows - 1;
+		p2p_cxt->peer_name = none_str;
+		std::optional<mqas::tools::proto::p2p::PeerData> peer = {};
+		if (respond_change_helper && (peer = get_peer(respond_change_helper->peer_id())))
+			p2p_cxt->peer_name = peer.value().name();
+	}
+	else
+	{
+		quit_p2p();
+	}
 }
 
 void tui::clean_up_p2p(bool active)
@@ -711,9 +723,10 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 		e.get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(p2p_addr));
 		e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(p2p_addr));
 	};
+	auto p2p_conf = toml::find<std::string>(*config,"p2p","conf");
 	if (msg->is_server())
 	{ 
-		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), "conf.txt",
+		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), p2p_conf.c_str(),
 			core::EngineFlags::Server, sock, func, nullptr,exception_func, on_init_func);
 		if(!p2p_server_wait_timer)
 			p2p_server_wait_timer = io_cxt.value().get().make_shared<io::Timer>();
@@ -723,7 +736,7 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 		},10 * 1000,0);
 	}else
 	{
-		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), "conf.txt",
+		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), p2p_conf.c_str(),
 			core::EngineFlags::None, sock, func, &p2p_addr,exception_func, on_init_func);
 	}
 	std::static_pointer_cast<EngineTy>(p2p_engine)->get_engine()->on_connect_closed_signal.connect([this](std::shared_ptr<core::Connect<P2PStreamType>>) {

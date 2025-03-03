@@ -13,11 +13,13 @@ AudioStream::~AudioStream()
     close();
 }
 
-bool AudioStream::start(int sample_rate, int channels, int frame_size, int max_packet_size, int noise_suppress)
+bool AudioStream::start(mqas::io::Context* io_cxt,int sample_rate, int channels, int frame_size, int max_packet_size, int noise_suppress)
 {
+    if(io_cxt == nullptr)
+        return false;
     if(is_start.load(std::memory_order_acquire))
         return false;
-
+    this->io_cxt = io_cxt;
     this->sample_rate = sample_rate;
     this->channels = channels;
     this->frame_size = frame_size;
@@ -85,6 +87,9 @@ bool AudioStream::start(int sample_rate, int channels, int frame_size, int max_p
         }
     }
 
+    idle = io_cxt->make_shared<mqas::io::Idle>();
+    idle->start(std::bind(&AudioStream::emit_idle_callback, this, std::placeholders::_1));
+
     END:
     is_start.store(!is_err, std::memory_order_release);
     if(is_err)
@@ -107,6 +112,8 @@ void AudioStream::close()
         speex_echo_state_destroy(echo_state);
     if (stream)
         Pa_CloseStream(stream);
+    if(idle)
+        idle.reset();
 
     is_start.store(false, std::memory_order_release);
 }
@@ -123,6 +130,16 @@ int AudioStream::port_audio_callback_static(const void* inputBuffer, void* outpu
 inline int get_other_index(int index)
 {
     return index == 0 ? 1 : 0;
+}
+    
+void AudioStream::emit_idle_callback(mqas::io::Idle* idle)
+{
+    auto swap_index = swap_index_record.load(std::memory_order_acquire);
+    if(last_record_index != swap_index)
+    {
+        on_record_signal.emit(std::span<uint8_t>(record_buffer[get_other_index(swap_index)].data(), last_record_size), last_record_frames);
+        last_record_index = swap_index;
+    }
 }
 
 int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer,
@@ -142,15 +159,15 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
     speex_preprocess_run(preprocess_state, processed_buffer.data());
     auto swap_index_for_record = swap_index_record.load(std::memory_order_acquire);
 
-    int nbBytes = opus_encode(encoder, processed_buffer.data(), framesPerBuffer, record_buffer[swap_index_for_record].data(), frame_size * sizeof(uint16_t) * channels);
-    if(nbBytes < 0)
+    last_record_size = opus_encode(encoder, processed_buffer.data(), framesPerBuffer, record_buffer[swap_index_for_record].data(), frame_size * sizeof(uint16_t) * channels);
+    if(last_record_size < 0)
     {
-        CLOG(ERROR,"audio") << "Opus encode failed: " << opus_strerror(nbBytes);
+        CLOG(ERROR,"audio") << "Opus encode failed: " << opus_strerror(last_record_size);
         return paContinue;
     }
+    last_record_frames = framesPerBuffer;
     swap_index_record.store(get_other_index(swap_index_for_record), std::memory_order_release);
 
-    on_record_signal.emit(std::span<uint8_t>(record_buffer[swap_index_for_record].data(), nbBytes), framesPerBuffer);
     return paContinue;
 }
 
@@ -167,7 +184,7 @@ void AudioStream::unreg_on_record_callback(sigc::connection conn)
     conn.disconnect();
 }
 
-size_t AudioStream::on_receive_data(const std::span<uint8_t>& data)
+void AudioStream::on_receive_data(const std::span<uint8_t>& data)
 {
     uint16_t cur_frame_size = mqas::comm::from_big_endian<uint16_t>(data);
     constexpr int offset = sizeof(uint16_t);
@@ -175,7 +192,7 @@ size_t AudioStream::on_receive_data(const std::span<uint8_t>& data)
     int size = opus_decode(decoder, data.data() + offset, data.size(), decode_buffer.data(), cur_frame_size * channels, 0);
     if (size < 0) {
         CLOG(ERROR,"audio") << "Opus decode failed: " << opus_strerror(size);
-        return 0;
+        return;
     }
 
     auto swap_index = swap_index_far_end.load(std::memory_order_acquire);
@@ -188,11 +205,9 @@ size_t AudioStream::on_receive_data(const std::span<uint8_t>& data)
 
     //swap index
     swap_index_far_end.store(get_other_index(swap_index), std::memory_order_release);
-
-    return data.size();
 }
 
-size_t AudioStream::on_receive_data_def(const std::span<uint8_t>& data)
+void AudioStream::on_receive_data_def(const std::span<uint8_t>& data)
 {
     uint16_t cur_frame_size = frame_size;
     constexpr int offset = 0;
@@ -200,7 +215,7 @@ size_t AudioStream::on_receive_data_def(const std::span<uint8_t>& data)
     int size = opus_decode(decoder, data.data() + offset, data.size(), decode_buffer.data(), cur_frame_size, 0);
     if (size < 0) {
         CLOG(ERROR,"audio") << "Opus decode failed: " << opus_strerror(size);
-        return 0;
+        return;
     }
 
     auto swap_index = swap_index_far_end.load(std::memory_order_acquire);
@@ -214,5 +229,4 @@ size_t AudioStream::on_receive_data_def(const std::span<uint8_t>& data)
     //swap index
     swap_index_far_end.store(get_other_index(swap_index), std::memory_order_release);
 
-    return data.size();
 }
