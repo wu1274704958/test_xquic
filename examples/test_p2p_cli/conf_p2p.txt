@@ -15,11 +15,5 @@ log_config="""
 alpn="echo"
 ssl_cert_path="cert-def.pem"
 ssl_key_path="key-def.pem"
-[p2p]
-name="client_a"
-conf="conf_p2p.txt"
-[client]
-ip="127.0.0.1"
-port=8084
-[relay]
-conf="conf_relay.txt"
+[lsquic_settings]
+es_base_plpmtu=1500

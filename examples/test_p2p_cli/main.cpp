@@ -719,9 +719,10 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 		e.get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(p2p_addr));
 		e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(p2p_addr));
 	};
+	auto p2p_conf = toml::find<std::string>(*config,"p2p","conf");
 	if (msg->is_server())
 	{ 
-		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), "conf.txt",
+		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), p2p_conf.c_str(),
 			core::EngineFlags::Server, sock, func, nullptr,exception_func, on_init_func);
 		if(!p2p_server_wait_timer)
 			p2p_server_wait_timer = io_cxt.value().get().make_shared<io::Timer>();
@@ -731,7 +732,7 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 		},10 * 1000,0);
 	}else
 	{
-		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), "conf.txt",
+		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), p2p_conf.c_str(),
 			core::EngineFlags::None, sock, func, &p2p_addr,exception_func, on_init_func);
 	}
 	std::static_pointer_cast<EngineTy>(p2p_engine)->get_engine()->on_connect_closed_signal.connect([this](std::shared_ptr<core::Connect<P2PStreamType>>) {

@@ -17,4 +17,4 @@ ssl_cert_path="cert-def.pem"
 ssl_key_path="key-def.pem"
 [lsquic_settings]
 es_datagrams=1
-es_base_plpmtu=2200
+es_base_plpmtu=1500
