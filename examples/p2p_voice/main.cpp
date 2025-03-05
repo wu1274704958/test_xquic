@@ -601,8 +601,6 @@ void tui::quit_p2p()
 			std::static_pointer_cast<P2PEngineType>(p2p_engine)->close();
 		on_p2p_peer_quit(nullptr);
 	}
-
-	clean_relay();
 }
 
 void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_server)
@@ -744,6 +742,14 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 			quit_p2p();
 		});
 	});
+	if(std::is_same_v<SOCK,tools::RelayStreamClient>)
+	{
+		relay_engine->get_engine()->on_connect_closed_signal.connect([this](std::shared_ptr<core::Connect<RelayStreamType>>){
+			lazy_task.push_back([this]() {
+				quit_p2p();
+			});
+		});
+	}
 }
 
 
