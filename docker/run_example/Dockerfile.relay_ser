@@ -1,0 +1,6 @@
+# syntax=docker/dockerfile:1
+FROM ey1274704958/p2p_ser_t:latest
+
+CMD ["bash", "-c", "cd /root/code/test_xquic && rm -rf build-relay && mkdir build-relay && cd build-relay && cmake -DBUILD_MQAS_EXAMPLES=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=/root/code/vcpkg/scripts/buildsystems/vcpkg.cmake .. && make test_relay_ser && cd examples/test_relay_ser/ && ./test_relay_ser"]
+
+EXPOSE 27 8084 8085

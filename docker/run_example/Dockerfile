@@ -4,8 +4,8 @@ FROM ubuntu:24.04
 
 #RUN sed -i "s@http://.*archive.ubuntu.com@https://mirrors.tuna.tsinghua.edu.cn@g" /etc/apt/sources.list
 #RUN sed -i "s@http://.*security.ubuntu.com@https://mirrors.tuna.tsinghua.edu.cn@g" /etc/apt/sources.list
-RUN apt-get update
-RUN apt upgrade
+RUN apt-get update -y
+RUN apt upgrade -y
 RUN apt-get install -y --fix-missing libc++-14-dev
 RUN apt-get install -y --fix-missing openssh-server git clang gdb libstdc++-13-dev
 RUN apt-get install -y --fix-missing curl zip unzip cmake
@@ -29,10 +29,6 @@ RUN ./vcpkg/vcpkg install libsigcpp
 #RUN ./vcpkg/vcpkg install pdcurses
 RUN ./vcpkg/vcpkg integrate install
 RUN apt remove -y gcc g++
-
-CMD ["bash", "-c", "cd /root/code/test_xquic && rm -rf build-linux && mkdir build-linux && cd build-linux && cmake -DBUILD_MQAS_EXAMPLES=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=/root/code/vcpkg/scripts/buildsystems/vcpkg.cmake .. && make test_p2p_ser && cd examples/test_p2p_ser/ && ./test_p2p_ser"]
-
-EXPOSE 27 8084
 
 
 

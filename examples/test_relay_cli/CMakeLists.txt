@@ -5,8 +5,6 @@ add_executable(${CUR_TARGET_NAME} ${CUR_SRC_FILES})
 add_dependencies(${CUR_TARGET_NAME} mqas)
 
 
-find_package(unofficial-pdcurses CONFIG REQUIRED)
-
 target_include_directories(${CUR_TARGET_NAME} PRIVATE 
     ${boringssl_INCLUDE_DIR}
 )
@@ -34,15 +32,4 @@ if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/conf.txt")
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "conf.txt"   ${CMAKE_CURRENT_BINARY_DIR}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         )
-endif()
-
-if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/cert-def.pem")
-#openssl req -newkey rsa:4096 -nodes -sha256 -keyout key-def.pem -x509 -days 365 -out cert-def.pem
-    add_custom_command(TARGET ${CUR_TARGET_NAME}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "certificate/cert-def.pem"   ${CMAKE_CURRENT_BINARY_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "certificate/key-def.pem"   ${CMAKE_CURRENT_BINARY_DIR}
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        )
-
 endif()
