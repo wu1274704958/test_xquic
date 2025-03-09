@@ -20,6 +20,9 @@ public:
     bool start(mqas::io::Context* io_cxt,int sample_rate = 48000, int channels = 1, int frame_size = 480, int max_packet_size = 4000,
          int noise_suppress = -30);
     void close();
+
+    //always used on main thread
+    sigc::signal<void(const std::span<int16_t>&)> on_decode_far_end_data;
     
     sigc::connection reg_on_record_callback(sigc::slot<void(const std::span<uint8_t>&,uint16_t)> callback);
     void unreg_on_record_callback(sigc::connection conn);
@@ -37,6 +40,7 @@ private:
                                 const PaStreamCallbackTimeInfo* timeInfo,
                                 PaStreamCallbackFlags statusFlags);
     void emit_idle_callback(mqas::io::Idle* idle);
+    void on_receive_data_internal(const std::span<uint8_t>& data,int frame_size,int offset);
 
 private:
     sigc::signal<void(const std::span<uint8_t>&,uint16_t)> on_record_signal;

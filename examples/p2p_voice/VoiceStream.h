@@ -15,6 +15,7 @@ class VoiceStream : public mqas::core::IStreamVariant
          std::vector<uint8_t>& ret_buf);
     
     void on_peer_change_ret(mqas::core::StreamVariantErrcode code,const std::span<uint8_t>& params);
+    AudioStream& get_audio_stream() { return audio_stream; } 
     private:
     bool init_audio_stream();
     void close_audio_stream();

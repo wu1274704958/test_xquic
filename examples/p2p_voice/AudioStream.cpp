@@ -184,33 +184,8 @@ void AudioStream::unreg_on_record_callback(sigc::connection conn)
     conn.disconnect();
 }
 
-void AudioStream::on_receive_data(const std::span<uint8_t>& data)
+void AudioStream::on_receive_data_internal(const std::span<uint8_t>& data,int cur_frame_size,int offset)
 {
-    uint16_t cur_frame_size = mqas::comm::from_big_endian<uint16_t>(data);
-    constexpr int offset = sizeof(uint16_t);
-    //decode
-    int size = opus_decode(decoder, data.data() + offset, data.size(), decode_buffer.data(), cur_frame_size * channels, 0);
-    if (size < 0) {
-        CLOG(ERROR,"audio") << "Opus decode failed: " << opus_strerror(size);
-        return;
-    }
-
-    auto swap_index = swap_index_far_end.load(std::memory_order_acquire);
-
-    //copy data
-    far_end_buffer[get_other_index(swap_index)].resize(frame_size * channels, 0);
-
-    const auto data_size = cur_frame_size * sizeof(int16_t) * channels;
-    std::memcpy(far_end_buffer[get_other_index(swap_index)].data(), decode_buffer.data(), data_size);
-
-    //swap index
-    swap_index_far_end.store(get_other_index(swap_index), std::memory_order_release);
-}
-
-void AudioStream::on_receive_data_def(const std::span<uint8_t>& data)
-{
-    uint16_t cur_frame_size = frame_size;
-    constexpr int offset = 0;
     //decode
     int size = opus_decode(decoder, data.data() + offset, data.size(), decode_buffer.data(), cur_frame_size, 0);
     if (size < 0) {
@@ -219,14 +194,28 @@ void AudioStream::on_receive_data_def(const std::span<uint8_t>& data)
     }
 
     auto swap_index = swap_index_far_end.load(std::memory_order_acquire);
-
+    auto& dst_buffer = far_end_buffer[get_other_index(swap_index)];
     //copy data
-    far_end_buffer[get_other_index(swap_index)].resize(frame_size * channels, 0);
+    dst_buffer.resize(frame_size * channels, 0);
 
     const auto data_size = cur_frame_size * sizeof(int16_t) * channels;
-    std::memcpy(far_end_buffer[get_other_index(swap_index)].data(), decode_buffer.data(), data_size);
+    std::memcpy(dst_buffer.data(), decode_buffer.data(), data_size);
+
+    on_decode_far_end_data.emit(std::span<int16_t>(dst_buffer.data(),data_size));
 
     //swap index
     swap_index_far_end.store(get_other_index(swap_index), std::memory_order_release);
+}
 
+void AudioStream::on_receive_data(const std::span<uint8_t>& data)
+{
+    const uint16_t cur_frame_size = mqas::comm::from_big_endian<uint16_t>(data);
+    constexpr int offset = sizeof(uint16_t);
+
+    on_receive_data_internal(data,cur_frame_size,offset);
+}
+
+void AudioStream::on_receive_data_def(const std::span<uint8_t>& data)
+{
+    on_receive_data_internal(data,frame_size,0);
 }

@@ -122,6 +122,7 @@ protected:
 	void on_recive_p2p_msg(const std::string&,const std::string&);
 	void on_p2p_peer_quit(std::shared_ptr<core::IStreamVariant> stream);
 	void on_p2p_connected(bool success);
+	void on_decode_voice_data(const std::span<int16_t>& data);
 	void clean_up_p2p(bool active = true);
 	ui_state pop_state();
 	ui_state current_state() const;
@@ -158,6 +159,7 @@ protected:
 	std::shared_ptr<RelayEngineType> relay_engine;
 	std::shared_ptr<mqas::tools::RelayStreamClient> relay_stream;
 	bool use_relay = false;
+	std::vector<int16_t> far_end_data;
 };
 
 extern int main2();
@@ -378,28 +380,17 @@ void tui::draw()
 	{
 		wmove(win,0,0);
 		wprintw(win,"chating to %s, relay:%d", p2p_cxt->peer_name.c_str(),use_relay);
-		int j = 0;
-		for (int i = p2p_cxt->min; i <= p2p_cxt->max; ++i,++j)
+		//todo display far end data
+		int count = std::min((size_t)p2p_cxt->width,far_end_data.size());
+		int y_limit = p2p_cxt->height;
+		int x = 1;
+		for (size_t i = 0; i < count; i++)
 		{
-			if(i >= p2p_cxt->msg_list.size())
-				continue;
-			const auto& it = p2p_cxt->msg_list[i];
-			if (it.first == 0)	//self
-			{
-				wmove(win, y + j, 1);
-				attron(COLOR_PAIR(1));
-				wprintw(win, "self: %s", it.second.c_str());
-				attroff(COLOR_PAIR(1));
-			}
-			else {				//peer
-				wmove(win, y + j, 1);
-				attron(COLOR_PAIR(2));
-				wprintw(win, "peer: %s", it.second.c_str());
-				attroff(COLOR_PAIR(2));
-			}	
+			float normalized = (((float)far_end_data[i] / 160) + 1.0f) * 0.5f;
+			int y_real = (int)(normalized * y_limit);
+			wmove(win,y + y_real,x + i);
+			wprintw(win,"-");
 		}
-		wmove(win, p2p_cxt->input_pos, 1);
-		wprintw(win, "input: [%s]", p2p_cxt->input_text.c_str());
 	}
 		break;
 	default:
@@ -611,6 +602,7 @@ void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_serve
 		self->p2p_stream = ptr;
 		// ptr->on_connected_signal.connect(sigc::mem_fun(*self,&tui::on_recive_p2p_msg));
 		ptr->on_connected_signal.connect(sigc::mem_fun(*self, &tui::on_p2p_connected));
+		ptr->get_audio_stream().on_decode_far_end_data.connect(sigc::mem_fun(*self,&tui::on_decode_voice_data));
 	};
 	if (is_server)
 	{
@@ -630,6 +622,15 @@ void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_serve
 			if (ptr)
 				func(ptr);
 		}
+	}
+}
+
+void tui::on_decode_voice_data(const std::span<int16_t>& data)
+{
+	if(current_state() == ui_state::p2p_chat)
+	{
+		far_end_data.resize(data.size());
+		std::memcpy(far_end_data.data(),data.data(),data.size());
 	}
 }
 
