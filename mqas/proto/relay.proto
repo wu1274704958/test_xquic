@@ -7,8 +7,12 @@ message Address {
   uint32 port = 2;
 }
 
+message UUID {
+  bytes data = 1;
+}
+
 message ReqRelay{
-  Address address = 1;
+  UUID token = 1;
   optional uint32 option = 2;
 }
 
@@ -22,5 +26,6 @@ message RespondRelay{
   };
   Code code = 1;
   uint32 id = 2;
+  optional Address peer_addr = 3;
 }
 

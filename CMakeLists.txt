@@ -16,8 +16,6 @@ endif()
 message("CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 set(CMAKE_CXX_STANDARD 20)
 
-set(COMM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
 find_package(ZLIB REQUIRED)
 find_package(boringssl REQUIRED)
 find_package(lsquic CONFIG REQUIRED)
@@ -27,6 +25,10 @@ find_package(toml11 CONFIG REQUIRED)
 find_package(easyloggingpp REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
 find_package(sigc++-3 CONFIG REQUIRED)
+find_package(Boost REQUIRED)
+
+set(COMM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" ${Boost_INCLUDE_DIRS})
+
 if(asio_FOUND)
 	add_definitions(-DHAS_ASIO)
 	add_subdirectory(src/test_ser)

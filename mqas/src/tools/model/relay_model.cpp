@@ -3,27 +3,22 @@
 
 namespace mqas::tools::relay{
 
-std::pair<RelayState,uint32_t> relay_model::try_connect(const ::sockaddr& addr,const ::sockaddr& connect_addr,std::weak_ptr<core::IStreamVariant> stream)
+std::pair<RelayState,uint32_t> relay_model::try_connect(const ::sockaddr& addr,const boost::uuids::uuid& token,std::weak_ptr<core::IStreamVariant> stream)
 {
-    if(_waiting_map.contains(connect_addr))
+    if(_waiting_map.contains(token))
     {
-        auto range = _waiting_map.equal_range(connect_addr);
+        auto range = _waiting_map.equal_range(token);
         for (auto it = range.first; it != range.second; ++it) {
-            if(io::Ip::compare_ip(it->second.connect_addr,addr))
-            {
-                auto id = _id_generator.next();
-                std::array<peer_data,2> arr;
-                arr[0] = it->second;
-                arr[1] = peer_data{ .addr = addr,.connect_addr = connect_addr, .stream = stream };
-                _relay_map.insert({ id , std::make_shared<relay_pair>(relay_pair{ .id = id, .peers = arr }) });
-                _waiting_map.erase(it);
-                return {RelayState::relaying , id };
-            }
+            auto id = _id_generator.next();
+            std::array<peer_data,2> arr;
+            arr[0] = it->second;
+            arr[1] = peer_data{ .addr = addr,.token = token, .stream = stream };
+            _relay_map.insert({ id , std::make_shared<relay_pair>(relay_pair{ .id = id, .peers = arr }) });
+            _waiting_map.erase(it);
+            return {RelayState::relaying , id };
         }
-        _waiting_map.insert({ addr , peer_data{ .addr = addr,.connect_addr = connect_addr, .stream = stream }});
-        return { RelayState::waiting , 0 };
     }else{
-        _waiting_map.insert({ addr , peer_data{ .addr = addr,.connect_addr = connect_addr, .stream = stream }});
+        _waiting_map.insert({ token , peer_data{ .addr = addr,.token = token, .stream = stream }});
         return { RelayState::waiting , 0 };
     }
 }
@@ -46,18 +41,12 @@ bool relay_model::remove_relay(uint32_t id)
     return false;
 }
 
-bool relay_model::remove_waiting(const ::sockaddr& addr,const ::sockaddr& connect_addr)
+bool relay_model::remove_waiting(const ::sockaddr& addr,const boost::uuids::uuid& token)
 {
-    if(_waiting_map.contains(addr))
+    if(_waiting_map.contains(token))
     {
-        auto range = _waiting_map.equal_range(addr);
-        for (auto it = range.first; it != range.second; ++it) {
-            if(io::Ip::compare_ip(it->second.connect_addr,connect_addr))
-            {
-                _waiting_map.erase(it);
-                return true;
-            }
-        }
+        auto _ = _waiting_map.equal_range(token);
+        return true;
     }
     return false;
 }

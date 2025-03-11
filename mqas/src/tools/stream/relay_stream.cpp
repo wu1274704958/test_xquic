@@ -2,6 +2,7 @@
 #include <mqas/comm/locator.h>
 #include <mqas/tools/model/relay_model.h>
 #include <mqas/io/ip.h>
+#include <mqas/comm/uuid.h>
 
 namespace mqas::tools{
     core::StreamVariantErrcode RelayStream::on_change_msg_s(const std::shared_ptr<proto::relay::ReqRelay>& req,
@@ -9,29 +10,22 @@ namespace mqas::tools{
     {
         auto model = comm::locator::inst()->get<relay::relay_model>();
         auto conn = connect.lock();
-        if(!model || ! conn)
+        auto token = mqas::comm::uuid::to_uuid(req->token().data());
+        if(!model || ! conn || !token)
             return core::StreamVariantErrcode::failed;
         auto data = model.value();
         const ::sockaddr *local,*peer;
         if(!conn->get_sockaddr(&local,&peer))
             return core::StreamVariantErrcode::failed;  
         _addr = *peer;
+        _token = *token;
         proto::relay::RespondRelay respond;
         respond.set_id(0);
 
-#if !NDEBUG
         LOG(INFO) << "relay req " << io::Ip::addr2str(_addr) << ':' << io::Ip::addr_get_port(_addr) << 
-        " connect " <<  req->address().ip().c_str() << ':' << req->address().port();
-#endif
-
-        if(!io::Ip::str2addr(req->address().ip().c_str(),req->address().port(),_connect_addr))
-        {
-            respond.set_code(proto::relay::RespondRelay_Code::RespondRelay_Code_bad_arguments);
-            core::ProtoBufMsg::write_msg<tools::relay::RespondRelayPair>(ret_buf,respond);
-            return core::StreamVariantErrcode::failed;
-        }
+        " connect " <<  mqas::comm::uuid::to_high_64(*token);
     
-        auto [state,id] = data.get().try_connect(*peer,_connect_addr,this->weak_from_this());
+        auto [state,id] = data.get().try_connect(*peer,*token,this->weak_from_this());
        
         switch (state)
         {
@@ -41,7 +35,7 @@ namespace mqas::tools{
         case relay::RelayState::relaying:
             _id = id;
             {
-                auto ptr = data.get().find_other_peer_stream<RelayStream>(id,_connect_addr);
+                auto ptr = data.get().find_other_peer_stream<RelayStream>(id,this->shared_from_this());
                 if(ptr == nullptr)
                     return core::StreamVariantErrcode::failed;
                 _other_peer = ptr;
@@ -51,6 +45,7 @@ namespace mqas::tools{
             }
             respond.set_id(_id);
             respond.set_code(proto::relay::RespondRelay_Code::RespondRelay_Code_success);
+            set_peer_addr(respond.mutable_peer_addr());
             core::ProtoBufMsg::write_msg<tools::relay::RespondRelayPair>(ret_buf,respond);
             return core::StreamVariantErrcode::ok;
         case relay::RelayState::waiting:
@@ -59,6 +54,13 @@ namespace mqas::tools{
             launch_timeout_timer();
             return core::StreamVariantErrcode::skip_and_manual;
         }
+    }
+
+    void RelayStream::set_peer_addr(mqas::tools::proto::relay::Address* addr)
+    {
+        auto peer = _other_peer.lock();
+        addr->set_ip(io::Ip::addr2str(peer->_addr));
+        addr->set_port(io::Ip::addr_get_port(peer->_addr));
     }
 
     void RelayStream::send_respond(uint32_t id,proto::relay::RespondRelay_Code code,bool lazy,std::weak_ptr<RelayStream> other_peer)
@@ -70,6 +72,7 @@ namespace mqas::tools{
             _other_peer = other_peer;
             stop_timeout_timer();
             reg_on_recv_datagram();
+            set_peer_addr(respond.mutable_peer_addr());
         }
         respond.set_id(_id);
         respond.set_code(code);
@@ -102,7 +105,7 @@ namespace mqas::tools{
         auto model = comm::locator::inst()->get<relay::relay_model>();
         if(model)
         {
-            model.value().get().remove_waiting(_addr,_connect_addr);
+            model.value().get().remove_waiting(_addr,_token);
         }
         close();
     }
@@ -115,7 +118,7 @@ namespace mqas::tools{
             if(_id > 0)
                 model->get().remove_relay(_id);
             else
-                model->get().remove_waiting(_addr,_connect_addr);
+                model->get().remove_waiting(_addr,_token);
         }
         auto ptr = _other_peer.lock();
         if(ptr)

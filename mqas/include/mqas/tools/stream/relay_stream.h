@@ -4,6 +4,7 @@
 #include <mqas/core/pb_stream.h>
 #include "MsgDef.h"
 #include <mqas/io/timer.h>
+#include <boost/uuid/uuid.hpp>
 
 namespace mqas::tools {
 
@@ -21,11 +22,12 @@ class MQAS_EXTERN RelayStream : public core::ProtoBufStream<RelayStream,tools::r
     void reg_on_recv_datagram();
     void on_recv_datagram(const uint8_t* buf,size_t size);
     std::optional<uint16_t> try_load_datagram_min_size() const;
+    void set_peer_addr(mqas::tools::proto::relay::Address* addr);
 
     private:
     uint32_t _id = 0;
     ::sockaddr _addr;
-    ::sockaddr _connect_addr;
+    boost::uuids::uuid _token;
     std::weak_ptr<RelayStream> _other_peer;
     std::shared_ptr<io::Timer> _timeout_timer;
     sigc::connection _on_recv_datagram_conn;

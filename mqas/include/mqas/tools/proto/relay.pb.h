@@ -59,6 +59,9 @@ MQAS_EXTERN extern ReqRelayDefaultTypeInternal _ReqRelay_default_instance_;
 class RespondRelay;
 struct RespondRelayDefaultTypeInternal;
 MQAS_EXTERN extern RespondRelayDefaultTypeInternal _RespondRelay_default_instance_;
+class UUID;
+struct UUIDDefaultTypeInternal;
+MQAS_EXTERN extern UUIDDefaultTypeInternal _UUID_default_instance_;
 }  // namespace relay
 }  // namespace proto
 }  // namespace tools
@@ -67,6 +70,7 @@ PROTOBUF_NAMESPACE_OPEN
 template<> MQAS_EXTERN ::mqas::tools::proto::relay::Address* Arena::CreateMaybeMessage<::mqas::tools::proto::relay::Address>(Arena*);
 template<> MQAS_EXTERN ::mqas::tools::proto::relay::ReqRelay* Arena::CreateMaybeMessage<::mqas::tools::proto::relay::ReqRelay>(Arena*);
 template<> MQAS_EXTERN ::mqas::tools::proto::relay::RespondRelay* Arena::CreateMaybeMessage<::mqas::tools::proto::relay::RespondRelay>(Arena*);
+template<> MQAS_EXTERN ::mqas::tools::proto::relay::UUID* Arena::CreateMaybeMessage<::mqas::tools::proto::relay::UUID>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace mqas {
 namespace tools {
@@ -267,6 +271,159 @@ class MQAS_EXTERN Address final :
 };
 // -------------------------------------------------------------------
 
+class MQAS_EXTERN UUID final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:mqas.tools.proto.relay.UUID) */ {
+ public:
+  inline UUID() : UUID(nullptr) {}
+  ~UUID() override;
+  explicit PROTOBUF_CONSTEXPR UUID(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  UUID(const UUID& from);
+  UUID(UUID&& from) noexcept
+    : UUID() {
+    *this = ::std::move(from);
+  }
+
+  inline UUID& operator=(const UUID& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline UUID& operator=(UUID&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const UUID& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const UUID* internal_default_instance() {
+    return reinterpret_cast<const UUID*>(
+               &_UUID_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(UUID& a, UUID& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(UUID* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(UUID* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  UUID* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<UUID>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const UUID& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const UUID& from) {
+    UUID::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(UUID* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "mqas.tools.proto.relay.UUID";
+  }
+  protected:
+  explicit UUID(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kDataFieldNumber = 1,
+  };
+  // bytes data = 1;
+  void clear_data();
+  const std::string& data() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_data(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_data();
+  PROTOBUF_NODISCARD std::string* release_data();
+  void set_allocated_data(std::string* data);
+  private:
+  const std::string& _internal_data() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_data(const std::string& value);
+  std::string* _internal_mutable_data();
+  public:
+
+  // @@protoc_insertion_point(class_scope:mqas.tools.proto.relay.UUID)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_relay_2eproto;
+};
+// -------------------------------------------------------------------
+
 class MQAS_EXTERN ReqRelay final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:mqas.tools.proto.relay.ReqRelay) */ {
  public:
@@ -315,7 +472,7 @@ class MQAS_EXTERN ReqRelay final :
                &_ReqRelay_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    2;
 
   friend void swap(ReqRelay& a, ReqRelay& b) {
     a.Swap(&b);
@@ -388,26 +545,26 @@ class MQAS_EXTERN ReqRelay final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kAddressFieldNumber = 1,
+    kTokenFieldNumber = 1,
     kOptionFieldNumber = 2,
   };
-  // .mqas.tools.proto.relay.Address address = 1;
-  bool has_address() const;
+  // .mqas.tools.proto.relay.UUID token = 1;
+  bool has_token() const;
   private:
-  bool _internal_has_address() const;
+  bool _internal_has_token() const;
   public:
-  void clear_address();
-  const ::mqas::tools::proto::relay::Address& address() const;
-  PROTOBUF_NODISCARD ::mqas::tools::proto::relay::Address* release_address();
-  ::mqas::tools::proto::relay::Address* mutable_address();
-  void set_allocated_address(::mqas::tools::proto::relay::Address* address);
+  void clear_token();
+  const ::mqas::tools::proto::relay::UUID& token() const;
+  PROTOBUF_NODISCARD ::mqas::tools::proto::relay::UUID* release_token();
+  ::mqas::tools::proto::relay::UUID* mutable_token();
+  void set_allocated_token(::mqas::tools::proto::relay::UUID* token);
   private:
-  const ::mqas::tools::proto::relay::Address& _internal_address() const;
-  ::mqas::tools::proto::relay::Address* _internal_mutable_address();
+  const ::mqas::tools::proto::relay::UUID& _internal_token() const;
+  ::mqas::tools::proto::relay::UUID* _internal_mutable_token();
   public:
-  void unsafe_arena_set_allocated_address(
-      ::mqas::tools::proto::relay::Address* address);
-  ::mqas::tools::proto::relay::Address* unsafe_arena_release_address();
+  void unsafe_arena_set_allocated_token(
+      ::mqas::tools::proto::relay::UUID* token);
+  ::mqas::tools::proto::relay::UUID* unsafe_arena_release_token();
 
   // optional uint32 option = 2;
   bool has_option() const;
@@ -432,7 +589,7 @@ class MQAS_EXTERN ReqRelay final :
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-    ::mqas::tools::proto::relay::Address* address_;
+    ::mqas::tools::proto::relay::UUID* token_;
     uint32_t option_;
   };
   union { Impl_ _impl_; };
@@ -488,7 +645,7 @@ class MQAS_EXTERN RespondRelay final :
                &_RespondRelay_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    3;
 
   friend void swap(RespondRelay& a, RespondRelay& b) {
     a.Swap(&b);
@@ -597,9 +754,28 @@ class MQAS_EXTERN RespondRelay final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kPeerAddrFieldNumber = 3,
     kCodeFieldNumber = 1,
     kIdFieldNumber = 2,
   };
+  // optional .mqas.tools.proto.relay.Address peer_addr = 3;
+  bool has_peer_addr() const;
+  private:
+  bool _internal_has_peer_addr() const;
+  public:
+  void clear_peer_addr();
+  const ::mqas::tools::proto::relay::Address& peer_addr() const;
+  PROTOBUF_NODISCARD ::mqas::tools::proto::relay::Address* release_peer_addr();
+  ::mqas::tools::proto::relay::Address* mutable_peer_addr();
+  void set_allocated_peer_addr(::mqas::tools::proto::relay::Address* peer_addr);
+  private:
+  const ::mqas::tools::proto::relay::Address& _internal_peer_addr() const;
+  ::mqas::tools::proto::relay::Address* _internal_mutable_peer_addr();
+  public:
+  void unsafe_arena_set_allocated_peer_addr(
+      ::mqas::tools::proto::relay::Address* peer_addr);
+  ::mqas::tools::proto::relay::Address* unsafe_arena_release_peer_addr();
+
   // .mqas.tools.proto.relay.RespondRelay.Code code = 1;
   void clear_code();
   ::mqas::tools::proto::relay::RespondRelay_Code code() const;
@@ -626,9 +802,11 @@ class MQAS_EXTERN RespondRelay final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+    ::mqas::tools::proto::relay::Address* peer_addr_;
     int code_;
     uint32_t id_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_relay_2eproto;
@@ -716,47 +894,101 @@ inline void Address::set_port(uint32_t value) {
 
 // -------------------------------------------------------------------
 
-// ReqRelay
+// UUID
 
-// .mqas.tools.proto.relay.Address address = 1;
-inline bool ReqRelay::_internal_has_address() const {
-  return this != internal_default_instance() && _impl_.address_ != nullptr;
+// bytes data = 1;
+inline void UUID::clear_data() {
+  _impl_.data_.ClearToEmpty();
 }
-inline bool ReqRelay::has_address() const {
-  return _internal_has_address();
+inline const std::string& UUID::data() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.relay.UUID.data)
+  return _internal_data();
 }
-inline void ReqRelay::clear_address() {
-  if (GetArenaForAllocation() == nullptr && _impl_.address_ != nullptr) {
-    delete _impl_.address_;
-  }
-  _impl_.address_ = nullptr;
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void UUID::set_data(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.data_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.relay.UUID.data)
 }
-inline const ::mqas::tools::proto::relay::Address& ReqRelay::_internal_address() const {
-  const ::mqas::tools::proto::relay::Address* p = _impl_.address_;
-  return p != nullptr ? *p : reinterpret_cast<const ::mqas::tools::proto::relay::Address&>(
-      ::mqas::tools::proto::relay::_Address_default_instance_);
+inline std::string* UUID::mutable_data() {
+  std::string* _s = _internal_mutable_data();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.relay.UUID.data)
+  return _s;
 }
-inline const ::mqas::tools::proto::relay::Address& ReqRelay::address() const {
-  // @@protoc_insertion_point(field_get:mqas.tools.proto.relay.ReqRelay.address)
-  return _internal_address();
+inline const std::string& UUID::_internal_data() const {
+  return _impl_.data_.Get();
 }
-inline void ReqRelay::unsafe_arena_set_allocated_address(
-    ::mqas::tools::proto::relay::Address* address) {
-  if (GetArenaForAllocation() == nullptr) {
-    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.address_);
-  }
-  _impl_.address_ = address;
-  if (address) {
+inline void UUID::_internal_set_data(const std::string& value) {
+  
+  _impl_.data_.Set(value, GetArenaForAllocation());
+}
+inline std::string* UUID::_internal_mutable_data() {
+  
+  return _impl_.data_.Mutable(GetArenaForAllocation());
+}
+inline std::string* UUID::release_data() {
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.relay.UUID.data)
+  return _impl_.data_.Release();
+}
+inline void UUID::set_allocated_data(std::string* data) {
+  if (data != nullptr) {
     
   } else {
     
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.relay.ReqRelay.address)
+  _impl_.data_.SetAllocated(data, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.data_.IsDefault()) {
+    _impl_.data_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.relay.UUID.data)
 }
-inline ::mqas::tools::proto::relay::Address* ReqRelay::release_address() {
+
+// -------------------------------------------------------------------
+
+// ReqRelay
+
+// .mqas.tools.proto.relay.UUID token = 1;
+inline bool ReqRelay::_internal_has_token() const {
+  return this != internal_default_instance() && _impl_.token_ != nullptr;
+}
+inline bool ReqRelay::has_token() const {
+  return _internal_has_token();
+}
+inline void ReqRelay::clear_token() {
+  if (GetArenaForAllocation() == nullptr && _impl_.token_ != nullptr) {
+    delete _impl_.token_;
+  }
+  _impl_.token_ = nullptr;
+}
+inline const ::mqas::tools::proto::relay::UUID& ReqRelay::_internal_token() const {
+  const ::mqas::tools::proto::relay::UUID* p = _impl_.token_;
+  return p != nullptr ? *p : reinterpret_cast<const ::mqas::tools::proto::relay::UUID&>(
+      ::mqas::tools::proto::relay::_UUID_default_instance_);
+}
+inline const ::mqas::tools::proto::relay::UUID& ReqRelay::token() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.relay.ReqRelay.token)
+  return _internal_token();
+}
+inline void ReqRelay::unsafe_arena_set_allocated_token(
+    ::mqas::tools::proto::relay::UUID* token) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.token_);
+  }
+  _impl_.token_ = token;
+  if (token) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.relay.ReqRelay.token)
+}
+inline ::mqas::tools::proto::relay::UUID* ReqRelay::release_token() {
   
-  ::mqas::tools::proto::relay::Address* temp = _impl_.address_;
-  _impl_.address_ = nullptr;
+  ::mqas::tools::proto::relay::UUID* temp = _impl_.token_;
+  _impl_.token_ = nullptr;
 #ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
   auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
   temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
@@ -768,44 +1000,44 @@ inline ::mqas::tools::proto::relay::Address* ReqRelay::release_address() {
 #endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
   return temp;
 }
-inline ::mqas::tools::proto::relay::Address* ReqRelay::unsafe_arena_release_address() {
-  // @@protoc_insertion_point(field_release:mqas.tools.proto.relay.ReqRelay.address)
+inline ::mqas::tools::proto::relay::UUID* ReqRelay::unsafe_arena_release_token() {
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.relay.ReqRelay.token)
   
-  ::mqas::tools::proto::relay::Address* temp = _impl_.address_;
-  _impl_.address_ = nullptr;
+  ::mqas::tools::proto::relay::UUID* temp = _impl_.token_;
+  _impl_.token_ = nullptr;
   return temp;
 }
-inline ::mqas::tools::proto::relay::Address* ReqRelay::_internal_mutable_address() {
+inline ::mqas::tools::proto::relay::UUID* ReqRelay::_internal_mutable_token() {
   
-  if (_impl_.address_ == nullptr) {
-    auto* p = CreateMaybeMessage<::mqas::tools::proto::relay::Address>(GetArenaForAllocation());
-    _impl_.address_ = p;
+  if (_impl_.token_ == nullptr) {
+    auto* p = CreateMaybeMessage<::mqas::tools::proto::relay::UUID>(GetArenaForAllocation());
+    _impl_.token_ = p;
   }
-  return _impl_.address_;
+  return _impl_.token_;
 }
-inline ::mqas::tools::proto::relay::Address* ReqRelay::mutable_address() {
-  ::mqas::tools::proto::relay::Address* _msg = _internal_mutable_address();
-  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.relay.ReqRelay.address)
+inline ::mqas::tools::proto::relay::UUID* ReqRelay::mutable_token() {
+  ::mqas::tools::proto::relay::UUID* _msg = _internal_mutable_token();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.relay.ReqRelay.token)
   return _msg;
 }
-inline void ReqRelay::set_allocated_address(::mqas::tools::proto::relay::Address* address) {
+inline void ReqRelay::set_allocated_token(::mqas::tools::proto::relay::UUID* token) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
   if (message_arena == nullptr) {
-    delete _impl_.address_;
+    delete _impl_.token_;
   }
-  if (address) {
+  if (token) {
     ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(address);
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(token);
     if (message_arena != submessage_arena) {
-      address = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, address, submessage_arena);
+      token = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, token, submessage_arena);
     }
     
   } else {
     
   }
-  _impl_.address_ = address;
-  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.relay.ReqRelay.address)
+  _impl_.token_ = token;
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.relay.ReqRelay.token)
 }
 
 // optional uint32 option = 2;
@@ -880,9 +1112,101 @@ inline void RespondRelay::set_id(uint32_t value) {
   // @@protoc_insertion_point(field_set:mqas.tools.proto.relay.RespondRelay.id)
 }
 
+// optional .mqas.tools.proto.relay.Address peer_addr = 3;
+inline bool RespondRelay::_internal_has_peer_addr() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  PROTOBUF_ASSUME(!value || _impl_.peer_addr_ != nullptr);
+  return value;
+}
+inline bool RespondRelay::has_peer_addr() const {
+  return _internal_has_peer_addr();
+}
+inline void RespondRelay::clear_peer_addr() {
+  if (_impl_.peer_addr_ != nullptr) _impl_.peer_addr_->Clear();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const ::mqas::tools::proto::relay::Address& RespondRelay::_internal_peer_addr() const {
+  const ::mqas::tools::proto::relay::Address* p = _impl_.peer_addr_;
+  return p != nullptr ? *p : reinterpret_cast<const ::mqas::tools::proto::relay::Address&>(
+      ::mqas::tools::proto::relay::_Address_default_instance_);
+}
+inline const ::mqas::tools::proto::relay::Address& RespondRelay::peer_addr() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.relay.RespondRelay.peer_addr)
+  return _internal_peer_addr();
+}
+inline void RespondRelay::unsafe_arena_set_allocated_peer_addr(
+    ::mqas::tools::proto::relay::Address* peer_addr) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.peer_addr_);
+  }
+  _impl_.peer_addr_ = peer_addr;
+  if (peer_addr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.relay.RespondRelay.peer_addr)
+}
+inline ::mqas::tools::proto::relay::Address* RespondRelay::release_peer_addr() {
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  ::mqas::tools::proto::relay::Address* temp = _impl_.peer_addr_;
+  _impl_.peer_addr_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::mqas::tools::proto::relay::Address* RespondRelay::unsafe_arena_release_peer_addr() {
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.relay.RespondRelay.peer_addr)
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  ::mqas::tools::proto::relay::Address* temp = _impl_.peer_addr_;
+  _impl_.peer_addr_ = nullptr;
+  return temp;
+}
+inline ::mqas::tools::proto::relay::Address* RespondRelay::_internal_mutable_peer_addr() {
+  _impl_._has_bits_[0] |= 0x00000001u;
+  if (_impl_.peer_addr_ == nullptr) {
+    auto* p = CreateMaybeMessage<::mqas::tools::proto::relay::Address>(GetArenaForAllocation());
+    _impl_.peer_addr_ = p;
+  }
+  return _impl_.peer_addr_;
+}
+inline ::mqas::tools::proto::relay::Address* RespondRelay::mutable_peer_addr() {
+  ::mqas::tools::proto::relay::Address* _msg = _internal_mutable_peer_addr();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.relay.RespondRelay.peer_addr)
+  return _msg;
+}
+inline void RespondRelay::set_allocated_peer_addr(::mqas::tools::proto::relay::Address* peer_addr) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.peer_addr_;
+  }
+  if (peer_addr) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(peer_addr);
+    if (message_arena != submessage_arena) {
+      peer_addr = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, peer_addr, submessage_arena);
+    }
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.peer_addr_ = peer_addr;
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.relay.RespondRelay.peer_addr)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

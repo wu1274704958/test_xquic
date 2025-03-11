@@ -7,6 +7,7 @@
 #include <mqas/core/stream.h>
 #include <mqas/tools/stream/relay_stream_client.h>
 #include <mqas/comm/binary.hpp>
+#include <boost/uuid/uuid.hpp>
 using namespace mqas;
 
 using StreamTy = core::StreamVariant<core::StreamVariantPair<1,tools::RelayStreamClient>>;
@@ -47,9 +48,10 @@ int main(int argc,const char** argv)
     conn->make_stream([&io_cxt,&relay_ip,relay_port,relay_active,&relay_addr](std::weak_ptr<StreamTy> stream){
         auto s_ = stream.lock();
         tools::proto::relay::ReqRelay req;
-		auto address = req.mutable_address();
-		address->set_ip(relay_ip);
-		address->set_port(relay_port);
+		boost::uuids::uuid token;
+		std::memset(&token,0,sizeof(boost::uuids::uuid));
+		token.data[0] = 1;
+		req.mutable_token()->set_data((const char*)token.data, token.size());
         s_->req_change<tools::RelayStreamClient,tools::relay::ReqRelayPair>(req);
 		s_->on_close_signal.connect([](std::shared_ptr<core::IStreamVariant>){
 			printf("stream closed\n");	

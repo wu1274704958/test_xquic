@@ -9,6 +9,7 @@ find_package(unofficial-pdcurses CONFIG REQUIRED)
 
 target_include_directories(${CUR_TARGET_NAME} PRIVATE 
     ${boringssl_INCLUDE_DIR}
+    ${Boost_INCLUDE_DIRS}
 )
 target_link_libraries(${CUR_TARGET_NAME} PRIVATE
         lsquic::lsquic

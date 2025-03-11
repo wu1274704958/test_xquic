@@ -7,6 +7,7 @@ add_dependencies(${CUR_TARGET_NAME} mqas)
 
 target_include_directories(${CUR_TARGET_NAME} PRIVATE 
     ${boringssl_INCLUDE_DIR}
+    ${Boost_INCLUDE_DIRS}
 )
 target_link_libraries(${CUR_TARGET_NAME} PRIVATE
         lsquic::lsquic
