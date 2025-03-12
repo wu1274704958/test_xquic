@@ -8,12 +8,14 @@
 
 namespace mqas::tools {
 
-class MQAS_EXTERN RelayStream : public core::ProtoBufStream<RelayStream,tools::relay::ReqRelayPair,tools::relay::RespondRelayPair>
+class MQAS_EXTERN RelayStream : public core::ProtoBufStream<RelayStream,
+    tools::relay::ReqRelayPair,tools::relay::RespondRelayPair,
+    tools::relay::ReqReadyPair,tools::relay::RespondReadyPair>
 {
     public:
     core::StreamVariantErrcode on_change_msg_s(const std::shared_ptr<proto::relay::ReqRelay>& req,std::vector<uint8_t> &ret_buf);
     void on_close();
-    size_t on_read(const std::span<const uint8_t>& buf);
+    void on_read_msg_s(const std::shared_ptr<proto::relay::ReqReady>& m);
     private:
     void send_respond(uint32_t id,proto::relay::RespondRelay_Code code,bool lazy,std::weak_ptr<RelayStream> other_peer);
     void launch_timeout_timer();
@@ -31,6 +33,7 @@ class MQAS_EXTERN RelayStream : public core::ProtoBufStream<RelayStream,tools::r
     std::weak_ptr<RelayStream> _other_peer;
     std::shared_ptr<io::Timer> _timeout_timer;
     sigc::connection _on_recv_datagram_conn;
+    bool _ready:1 = false;
 };
 
 }

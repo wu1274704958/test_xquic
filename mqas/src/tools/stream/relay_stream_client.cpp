@@ -14,8 +14,6 @@ namespace mqas::tools {
         }else
             LOG(ERROR) << "Relay try connect token = " << mqas::comm::uuid::to_high_64(*token);
 
-        auto conn = connect.lock();
-        _on_recv_datagram_conn = conn->on_recv_datagram.connect(sigc::mem_fun(*this,&RelayStreamClient::on_recv_datagram));
         return core::StreamVariantErrcode::not_support;
     }
 
@@ -31,6 +29,12 @@ namespace mqas::tools {
             if(min_size)
                 conn->set_min_datagram_size(min_size.value());
             io::Ip::str2addr(msg->peer_addr().ip().c_str(),msg->peer_addr().port(),_peer_addr);
+
+            _on_recv_datagram_conn = conn->on_recv_datagram.connect(sigc::mem_fun(*this,&RelayStreamClient::on_recv_datagram));
+
+            proto::relay::ReqReady ready_msg;
+            send<tools::relay::ReqReadyPair>(ready_msg);
+            LOG(DEBUG) << "relay client send ready";
         }
         on_connect_result.emit(code, msg->code());
     }
@@ -38,11 +42,6 @@ namespace mqas::tools {
     void RelayStreamClient::on_peer_change_ret_msg(core::StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&)
     {
         on_connect_result.emit(code, std::nullopt);
-    }
-
-    size_t RelayStreamClient::on_read(const std::span<const uint8_t>& buffer)
-    {
-        return 0;
     }
 
     //same udp socket interface
@@ -126,5 +125,11 @@ namespace mqas::tools {
             return {};
         else
             return { (uint16_t)size };
+    }
+
+    void RelayStreamClient::on_read_msg_s(const std::shared_ptr<proto::relay::RespondReady>& m)
+    {
+        LOG(DEBUG) << "relay client recvive ready respond";
+        on_ready.emit();
     }
 }

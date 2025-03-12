@@ -29,3 +29,5 @@ message RespondRelay{
   optional Address peer_addr = 3;
 }
 
+message ReqReady{}
+message RespondReady{}

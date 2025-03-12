@@ -82,11 +82,33 @@ struct RespondRelayDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RespondRelayDefaultTypeInternal _RespondRelay_default_instance_;
+PROTOBUF_CONSTEXPR ReqReady::ReqReady(
+    ::_pbi::ConstantInitialized) {}
+struct ReqReadyDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ReqReadyDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ReqReadyDefaultTypeInternal() {}
+  union {
+    ReqReady _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ReqReadyDefaultTypeInternal _ReqReady_default_instance_;
+PROTOBUF_CONSTEXPR RespondReady::RespondReady(
+    ::_pbi::ConstantInitialized) {}
+struct RespondReadyDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR RespondReadyDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~RespondReadyDefaultTypeInternal() {}
+  union {
+    RespondReady _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RespondReadyDefaultTypeInternal _RespondReady_default_instance_;
 }  // namespace relay
 }  // namespace proto
 }  // namespace tools
 }  // namespace mqas
-static ::_pb::Metadata file_level_metadata_relay_2eproto[4];
+static ::_pb::Metadata file_level_metadata_relay_2eproto[6];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_relay_2eproto[1];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_relay_2eproto = nullptr;
 
@@ -128,12 +150,26 @@ const uint32_t TableStruct_relay_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   ~0u,
   ~0u,
   0,
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::relay::ReqReady, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::relay::RespondReady, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::mqas::tools::proto::relay::Address)},
   { 8, -1, -1, sizeof(::mqas::tools::proto::relay::UUID)},
   { 15, 23, -1, sizeof(::mqas::tools::proto::relay::ReqRelay)},
   { 25, 34, -1, sizeof(::mqas::tools::proto::relay::RespondRelay)},
+  { 37, -1, -1, sizeof(::mqas::tools::proto::relay::ReqReady)},
+  { 43, -1, -1, sizeof(::mqas::tools::proto::relay::RespondReady)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -141,6 +177,8 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::mqas::tools::proto::relay::_UUID_default_instance_._instance,
   &::mqas::tools::proto::relay::_ReqRelay_default_instance_._instance,
   &::mqas::tools::proto::relay::_RespondRelay_default_instance_._instance,
+  &::mqas::tools::proto::relay::_ReqReady_default_instance_._instance,
+  &::mqas::tools::proto::relay::_RespondReady_default_instance_._instance,
 };
 
 const char descriptor_table_protodef_relay_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
@@ -154,14 +192,14 @@ const char descriptor_table_protodef_relay_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "addr\030\003 \001(\0132\037.mqas.tools.proto.relay.Addr"
   "essH\000\210\001\001\"Y\n\004Code\022\013\n\007success\020\000\022\022\n\016already"
   "_exists\020\001\022\020\n\014waiting_peer\020\002\022\013\n\007timeout\020\003"
-  "\022\021\n\rbad_arguments\020\004B\014\n\n_peer_addrb\006proto"
-  "3"
+  "\022\021\n\rbad_arguments\020\004B\014\n\n_peer_addr\"\n\n\010Req"
+  "Ready\"\016\n\014RespondReadyb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_relay_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_relay_2eproto = {
-    false, false, 441, descriptor_table_protodef_relay_2eproto,
+    false, false, 469, descriptor_table_protodef_relay_2eproto,
     "relay.proto",
-    &descriptor_table_relay_2eproto_once, nullptr, 0, 4,
+    &descriptor_table_relay_2eproto_once, nullptr, 0, 6,
     schemas, file_default_instances, TableStruct_relay_2eproto::offsets,
     file_level_metadata_relay_2eproto, file_level_enum_descriptors_relay_2eproto,
     file_level_service_descriptors_relay_2eproto,
@@ -1135,6 +1173,86 @@ void RespondRelay::InternalSwap(RespondRelay* other) {
       file_level_metadata_relay_2eproto[3]);
 }
 
+// ===================================================================
+
+class ReqReady::_Internal {
+ public:
+};
+
+ReqReady::ReqReady(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase(arena, is_message_owned) {
+  // @@protoc_insertion_point(arena_constructor:mqas.tools.proto.relay.ReqReady)
+}
+ReqReady::ReqReady(const ReqReady& from)
+  : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase() {
+  ReqReady* const _this = this; (void)_this;
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  // @@protoc_insertion_point(copy_constructor:mqas.tools.proto.relay.ReqReady)
+}
+
+
+
+
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ReqReady::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl,
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl,
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ReqReady::GetClassData() const { return &_class_data_; }
+
+
+
+
+
+
+
+::PROTOBUF_NAMESPACE_ID::Metadata ReqReady::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_relay_2eproto_getter, &descriptor_table_relay_2eproto_once,
+      file_level_metadata_relay_2eproto[4]);
+}
+
+// ===================================================================
+
+class RespondReady::_Internal {
+ public:
+};
+
+RespondReady::RespondReady(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase(arena, is_message_owned) {
+  // @@protoc_insertion_point(arena_constructor:mqas.tools.proto.relay.RespondReady)
+}
+RespondReady::RespondReady(const RespondReady& from)
+  : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase() {
+  RespondReady* const _this = this; (void)_this;
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  // @@protoc_insertion_point(copy_constructor:mqas.tools.proto.relay.RespondReady)
+}
+
+
+
+
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData RespondReady::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl,
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl,
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*RespondReady::GetClassData() const { return &_class_data_; }
+
+
+
+
+
+
+
+::PROTOBUF_NAMESPACE_ID::Metadata RespondReady::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_relay_2eproto_getter, &descriptor_table_relay_2eproto_once,
+      file_level_metadata_relay_2eproto[5]);
+}
+
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace relay
 }  // namespace proto
@@ -1156,6 +1274,14 @@ Arena::CreateMaybeMessage< ::mqas::tools::proto::relay::ReqRelay >(Arena* arena)
 template<> PROTOBUF_NOINLINE ::mqas::tools::proto::relay::RespondRelay*
 Arena::CreateMaybeMessage< ::mqas::tools::proto::relay::RespondRelay >(Arena* arena) {
   return Arena::CreateMessageInternal< ::mqas::tools::proto::relay::RespondRelay >(arena);
+}
+template<> PROTOBUF_NOINLINE ::mqas::tools::proto::relay::ReqReady*
+Arena::CreateMaybeMessage< ::mqas::tools::proto::relay::ReqReady >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::mqas::tools::proto::relay::ReqReady >(arena);
+}
+template<> PROTOBUF_NOINLINE ::mqas::tools::proto::relay::RespondReady*
+Arena::CreateMaybeMessage< ::mqas::tools::proto::relay::RespondReady >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::mqas::tools::proto::relay::RespondReady >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

@@ -21,6 +21,7 @@ std::pair<RelayState,uint32_t> relay_model::try_connect(const ::sockaddr& addr,c
         _waiting_map.insert({ token , peer_data{ .addr = addr,.token = token, .stream = stream }});
         return { RelayState::waiting , 0 };
     }
+    return { RelayState::waiting , 0 };
 }
 
 std::weak_ptr<relay_pair> relay_model::get_relay_pair(uint32_t id) const

@@ -36,6 +36,8 @@ namespace mqas::tools::p2p {
 namespace mqas::tools::relay{
     using ReqRelayPair = core::PBMsgPair<1, proto::relay::ReqRelay>;
     using RespondRelayPair = core::PBMsgPair<2, proto::relay::RespondRelay>;
+    using ReqReadyPair = core::PBMsgPair<3, proto::relay::ReqReady>;
+    using RespondReadyPair = core::PBMsgPair<4,proto::relay::RespondReady>;
 }
 
 #endif //MQAS_TOOL_STREAM_MSG_DEF_H

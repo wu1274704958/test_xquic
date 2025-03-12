@@ -72,13 +72,10 @@ int main(int argc,const char** argv)
 		});
 		if(relay_active)
 		{
-			relay->on_connect_result.connect([relay,&relay_addr](core::StreamVariantErrcode code,std::optional<tools::proto::relay::RespondRelay_Code> ret){
-				if(ret.has_value() && ret.value() == tools::proto::relay::RespondRelay_Code::RespondRelay_Code_success)
-				{
-					std::array<uint8_t,4> buf;
-					comm::to_big_endian(1,buf);
-					relay->try_send(buf,relay_addr);
-				}
+			relay->on_ready.connect([relay,&relay_addr](){
+				std::array<uint8_t,4> buf;
+				comm::to_big_endian(1,buf);
+				relay->try_send(buf,relay_addr);
 			});
 		}
     });

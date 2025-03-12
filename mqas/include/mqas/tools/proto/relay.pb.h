@@ -24,6 +24,7 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/arena.h>
 #include <google/protobuf/arenastring.h>
+#include <google/protobuf/generated_message_bases.h>
 #include <google/protobuf/generated_message_util.h>
 #include <google/protobuf/metadata_lite.h>
 #include <google/protobuf/generated_message_reflection.h>
@@ -53,9 +54,15 @@ namespace relay {
 class Address;
 struct AddressDefaultTypeInternal;
 MQAS_EXTERN extern AddressDefaultTypeInternal _Address_default_instance_;
+class ReqReady;
+struct ReqReadyDefaultTypeInternal;
+MQAS_EXTERN extern ReqReadyDefaultTypeInternal _ReqReady_default_instance_;
 class ReqRelay;
 struct ReqRelayDefaultTypeInternal;
 MQAS_EXTERN extern ReqRelayDefaultTypeInternal _ReqRelay_default_instance_;
+class RespondReady;
+struct RespondReadyDefaultTypeInternal;
+MQAS_EXTERN extern RespondReadyDefaultTypeInternal _RespondReady_default_instance_;
 class RespondRelay;
 struct RespondRelayDefaultTypeInternal;
 MQAS_EXTERN extern RespondRelayDefaultTypeInternal _RespondRelay_default_instance_;
@@ -68,7 +75,9 @@ MQAS_EXTERN extern UUIDDefaultTypeInternal _UUID_default_instance_;
 }  // namespace mqas
 PROTOBUF_NAMESPACE_OPEN
 template<> MQAS_EXTERN ::mqas::tools::proto::relay::Address* Arena::CreateMaybeMessage<::mqas::tools::proto::relay::Address>(Arena*);
+template<> MQAS_EXTERN ::mqas::tools::proto::relay::ReqReady* Arena::CreateMaybeMessage<::mqas::tools::proto::relay::ReqReady>(Arena*);
 template<> MQAS_EXTERN ::mqas::tools::proto::relay::ReqRelay* Arena::CreateMaybeMessage<::mqas::tools::proto::relay::ReqRelay>(Arena*);
+template<> MQAS_EXTERN ::mqas::tools::proto::relay::RespondReady* Arena::CreateMaybeMessage<::mqas::tools::proto::relay::RespondReady>(Arena*);
 template<> MQAS_EXTERN ::mqas::tools::proto::relay::RespondRelay* Arena::CreateMaybeMessage<::mqas::tools::proto::relay::RespondRelay>(Arena*);
 template<> MQAS_EXTERN ::mqas::tools::proto::relay::UUID* Arena::CreateMaybeMessage<::mqas::tools::proto::relay::UUID>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
@@ -811,6 +820,242 @@ class MQAS_EXTERN RespondRelay final :
   union { Impl_ _impl_; };
   friend struct ::TableStruct_relay_2eproto;
 };
+// -------------------------------------------------------------------
+
+class MQAS_EXTERN ReqReady final :
+    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:mqas.tools.proto.relay.ReqReady) */ {
+ public:
+  inline ReqReady() : ReqReady(nullptr) {}
+  explicit PROTOBUF_CONSTEXPR ReqReady(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ReqReady(const ReqReady& from);
+  ReqReady(ReqReady&& from) noexcept
+    : ReqReady() {
+    *this = ::std::move(from);
+  }
+
+  inline ReqReady& operator=(const ReqReady& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ReqReady& operator=(ReqReady&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ReqReady& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ReqReady* internal_default_instance() {
+    return reinterpret_cast<const ReqReady*>(
+               &_ReqReady_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    4;
+
+  friend void swap(ReqReady& a, ReqReady& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ReqReady* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ReqReady* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ReqReady* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ReqReady>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
+  inline void CopyFrom(const ReqReady& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
+  void MergeFrom(const ReqReady& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
+  }
+  public:
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "mqas.tools.proto.relay.ReqReady";
+  }
+  protected:
+  explicit ReqReady(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // @@protoc_insertion_point(class_scope:mqas.tools.proto.relay.ReqReady)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+  };
+  friend struct ::TableStruct_relay_2eproto;
+};
+// -------------------------------------------------------------------
+
+class MQAS_EXTERN RespondReady final :
+    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:mqas.tools.proto.relay.RespondReady) */ {
+ public:
+  inline RespondReady() : RespondReady(nullptr) {}
+  explicit PROTOBUF_CONSTEXPR RespondReady(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  RespondReady(const RespondReady& from);
+  RespondReady(RespondReady&& from) noexcept
+    : RespondReady() {
+    *this = ::std::move(from);
+  }
+
+  inline RespondReady& operator=(const RespondReady& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline RespondReady& operator=(RespondReady&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const RespondReady& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const RespondReady* internal_default_instance() {
+    return reinterpret_cast<const RespondReady*>(
+               &_RespondReady_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    5;
+
+  friend void swap(RespondReady& a, RespondReady& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(RespondReady* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(RespondReady* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  RespondReady* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<RespondReady>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
+  inline void CopyFrom(const RespondReady& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
+  void MergeFrom(const RespondReady& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
+  }
+  public:
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "mqas.tools.proto.relay.RespondReady";
+  }
+  protected:
+  explicit RespondReady(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // @@protoc_insertion_point(class_scope:mqas.tools.proto.relay.RespondReady)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+  };
+  friend struct ::TableStruct_relay_2eproto;
+};
 // ===================================================================
 
 
@@ -1202,9 +1447,21 @@ inline void RespondRelay::set_allocated_peer_addr(::mqas::tools::proto::relay::A
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.relay.RespondRelay.peer_addr)
 }
 
+// -------------------------------------------------------------------
+
+// ReqReady
+
+// -------------------------------------------------------------------
+
+// RespondReady
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------
