@@ -8,6 +8,7 @@
 #include "mqas/tools/proto/p2p.pb.h"
 #include <uv.h>
 #include <optional>
+#include <boost/uuid/uuid.hpp>
 
 namespace mqas::core {
 	class MQAS_EXTERN IStreamVariant;
@@ -99,9 +100,14 @@ namespace mqas::tools::p2p {
 		std::array<uint32_t,2> verify_code;
 		std::array<std::weak_ptr<mqas::core::IStreamVariant>, 2> stream;
 		std::array<std::unordered_map<int16_t,std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>>,2> submit_code_map;
+		private:
+		std::optional<boost::uuids::uuid> token;
+		//func
+		public:
 		connect_cxt() : port_list({0,0}) {}
 		inline operator bool() const { return tag[0] >= 0 && tag[1] >= 0; }
 		bool is_receive(uint32_t id) const;
+		const boost::uuids::uuid& get_token();
 	};
 
 	/*template<typename T, typename = std::void_t<>>

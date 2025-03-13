@@ -223,6 +223,7 @@ PROTOBUF_CONSTEXPR NotifyConnectResult::NotifyConnectResult(
     /*decltype(_impl_._has_bits_)*/{}
   , /*decltype(_impl_._cached_size_)*/{}
   , /*decltype(_impl_.reason_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.relay_token_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.address_)*/nullptr
   , /*decltype(_impl_.peer_addr_)*/nullptr
   , /*decltype(_impl_.relay_addr_)*/nullptr
@@ -406,14 +407,16 @@ const uint32_t TableStruct_p2p_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.address_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.relay_addr_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.use_relay_),
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.relay_token_),
   ~0u,
   ~0u,
   ~0u,
-  2,
-  0,
-  1,
   3,
+  0,
+  2,
   4,
+  5,
+  1,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyPeerWantConnect, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -447,9 +450,9 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 87, 96, -1, sizeof(::mqas::tools::proto::p2p::ReqRespondPeerReqConnect)},
   { 99, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondConnectPeer)},
   { 107, -1, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectPeerData)},
-  { 115, 129, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectResult)},
-  { 137, -1, -1, sizeof(::mqas::tools::proto::p2p::NotifyPeerWantConnect)},
-  { 144, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode)},
+  { 115, 130, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectResult)},
+  { 139, -1, -1, sizeof(::mqas::tools::proto::p2p::NotifyPeerWantConnect)},
+  { 146, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -497,7 +500,7 @@ const char descriptor_table_protodef_p2p_2eproto[] PROTOBUF_SECTION_VARIABLE(pro
   "\003ret\030\002 \001(\0162\035.mqas.tools.proto.p2p.RetCod"
   "e\"e\n\025NotifyConnectPeerData\022\017\n\007peer_id\030\001 "
   "\001(\r\022;\n\014connect_data\030\002 \001(\0132%.mqas.tools.p"
-  "roto.p2p.ConnectPeerData\"\370\002\n\023NotifyConne"
+  "roto.p2p.ConnectPeerData\"\242\003\n\023NotifyConne"
   "ctResult\022*\n\003ret\030\001 \001(\0162\035.mqas.tools.proto"
   ".p2p.RetCode\022\017\n\007peer_id\030\002 \001(\r\022\021\n\tis_serv"
   "er\030\005 \001(\010\0225\n\tpeer_addr\030\006 \001(\0132\035.mqas.tools"
@@ -505,20 +508,21 @@ const char descriptor_table_protodef_p2p_2eproto[] PROTOBUF_SECTION_VARIABLE(pro
   "\001\210\001\001\0223\n\007address\030\004 \001(\0132\035.mqas.tools.proto"
   ".p2p.AddressH\002\210\001\001\0226\n\nrelay_addr\030\007 \001(\0132\035."
   "mqas.tools.proto.p2p.AddressH\003\210\001\001\022\026\n\tuse"
-  "_relay\030\010 \001(\010H\004\210\001\001B\014\n\n_peer_addrB\t\n\007_reas"
-  "onB\n\n\010_addressB\r\n\013_relay_addrB\014\n\n_use_re"
-  "lay\"E\n\025NotifyPeerWantConnect\022,\n\004peer\030\001 \001"
-  "(\0132\036.mqas.tools.proto.p2p.PeerData\"\204\001\n\030R"
-  "eqSubmitRecvPeerKeyCode\022\017\n\007peer_id\030\001 \001(\r"
-  "\022\023\n\013verify_code\030\002 \001(\r\022\020\n\010ip_index\030\003 \001(\r\022"
-  "0\n\tpeer_addr\030\004 \001(\0132\035.mqas.tools.proto.p2"
-  "p.Address*T\n\007RetCode\022\006\n\002ok\020\000\022\022\n\016already_"
-  "exists\020\001\022\016\n\nnot_exists\020\002\022\021\n\rpeer_rejecte"
-  "d\020\003\022\n\n\006failed\020\004b\006proto3"
+  "_relay\030\010 \001(\010H\004\210\001\001\022\030\n\013relay_token\030\t \001(\014H\005"
+  "\210\001\001B\014\n\n_peer_addrB\t\n\007_reasonB\n\n\010_address"
+  "B\r\n\013_relay_addrB\014\n\n_use_relayB\016\n\014_relay_"
+  "token\"E\n\025NotifyPeerWantConnect\022,\n\004peer\030\001"
+  " \001(\0132\036.mqas.tools.proto.p2p.PeerData\"\204\001\n"
+  "\030ReqSubmitRecvPeerKeyCode\022\017\n\007peer_id\030\001 \001"
+  "(\r\022\023\n\013verify_code\030\002 \001(\r\022\020\n\010ip_index\030\003 \001("
+  "\r\0220\n\tpeer_addr\030\004 \001(\0132\035.mqas.tools.proto."
+  "p2p.Address*T\n\007RetCode\022\006\n\002ok\020\000\022\022\n\016alread"
+  "y_exists\020\001\022\016\n\nnot_exists\020\002\022\021\n\rpeer_rejec"
+  "ted\020\003\022\n\n\006failed\020\004b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_p2p_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_p2p_2eproto = {
-    false, false, 1663, descriptor_table_protodef_p2p_2eproto,
+    false, false, 1705, descriptor_table_protodef_p2p_2eproto,
     "p2p.proto",
     &descriptor_table_p2p_2eproto_once, nullptr, 0, 17,
     schemas, file_default_instances, TableStruct_p2p_2eproto::offsets,
@@ -3373,21 +3377,24 @@ class NotifyConnectResult::_Internal {
   using HasBits = decltype(std::declval<NotifyConnectResult>()._impl_._has_bits_);
   static const ::mqas::tools::proto::p2p::Address& peer_addr(const NotifyConnectResult* msg);
   static void set_has_peer_addr(HasBits* has_bits) {
-    (*has_bits)[0] |= 4u;
+    (*has_bits)[0] |= 8u;
   }
   static void set_has_reason(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
   static const ::mqas::tools::proto::p2p::Address& address(const NotifyConnectResult* msg);
   static void set_has_address(HasBits* has_bits) {
-    (*has_bits)[0] |= 2u;
+    (*has_bits)[0] |= 4u;
   }
   static const ::mqas::tools::proto::p2p::Address& relay_addr(const NotifyConnectResult* msg);
   static void set_has_relay_addr(HasBits* has_bits) {
-    (*has_bits)[0] |= 8u;
+    (*has_bits)[0] |= 16u;
   }
   static void set_has_use_relay(HasBits* has_bits) {
-    (*has_bits)[0] |= 16u;
+    (*has_bits)[0] |= 32u;
+  }
+  static void set_has_relay_token(HasBits* has_bits) {
+    (*has_bits)[0] |= 2u;
   }
 };
 
@@ -3416,6 +3423,7 @@ NotifyConnectResult::NotifyConnectResult(const NotifyConnectResult& from)
       decltype(_impl_._has_bits_){from._impl_._has_bits_}
     , /*decltype(_impl_._cached_size_)*/{}
     , decltype(_impl_.reason_){}
+    , decltype(_impl_.relay_token_){}
     , decltype(_impl_.address_){nullptr}
     , decltype(_impl_.peer_addr_){nullptr}
     , decltype(_impl_.relay_addr_){nullptr}
@@ -3431,6 +3439,14 @@ NotifyConnectResult::NotifyConnectResult(const NotifyConnectResult& from)
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   if (from._internal_has_reason()) {
     _this->_impl_.reason_.Set(from._internal_reason(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.relay_token_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.relay_token_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (from._internal_has_relay_token()) {
+    _this->_impl_.relay_token_.Set(from._internal_relay_token(), 
       _this->GetArenaForAllocation());
   }
   if (from._internal_has_address()) {
@@ -3456,6 +3472,7 @@ inline void NotifyConnectResult::SharedCtor(
       decltype(_impl_._has_bits_){}
     , /*decltype(_impl_._cached_size_)*/{}
     , decltype(_impl_.reason_){}
+    , decltype(_impl_.relay_token_){}
     , decltype(_impl_.address_){nullptr}
     , decltype(_impl_.peer_addr_){nullptr}
     , decltype(_impl_.relay_addr_){nullptr}
@@ -3467,6 +3484,10 @@ inline void NotifyConnectResult::SharedCtor(
   _impl_.reason_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.reason_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.relay_token_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.relay_token_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
@@ -3482,6 +3503,7 @@ NotifyConnectResult::~NotifyConnectResult() {
 inline void NotifyConnectResult::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.reason_.Destroy();
+  _impl_.relay_token_.Destroy();
   if (this != internal_default_instance()) delete _impl_.address_;
   if (this != internal_default_instance()) delete _impl_.peer_addr_;
   if (this != internal_default_instance()) delete _impl_.relay_addr_;
@@ -3498,19 +3520,22 @@ void NotifyConnectResult::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x0000000fu) {
+  if (cached_has_bits & 0x0000001fu) {
     if (cached_has_bits & 0x00000001u) {
       _impl_.reason_.ClearNonDefaultToEmpty();
     }
     if (cached_has_bits & 0x00000002u) {
+      _impl_.relay_token_.ClearNonDefaultToEmpty();
+    }
+    if (cached_has_bits & 0x00000004u) {
       GOOGLE_DCHECK(_impl_.address_ != nullptr);
       _impl_.address_->Clear();
     }
-    if (cached_has_bits & 0x00000004u) {
+    if (cached_has_bits & 0x00000008u) {
       GOOGLE_DCHECK(_impl_.peer_addr_ != nullptr);
       _impl_.peer_addr_->Clear();
     }
-    if (cached_has_bits & 0x00000008u) {
+    if (cached_has_bits & 0x00000010u) {
       GOOGLE_DCHECK(_impl_.relay_addr_ != nullptr);
       _impl_.relay_addr_->Clear();
     }
@@ -3594,6 +3619,15 @@ const char* NotifyConnectResult::_InternalParse(const char* ptr, ::_pbi::ParseCo
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 64)) {
           _Internal::set_has_use_relay(&has_bits);
           _impl_.use_relay_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // optional bytes relay_token = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
+          auto str = _internal_mutable_relay_token();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -3684,6 +3718,12 @@ uint8_t* NotifyConnectResult::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteBoolToArray(8, this->_internal_use_relay(), target);
   }
 
+  // optional bytes relay_token = 9;
+  if (_internal_has_relay_token()) {
+    target = stream->WriteBytesMaybeAliased(
+        9, this->_internal_relay_token(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -3701,7 +3741,7 @@ size_t NotifyConnectResult::ByteSizeLong() const {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x0000000fu) {
+  if (cached_has_bits & 0x0000001fu) {
     // optional string reason = 3;
     if (cached_has_bits & 0x00000001u) {
       total_size += 1 +
@@ -3709,22 +3749,29 @@ size_t NotifyConnectResult::ByteSizeLong() const {
           this->_internal_reason());
     }
 
-    // optional .mqas.tools.proto.p2p.Address address = 4;
+    // optional bytes relay_token = 9;
     if (cached_has_bits & 0x00000002u) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+          this->_internal_relay_token());
+    }
+
+    // optional .mqas.tools.proto.p2p.Address address = 4;
+    if (cached_has_bits & 0x00000004u) {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
           *_impl_.address_);
     }
 
     // optional .mqas.tools.proto.p2p.Address peer_addr = 6;
-    if (cached_has_bits & 0x00000004u) {
+    if (cached_has_bits & 0x00000008u) {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
           *_impl_.peer_addr_);
     }
 
     // optional .mqas.tools.proto.p2p.Address relay_addr = 7;
-    if (cached_has_bits & 0x00000008u) {
+    if (cached_has_bits & 0x00000010u) {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
           *_impl_.relay_addr_);
@@ -3748,7 +3795,7 @@ size_t NotifyConnectResult::ByteSizeLong() const {
   }
 
   // optional bool use_relay = 8;
-  if (cached_has_bits & 0x00000010u) {
+  if (cached_has_bits & 0x00000020u) {
     total_size += 1 + 1;
   }
 
@@ -3771,19 +3818,22 @@ void NotifyConnectResult::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, co
   (void) cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (cached_has_bits & 0x0000000fu) {
+  if (cached_has_bits & 0x0000001fu) {
     if (cached_has_bits & 0x00000001u) {
       _this->_internal_set_reason(from._internal_reason());
     }
     if (cached_has_bits & 0x00000002u) {
+      _this->_internal_set_relay_token(from._internal_relay_token());
+    }
+    if (cached_has_bits & 0x00000004u) {
       _this->_internal_mutable_address()->::mqas::tools::proto::p2p::Address::MergeFrom(
           from._internal_address());
     }
-    if (cached_has_bits & 0x00000004u) {
+    if (cached_has_bits & 0x00000008u) {
       _this->_internal_mutable_peer_addr()->::mqas::tools::proto::p2p::Address::MergeFrom(
           from._internal_peer_addr());
     }
-    if (cached_has_bits & 0x00000008u) {
+    if (cached_has_bits & 0x00000010u) {
       _this->_internal_mutable_relay_addr()->::mqas::tools::proto::p2p::Address::MergeFrom(
           from._internal_relay_addr());
     }
@@ -3797,7 +3847,7 @@ void NotifyConnectResult::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, co
   if (from._internal_is_server() != 0) {
     _this->_internal_set_is_server(from._internal_is_server());
   }
-  if (cached_has_bits & 0x00000010u) {
+  if (cached_has_bits & 0x00000020u) {
     _this->_internal_set_use_relay(from._internal_use_relay());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -3823,6 +3873,10 @@ void NotifyConnectResult::InternalSwap(NotifyConnectResult* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.reason_, lhs_arena,
       &other->_impl_.reason_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.relay_token_, lhs_arena,
+      &other->_impl_.relay_token_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_.use_relay_)

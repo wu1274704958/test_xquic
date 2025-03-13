@@ -2521,6 +2521,7 @@ class MQAS_EXTERN NotifyConnectResult final :
 
   enum : int {
     kReasonFieldNumber = 3,
+    kRelayTokenFieldNumber = 9,
     kAddressFieldNumber = 4,
     kPeerAddrFieldNumber = 6,
     kRelayAddrFieldNumber = 7,
@@ -2545,6 +2546,24 @@ class MQAS_EXTERN NotifyConnectResult final :
   const std::string& _internal_reason() const;
   inline PROTOBUF_ALWAYS_INLINE void _internal_set_reason(const std::string& value);
   std::string* _internal_mutable_reason();
+  public:
+
+  // optional bytes relay_token = 9;
+  bool has_relay_token() const;
+  private:
+  bool _internal_has_relay_token() const;
+  public:
+  void clear_relay_token();
+  const std::string& relay_token() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_relay_token(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_relay_token();
+  PROTOBUF_NODISCARD std::string* release_relay_token();
+  void set_allocated_relay_token(std::string* relay_token);
+  private:
+  const std::string& _internal_relay_token() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_relay_token(const std::string& value);
+  std::string* _internal_mutable_relay_token();
   public:
 
   // optional .mqas.tools.proto.p2p.Address address = 4;
@@ -2652,6 +2671,7 @@ class MQAS_EXTERN NotifyConnectResult final :
     ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr reason_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr relay_token_;
     ::mqas::tools::proto::p2p::Address* address_;
     ::mqas::tools::proto::p2p::Address* peer_addr_;
     ::mqas::tools::proto::p2p::Address* relay_addr_;
@@ -4064,7 +4084,7 @@ inline void NotifyConnectResult::set_is_server(bool value) {
 
 // optional .mqas.tools.proto.p2p.Address peer_addr = 6;
 inline bool NotifyConnectResult::_internal_has_peer_addr() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000008u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.peer_addr_ != nullptr);
   return value;
 }
@@ -4073,7 +4093,7 @@ inline bool NotifyConnectResult::has_peer_addr() const {
 }
 inline void NotifyConnectResult::clear_peer_addr() {
   if (_impl_.peer_addr_ != nullptr) _impl_.peer_addr_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000004u;
+  _impl_._has_bits_[0] &= ~0x00000008u;
 }
 inline const ::mqas::tools::proto::p2p::Address& NotifyConnectResult::_internal_peer_addr() const {
   const ::mqas::tools::proto::p2p::Address* p = _impl_.peer_addr_;
@@ -4091,14 +4111,14 @@ inline void NotifyConnectResult::unsafe_arena_set_allocated_peer_addr(
   }
   _impl_.peer_addr_ = peer_addr;
   if (peer_addr) {
-    _impl_._has_bits_[0] |= 0x00000004u;
+    _impl_._has_bits_[0] |= 0x00000008u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000004u;
+    _impl_._has_bits_[0] &= ~0x00000008u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.peer_addr)
 }
 inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::release_peer_addr() {
-  _impl_._has_bits_[0] &= ~0x00000004u;
+  _impl_._has_bits_[0] &= ~0x00000008u;
   ::mqas::tools::proto::p2p::Address* temp = _impl_.peer_addr_;
   _impl_.peer_addr_ = nullptr;
 #ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
@@ -4114,13 +4134,13 @@ inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::release_peer_add
 }
 inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::unsafe_arena_release_peer_addr() {
   // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.peer_addr)
-  _impl_._has_bits_[0] &= ~0x00000004u;
+  _impl_._has_bits_[0] &= ~0x00000008u;
   ::mqas::tools::proto::p2p::Address* temp = _impl_.peer_addr_;
   _impl_.peer_addr_ = nullptr;
   return temp;
 }
 inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::_internal_mutable_peer_addr() {
-  _impl_._has_bits_[0] |= 0x00000004u;
+  _impl_._has_bits_[0] |= 0x00000008u;
   if (_impl_.peer_addr_ == nullptr) {
     auto* p = CreateMaybeMessage<::mqas::tools::proto::p2p::Address>(GetArenaForAllocation());
     _impl_.peer_addr_ = p;
@@ -4144,9 +4164,9 @@ inline void NotifyConnectResult::set_allocated_peer_addr(::mqas::tools::proto::p
       peer_addr = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
           message_arena, peer_addr, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000004u;
+    _impl_._has_bits_[0] |= 0x00000008u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000004u;
+    _impl_._has_bits_[0] &= ~0x00000008u;
   }
   _impl_.peer_addr_ = peer_addr;
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.peer_addr)
@@ -4222,7 +4242,7 @@ inline void NotifyConnectResult::set_allocated_reason(std::string* reason) {
 
 // optional .mqas.tools.proto.p2p.Address address = 4;
 inline bool NotifyConnectResult::_internal_has_address() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.address_ != nullptr);
   return value;
 }
@@ -4231,7 +4251,7 @@ inline bool NotifyConnectResult::has_address() const {
 }
 inline void NotifyConnectResult::clear_address() {
   if (_impl_.address_ != nullptr) _impl_.address_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000002u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
 }
 inline const ::mqas::tools::proto::p2p::Address& NotifyConnectResult::_internal_address() const {
   const ::mqas::tools::proto::p2p::Address* p = _impl_.address_;
@@ -4249,14 +4269,14 @@ inline void NotifyConnectResult::unsafe_arena_set_allocated_address(
   }
   _impl_.address_ = address;
   if (address) {
-    _impl_._has_bits_[0] |= 0x00000002u;
+    _impl_._has_bits_[0] |= 0x00000004u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000002u;
+    _impl_._has_bits_[0] &= ~0x00000004u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.address)
 }
 inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::release_address() {
-  _impl_._has_bits_[0] &= ~0x00000002u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
   ::mqas::tools::proto::p2p::Address* temp = _impl_.address_;
   _impl_.address_ = nullptr;
 #ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
@@ -4272,13 +4292,13 @@ inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::release_address(
 }
 inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::unsafe_arena_release_address() {
   // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.address)
-  _impl_._has_bits_[0] &= ~0x00000002u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
   ::mqas::tools::proto::p2p::Address* temp = _impl_.address_;
   _impl_.address_ = nullptr;
   return temp;
 }
 inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::_internal_mutable_address() {
-  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_._has_bits_[0] |= 0x00000004u;
   if (_impl_.address_ == nullptr) {
     auto* p = CreateMaybeMessage<::mqas::tools::proto::p2p::Address>(GetArenaForAllocation());
     _impl_.address_ = p;
@@ -4302,9 +4322,9 @@ inline void NotifyConnectResult::set_allocated_address(::mqas::tools::proto::p2p
       address = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
           message_arena, address, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000002u;
+    _impl_._has_bits_[0] |= 0x00000004u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000002u;
+    _impl_._has_bits_[0] &= ~0x00000004u;
   }
   _impl_.address_ = address;
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.address)
@@ -4312,7 +4332,7 @@ inline void NotifyConnectResult::set_allocated_address(::mqas::tools::proto::p2p
 
 // optional .mqas.tools.proto.p2p.Address relay_addr = 7;
 inline bool NotifyConnectResult::_internal_has_relay_addr() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000008u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000010u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.relay_addr_ != nullptr);
   return value;
 }
@@ -4321,7 +4341,7 @@ inline bool NotifyConnectResult::has_relay_addr() const {
 }
 inline void NotifyConnectResult::clear_relay_addr() {
   if (_impl_.relay_addr_ != nullptr) _impl_.relay_addr_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000008u;
+  _impl_._has_bits_[0] &= ~0x00000010u;
 }
 inline const ::mqas::tools::proto::p2p::Address& NotifyConnectResult::_internal_relay_addr() const {
   const ::mqas::tools::proto::p2p::Address* p = _impl_.relay_addr_;
@@ -4339,14 +4359,14 @@ inline void NotifyConnectResult::unsafe_arena_set_allocated_relay_addr(
   }
   _impl_.relay_addr_ = relay_addr;
   if (relay_addr) {
-    _impl_._has_bits_[0] |= 0x00000008u;
+    _impl_._has_bits_[0] |= 0x00000010u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000008u;
+    _impl_._has_bits_[0] &= ~0x00000010u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.relay_addr)
 }
 inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::release_relay_addr() {
-  _impl_._has_bits_[0] &= ~0x00000008u;
+  _impl_._has_bits_[0] &= ~0x00000010u;
   ::mqas::tools::proto::p2p::Address* temp = _impl_.relay_addr_;
   _impl_.relay_addr_ = nullptr;
 #ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
@@ -4362,13 +4382,13 @@ inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::release_relay_ad
 }
 inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::unsafe_arena_release_relay_addr() {
   // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.relay_addr)
-  _impl_._has_bits_[0] &= ~0x00000008u;
+  _impl_._has_bits_[0] &= ~0x00000010u;
   ::mqas::tools::proto::p2p::Address* temp = _impl_.relay_addr_;
   _impl_.relay_addr_ = nullptr;
   return temp;
 }
 inline ::mqas::tools::proto::p2p::Address* NotifyConnectResult::_internal_mutable_relay_addr() {
-  _impl_._has_bits_[0] |= 0x00000008u;
+  _impl_._has_bits_[0] |= 0x00000010u;
   if (_impl_.relay_addr_ == nullptr) {
     auto* p = CreateMaybeMessage<::mqas::tools::proto::p2p::Address>(GetArenaForAllocation());
     _impl_.relay_addr_ = p;
@@ -4392,9 +4412,9 @@ inline void NotifyConnectResult::set_allocated_relay_addr(::mqas::tools::proto::
       relay_addr = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
           message_arena, relay_addr, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000008u;
+    _impl_._has_bits_[0] |= 0x00000010u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000008u;
+    _impl_._has_bits_[0] &= ~0x00000010u;
   }
   _impl_.relay_addr_ = relay_addr;
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.relay_addr)
@@ -4402,7 +4422,7 @@ inline void NotifyConnectResult::set_allocated_relay_addr(::mqas::tools::proto::
 
 // optional bool use_relay = 8;
 inline bool NotifyConnectResult::_internal_has_use_relay() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000010u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000020u) != 0;
   return value;
 }
 inline bool NotifyConnectResult::has_use_relay() const {
@@ -4410,7 +4430,7 @@ inline bool NotifyConnectResult::has_use_relay() const {
 }
 inline void NotifyConnectResult::clear_use_relay() {
   _impl_.use_relay_ = false;
-  _impl_._has_bits_[0] &= ~0x00000010u;
+  _impl_._has_bits_[0] &= ~0x00000020u;
 }
 inline bool NotifyConnectResult::_internal_use_relay() const {
   return _impl_.use_relay_;
@@ -4420,12 +4440,80 @@ inline bool NotifyConnectResult::use_relay() const {
   return _internal_use_relay();
 }
 inline void NotifyConnectResult::_internal_set_use_relay(bool value) {
-  _impl_._has_bits_[0] |= 0x00000010u;
+  _impl_._has_bits_[0] |= 0x00000020u;
   _impl_.use_relay_ = value;
 }
 inline void NotifyConnectResult::set_use_relay(bool value) {
   _internal_set_use_relay(value);
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.use_relay)
+}
+
+// optional bytes relay_token = 9;
+inline bool NotifyConnectResult::_internal_has_relay_token() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  return value;
+}
+inline bool NotifyConnectResult::has_relay_token() const {
+  return _internal_has_relay_token();
+}
+inline void NotifyConnectResult::clear_relay_token() {
+  _impl_.relay_token_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline const std::string& NotifyConnectResult::relay_token() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.relay_token)
+  return _internal_relay_token();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void NotifyConnectResult::set_relay_token(ArgT0&& arg0, ArgT... args) {
+ _impl_._has_bits_[0] |= 0x00000002u;
+ _impl_.relay_token_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.relay_token)
+}
+inline std::string* NotifyConnectResult::mutable_relay_token() {
+  std::string* _s = _internal_mutable_relay_token();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.relay_token)
+  return _s;
+}
+inline const std::string& NotifyConnectResult::_internal_relay_token() const {
+  return _impl_.relay_token_.Get();
+}
+inline void NotifyConnectResult::_internal_set_relay_token(const std::string& value) {
+  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_.relay_token_.Set(value, GetArenaForAllocation());
+}
+inline std::string* NotifyConnectResult::_internal_mutable_relay_token() {
+  _impl_._has_bits_[0] |= 0x00000002u;
+  return _impl_.relay_token_.Mutable(GetArenaForAllocation());
+}
+inline std::string* NotifyConnectResult::release_relay_token() {
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.relay_token)
+  if (!_internal_has_relay_token()) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  auto* p = _impl_.relay_token_.Release();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.relay_token_.IsDefault()) {
+    _impl_.relay_token_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  return p;
+}
+inline void NotifyConnectResult::set_allocated_relay_token(std::string* relay_token) {
+  if (relay_token != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  _impl_.relay_token_.SetAllocated(relay_token, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.relay_token_.IsDefault()) {
+    _impl_.relay_token_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.relay_token)
 }
 
 // -------------------------------------------------------------------

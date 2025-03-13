@@ -1,6 +1,7 @@
 #include "mqas/tools/controller/p2p_helper_controller.h"
 #include "mqas/comm/locator.h"
 #include <format>
+#include <boost/uuid/uuid.hpp>
 
 namespace mqas::tools::controller {
 	p2p_helper_controller::p2p_helper_controller(uint32_t a, uint32_t b,io::Context* io_cxt,std::optional<toml::value> config) : _is_start(false), _cxt(nullptr),
@@ -288,5 +289,11 @@ namespace mqas::tools::controller {
 		set_external_address(oth_id, peer_addr);
 
 		msg.set_use_relay(true);
+
+		auto cxt = const_cast<p2p::connect_cxt*>(_cxt);
+		
+		auto& token = cxt->get_token();
+
+		msg.set_relay_token((const char*)&token.data,token.size());
 	}
 }

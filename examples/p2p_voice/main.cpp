@@ -775,17 +775,15 @@ bool tui::launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConn
 	{
 		conn->make_stream([&msg,callback,ui](std::shared_ptr<RelayStreamType> stream){
 			tools::proto::relay::ReqRelay req;
-			auto address = req.mutable_address();
-			address->set_ip(msg->peer_addr().ip());
-			address->set_port(msg->peer_addr().port());
+			auto token = req.mutable_token();
+			token->set_data(msg->relay_token());
         	stream->req_change<tools::RelayStreamClient,tools::relay::ReqRelayPair>(req);
 			ui->relay_stream = stream->get_holds_stream<tools::RelayStreamClient>();
 			ui->relay_stream->on_connect_result.connect([callback](core::StreamVariantErrcode code,std::optional<tools::proto::relay::RespondRelay_Code> ret){
-				if(ret.has_value() && ret.value() == tools::proto::relay::RespondRelay_Code::RespondRelay_Code_success)
-					callback(true);
-				else
+				if(!ret.has_value() || ret.value() != tools::proto::relay::RespondRelay_Code::RespondRelay_Code_success)
 					callback(false);
 			});
+			ui->relay_stream->on_ready.connect([callback](){ callback(true); });
 		});
 	};
 

@@ -23,8 +23,3 @@ namespace mqas::comm::uuid
         return res;
     }
 } // namespace mqas::comm::uuid
-
-
-size_t std::hash<boost::uuids::uuid>::operator()(const boost::uuids::uuid& addr) const {
-    return boost::uuids::hash_value(addr);
-}

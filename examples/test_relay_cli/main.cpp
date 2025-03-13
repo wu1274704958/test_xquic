@@ -51,7 +51,7 @@ int main(int argc,const char** argv)
 		boost::uuids::uuid token;
 		std::memset(&token,0,sizeof(boost::uuids::uuid));
 		token.data[0] = 1;
-		req.mutable_token()->set_data((const char*)token.data, token.size());
+		req.mutable_token()->set_data((const char*)&token.data, token.size());
         s_->req_change<tools::RelayStreamClient,tools::relay::ReqRelayPair>(req);
 		s_->on_close_signal.connect([](std::shared_ptr<core::IStreamVariant>){
 			printf("stream closed\n");	

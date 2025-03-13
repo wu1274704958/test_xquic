@@ -2,6 +2,7 @@
 #include "mqas/io/ip.h"
 #include <random>
 #include "mqas/core/stream.h"
+#include <boost/uuid/uuid_generators.hpp>
 
 //lobby
 uint32_t mqas::tools::p2p::p2p_model::registe_client(const std::string& name, const std::string& ip, uint16_t port, std::weak_ptr<mqas::core::IStreamVariant> stream)
@@ -339,6 +340,15 @@ namespace mqas::tools::p2p {
 	{
 		auto idx = self_idx(pid, id);
 		return tag[idx] >= 0;
+	}
+
+	const boost::uuids::uuid& connect_cxt::get_token()
+	{
+		if(token)
+			return token.value();
+		boost::uuids::random_generator generator;
+		token = generator();
+		return token.value();
 	}
 
 

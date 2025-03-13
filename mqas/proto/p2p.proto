@@ -91,6 +91,7 @@ message NotifyConnectResult{
     optional Address address = 4;
     optional Address relay_addr = 7;
     optional bool use_relay = 8;
+    optional bytes relay_token = 9;
 }
 
 message NotifyPeerWantConnect{
