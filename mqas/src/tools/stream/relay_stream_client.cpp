@@ -55,26 +55,31 @@ namespace mqas::tools {
     }
     int RelayStreamClient::try_send(const std::vector<std::span<uint8_t>>& d, const sockaddr& addr)
     {
-        if(!io::Ip::compare_ip(addr,_peer_addr))
-        {
-            auto expected = io::Ip::addr2str(_peer_addr);
-            auto trysend = io::Ip::addr2str(addr);
-            LOG(DEBUG) << "relay try addr compare failed expected " 
-                << expected << ':' << io::Ip::addr_get_port(_peer_addr) << " send to " << trysend << ':' << io::Ip::addr_get_port(addr);
-            return 0;
-        }
+        // if(!io::Ip::compare_ip(addr,_peer_addr))
+        // {
+        //     auto expected = io::Ip::addr2str(_peer_addr);
+        //     auto trysend = io::Ip::addr2str(addr);
+        //     LOG(DEBUG) << "relay try addr compare failed expected " 
+        //         << expected << ':' << io::Ip::addr_get_port(_peer_addr) << " send to " << trysend << ':' << io::Ip::addr_get_port(addr);
+        //     return 0;
+        // }
         if(_id == 0)
             return 0;
-        int bytes = 0;
+        size_t bytes = 0;
+        size_t start = 0;
         auto conn = connect.lock();
         for (auto& it : d)
         {
             if(it.size() == 0)
                 continue;
-            //write_lazy(it);
-            if(conn->write_datagram(it))
-                bytes += it.size();
+            bytes += it.size();
+            if(_buffer.size() < bytes)
+                _buffer.resize(bytes);
+            std::memcpy(_buffer.data() + start,it.data(),it.size());
+            start += it.size();
         }
+        std::span<uint8_t> span{ _buffer.data(),bytes };
+        conn->write_datagram(span);
         if(!conn->flush_datagram())
             return 0;
         #if !NDEBUG
@@ -84,14 +89,14 @@ namespace mqas::tools {
     }
     int RelayStreamClient::try_send(const std::span<uint8_t>& d, const sockaddr& addr)
     {
-        if(!io::Ip::compare_ip(addr,_peer_addr))
-        {
-            auto expected = io::Ip::addr2str(_peer_addr);
-            auto trysend = io::Ip::addr2str(addr);
-            LOG(DEBUG) << "relay try addr compare failed expected " 
-                << expected << ':' << io::Ip::addr_get_port(_peer_addr) << " send to " << trysend << ':' << io::Ip::addr_get_port(addr);
-            return 0;
-        }
+        // if(!io::Ip::compare_ip(addr,_peer_addr))
+        // {
+        //     auto expected = io::Ip::addr2str(_peer_addr);
+        //     auto trysend = io::Ip::addr2str(addr);
+        //     LOG(DEBUG) << "relay try addr compare failed expected " 
+        //         << expected << ':' << io::Ip::addr_get_port(_peer_addr) << " send to " << trysend << ':' << io::Ip::addr_get_port(addr);
+        //     return 0;
+        // }
         if(_id == 0 || d.size() == 0)
             return 0;
         //write_lazy(d);

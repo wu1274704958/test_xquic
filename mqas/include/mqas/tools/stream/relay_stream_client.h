@@ -37,6 +37,7 @@ private:
     ::sockaddr _peer_addr;
     ::sockaddr _bind_addr;
     sigc::connection _on_recv_datagram_conn;
+    std::vector<uint8_t> _buffer;
 };
 
 }

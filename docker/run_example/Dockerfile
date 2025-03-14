@@ -26,8 +26,11 @@ RUN ./vcpkg/vcpkg install toml11
 RUN ./vcpkg/vcpkg install easyloggingpp
 RUN ./vcpkg/vcpkg install protobuf
 RUN ./vcpkg/vcpkg install libsigcpp
-#RUN ./vcpkg/vcpkg install pdcurses
-RUN ./vcpkg/vcpkg integrate install
+WORKDIR /root/code/vcpkg
+RUN git checkout master
+RUN ./bootstrap-vcpkg.sh
+RUN ./vcpkg install boost-uuid
+RUN ./vcpkg integrate install
 RUN apt remove -y gcc g++
 
 
