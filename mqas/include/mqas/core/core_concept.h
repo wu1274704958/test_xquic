@@ -12,6 +12,7 @@ concept IsVaildSocket = requires(T t) {
     new T();
     t.bind(std::declval<const sockaddr &>(),std::declval<uv_udp_flags>());
     t.get_sock_addr(std::declval<sockaddr&>());
+    t.get_peer_addr(std::declval<sockaddr&>());
     std::is_same_v<std::remove_cv_t<decltype(t.try_send(std::declval<const std::vector<std::span<uint8_t>>&>(), std::declval<const sockaddr&>()))>, int>;
 };
 

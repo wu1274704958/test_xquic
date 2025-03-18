@@ -240,9 +240,15 @@ namespace mqas::core {
 				{
 					const int ret = ::lsquic_engine_packet_in(_engine, reinterpret_cast<const unsigned char*>(buf->data()), nread,
 						&this->_local_addr, addr, (void*)&(_peer_context_mgr.get_or_create(addr,this)), 0);
-					//LOG(INFO) << "@V@ lsquic_engine_packet_in ret = " << ret;
+					LOG(INFO) << "@V@ lsquic_engine_packet_in ret = " << ret << " size = " << nread;
 					this->process_conns();
 				}
+#if !NDEBUG
+				else{
+				
+					LOG(WARNING) << "drop packet engine = " << (size_t)_engine << " addr = " << io::Ip::addr2str(*addr) << ":" << io::Ip::addr_get_port(*addr) << " size = " << nread;
+				}
+#endif
 			});
 	}
 

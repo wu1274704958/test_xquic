@@ -46,6 +46,7 @@ namespace mqas::tools{
             respond.set_id(_id);
             respond.set_code(proto::relay::RespondRelay_Code::RespondRelay_Code_success);
             set_peer_addr(respond.mutable_peer_addr());
+            set_self_addr(respond.mutable_self_addr());
             core::ProtoBufMsg::write_msg<tools::relay::RespondRelayPair>(ret_buf,respond);
             return core::StreamVariantErrcode::ok;
         case relay::RelayState::waiting:
@@ -63,6 +64,12 @@ namespace mqas::tools{
         addr->set_port(io::Ip::addr_get_port(peer->_addr));
     }
 
+    void RelayStream::set_self_addr(mqas::tools::proto::relay::Address* addr)
+    {
+        addr->set_ip(io::Ip::addr2str(_addr));
+        addr->set_port(io::Ip::addr_get_port(_addr));
+    }
+
     void RelayStream::send_respond(uint32_t id,proto::relay::RespondRelay_Code code,bool lazy,std::weak_ptr<RelayStream> other_peer)
     {
         proto::relay::RespondRelay respond;
@@ -73,6 +80,7 @@ namespace mqas::tools{
             stop_timeout_timer();
             reg_on_recv_datagram();
             set_peer_addr(respond.mutable_peer_addr());
+            set_self_addr(respond.mutable_self_addr());
         }
         respond.set_id(_id);
         respond.set_code(code);

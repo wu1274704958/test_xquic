@@ -12,7 +12,7 @@ namespace mqas::tools {
             LOG(ERROR) << "Relay Bad token!!!";
             return core::StreamVariantErrcode::failed;
         }else
-            LOG(ERROR) << "Relay try connect token = " << mqas::comm::uuid::to_high_64(*token);
+            LOG(INFO) << "Relay try connect token = " << mqas::comm::uuid::to_high_64(*token);
 
         return core::StreamVariantErrcode::not_support;
     }
@@ -29,6 +29,7 @@ namespace mqas::tools {
             if(min_size)
                 conn->set_min_datagram_size(min_size.value());
             io::Ip::str2addr(msg->peer_addr().ip().c_str(),msg->peer_addr().port(),_peer_addr);
+            io::Ip::str2addr(msg->self_addr().ip().c_str(),msg->self_addr().port(),_bind_addr);
 
             _on_recv_datagram_conn = conn->on_recv_datagram.connect(sigc::mem_fun(*this,&RelayStreamClient::on_recv_datagram));
 
@@ -52,6 +53,10 @@ namespace mqas::tools {
     void RelayStreamClient::get_sock_addr(sockaddr& addr) const
     {
         memcpy(&addr,&_bind_addr,sizeof(sockaddr));
+    }
+    void RelayStreamClient::get_peer_addr(sockaddr& addr) const
+    {
+        memcpy(&addr,&_peer_addr,sizeof(sockaddr));
     }
     int RelayStreamClient::try_send(const std::vector<std::span<uint8_t>>& d, const sockaddr& addr)
     {
@@ -83,7 +88,7 @@ namespace mqas::tools {
         if(!conn->flush_datagram())
             return 0;
         #if !NDEBUG
-        LOG(INFO) << "relay try send " << bytes << " bytes";
+        LOG(INFO) << "relay try send to " << io::Ip::addr2str(addr) << ':' << io::Ip::addr_get_port(addr) <<  " " << bytes << " bytes";
         #endif
         return bytes;
     }
@@ -104,6 +109,9 @@ namespace mqas::tools {
         conn->write_datagram(d);
         if(!conn->flush_datagram())
             return 0;
+        #if !NDEBUG
+        LOG(INFO) << "relay try send to " << io::Ip::addr2str(addr) << ':' << io::Ip::addr_get_port(addr) <<  " " << d.size() << " bytes";
+        #endif
         return d.size();
     }
     void RelayStreamClient::recv_start(){}
@@ -119,7 +127,14 @@ namespace mqas::tools {
     void RelayStreamClient::on_recv_datagram(const uint8_t* buf,size_t size)
     {
         std::span<uint8_t> span((uint8_t*)buf,size);
+        #if !NDEBUG
+        LOG(INFO) << "relay on receive " << size << " bytes " << io::Ip::addr2str(_peer_addr) << ":" <<  io::Ip::addr_get_port(_peer_addr);
+        #endif
         on_recv_signal.emit(nullptr,span,span.size(),&_peer_addr,0);
+        if(on_recv_signal.empty())
+        {
+            LOG(INFO) << "relay on receive but no listen " << size << " bytes " << io::Ip::addr2str(_peer_addr) << ":" <<  io::Ip::addr_get_port(_peer_addr);
+        }
     }
 
     std::optional<uint16_t> RelayStreamClient::try_load_datagram_min_size() const

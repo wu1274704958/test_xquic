@@ -71,6 +71,7 @@ PROTOBUF_CONSTEXPR RespondRelay::RespondRelay(
     /*decltype(_impl_._has_bits_)*/{}
   , /*decltype(_impl_._cached_size_)*/{}
   , /*decltype(_impl_.peer_addr_)*/nullptr
+  , /*decltype(_impl_.self_addr_)*/nullptr
   , /*decltype(_impl_.code_)*/0
   , /*decltype(_impl_.id_)*/0u} {}
 struct RespondRelayDefaultTypeInternal {
@@ -147,9 +148,11 @@ const uint32_t TableStruct_relay_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pr
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::relay::RespondRelay, _impl_.code_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::relay::RespondRelay, _impl_.id_),
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::relay::RespondRelay, _impl_.peer_addr_),
+  PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::relay::RespondRelay, _impl_.self_addr_),
   ~0u,
   ~0u,
   0,
+  1,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::relay::ReqReady, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -167,9 +170,9 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 0, -1, -1, sizeof(::mqas::tools::proto::relay::Address)},
   { 8, -1, -1, sizeof(::mqas::tools::proto::relay::UUID)},
   { 15, 23, -1, sizeof(::mqas::tools::proto::relay::ReqRelay)},
-  { 25, 34, -1, sizeof(::mqas::tools::proto::relay::RespondRelay)},
-  { 37, -1, -1, sizeof(::mqas::tools::proto::relay::ReqReady)},
-  { 43, -1, -1, sizeof(::mqas::tools::proto::relay::RespondReady)},
+  { 25, 35, -1, sizeof(::mqas::tools::proto::relay::RespondRelay)},
+  { 39, -1, -1, sizeof(::mqas::tools::proto::relay::ReqReady)},
+  { 45, -1, -1, sizeof(::mqas::tools::proto::relay::RespondReady)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -186,18 +189,20 @@ const char descriptor_table_protodef_relay_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "\007Address\022\n\n\002ip\030\001 \001(\t\022\014\n\004port\030\002 \001(\r\"\024\n\004UU"
   "ID\022\014\n\004data\030\001 \001(\014\"W\n\010ReqRelay\022+\n\005token\030\001 "
   "\001(\0132\034.mqas.tools.proto.relay.UUID\022\023\n\006opt"
-  "ion\030\002 \001(\rH\000\210\001\001B\t\n\007_option\"\365\001\n\014RespondRel"
+  "ion\030\002 \001(\rH\000\210\001\001B\t\n\007_option\"\274\002\n\014RespondRel"
   "ay\0227\n\004code\030\001 \001(\0162).mqas.tools.proto.rela"
   "y.RespondRelay.Code\022\n\n\002id\030\002 \001(\r\0227\n\tpeer_"
   "addr\030\003 \001(\0132\037.mqas.tools.proto.relay.Addr"
-  "essH\000\210\001\001\"Y\n\004Code\022\013\n\007success\020\000\022\022\n\016already"
-  "_exists\020\001\022\020\n\014waiting_peer\020\002\022\013\n\007timeout\020\003"
-  "\022\021\n\rbad_arguments\020\004B\014\n\n_peer_addr\"\n\n\010Req"
-  "Ready\"\016\n\014RespondReadyb\006proto3"
+  "essH\000\210\001\001\0227\n\tself_addr\030\004 \001(\0132\037.mqas.tools"
+  ".proto.relay.AddressH\001\210\001\001\"Y\n\004Code\022\013\n\007suc"
+  "cess\020\000\022\022\n\016already_exists\020\001\022\020\n\014waiting_pe"
+  "er\020\002\022\013\n\007timeout\020\003\022\021\n\rbad_arguments\020\004B\014\n\n"
+  "_peer_addrB\014\n\n_self_addr\"\n\n\010ReqReady\"\016\n\014"
+  "RespondReadyb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_relay_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_relay_2eproto = {
-    false, false, 469, descriptor_table_protodef_relay_2eproto,
+    false, false, 540, descriptor_table_protodef_relay_2eproto,
     "relay.proto",
     &descriptor_table_relay_2eproto_once, nullptr, 0, 6,
     schemas, file_default_instances, TableStruct_relay_2eproto::offsets,
@@ -915,11 +920,19 @@ class RespondRelay::_Internal {
   static void set_has_peer_addr(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
+  static const ::mqas::tools::proto::relay::Address& self_addr(const RespondRelay* msg);
+  static void set_has_self_addr(HasBits* has_bits) {
+    (*has_bits)[0] |= 2u;
+  }
 };
 
 const ::mqas::tools::proto::relay::Address&
 RespondRelay::_Internal::peer_addr(const RespondRelay* msg) {
   return *msg->_impl_.peer_addr_;
+}
+const ::mqas::tools::proto::relay::Address&
+RespondRelay::_Internal::self_addr(const RespondRelay* msg) {
+  return *msg->_impl_.self_addr_;
 }
 RespondRelay::RespondRelay(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
@@ -934,12 +947,16 @@ RespondRelay::RespondRelay(const RespondRelay& from)
       decltype(_impl_._has_bits_){from._impl_._has_bits_}
     , /*decltype(_impl_._cached_size_)*/{}
     , decltype(_impl_.peer_addr_){nullptr}
+    , decltype(_impl_.self_addr_){nullptr}
     , decltype(_impl_.code_){}
     , decltype(_impl_.id_){}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   if (from._internal_has_peer_addr()) {
     _this->_impl_.peer_addr_ = new ::mqas::tools::proto::relay::Address(*from._impl_.peer_addr_);
+  }
+  if (from._internal_has_self_addr()) {
+    _this->_impl_.self_addr_ = new ::mqas::tools::proto::relay::Address(*from._impl_.self_addr_);
   }
   ::memcpy(&_impl_.code_, &from._impl_.code_,
     static_cast<size_t>(reinterpret_cast<char*>(&_impl_.id_) -
@@ -955,6 +972,7 @@ inline void RespondRelay::SharedCtor(
       decltype(_impl_._has_bits_){}
     , /*decltype(_impl_._cached_size_)*/{}
     , decltype(_impl_.peer_addr_){nullptr}
+    , decltype(_impl_.self_addr_){nullptr}
     , decltype(_impl_.code_){0}
     , decltype(_impl_.id_){0u}
   };
@@ -972,6 +990,7 @@ RespondRelay::~RespondRelay() {
 inline void RespondRelay::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   if (this != internal_default_instance()) delete _impl_.peer_addr_;
+  if (this != internal_default_instance()) delete _impl_.self_addr_;
 }
 
 void RespondRelay::SetCachedSize(int size) const {
@@ -985,9 +1004,15 @@ void RespondRelay::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000001u) {
-    GOOGLE_DCHECK(_impl_.peer_addr_ != nullptr);
-    _impl_.peer_addr_->Clear();
+  if (cached_has_bits & 0x00000003u) {
+    if (cached_has_bits & 0x00000001u) {
+      GOOGLE_DCHECK(_impl_.peer_addr_ != nullptr);
+      _impl_.peer_addr_->Clear();
+    }
+    if (cached_has_bits & 0x00000002u) {
+      GOOGLE_DCHECK(_impl_.self_addr_ != nullptr);
+      _impl_.self_addr_->Clear();
+    }
   }
   ::memset(&_impl_.code_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.id_) -
@@ -1024,6 +1049,14 @@ const char* RespondRelay::_InternalParse(const char* ptr, ::_pbi::ParseContext* 
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           ptr = ctx->ParseMessage(_internal_mutable_peer_addr(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // optional .mqas.tools.proto.relay.Address self_addr = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          ptr = ctx->ParseMessage(_internal_mutable_self_addr(), ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1078,6 +1111,13 @@ uint8_t* RespondRelay::_InternalSerialize(
         _Internal::peer_addr(this).GetCachedSize(), target, stream);
   }
 
+  // optional .mqas.tools.proto.relay.Address self_addr = 4;
+  if (_internal_has_self_addr()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(4, _Internal::self_addr(this),
+        _Internal::self_addr(this).GetCachedSize(), target, stream);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1094,14 +1134,23 @@ size_t RespondRelay::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // optional .mqas.tools.proto.relay.Address peer_addr = 3;
   cached_has_bits = _impl_._has_bits_[0];
-  if (cached_has_bits & 0x00000001u) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-        *_impl_.peer_addr_);
-  }
+  if (cached_has_bits & 0x00000003u) {
+    // optional .mqas.tools.proto.relay.Address peer_addr = 3;
+    if (cached_has_bits & 0x00000001u) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+          *_impl_.peer_addr_);
+    }
 
+    // optional .mqas.tools.proto.relay.Address self_addr = 4;
+    if (cached_has_bits & 0x00000002u) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+          *_impl_.self_addr_);
+    }
+
+  }
   // .mqas.tools.proto.relay.RespondRelay.Code code = 1;
   if (this->_internal_code() != 0) {
     total_size += 1 +
@@ -1131,9 +1180,16 @@ void RespondRelay::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::P
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (from._internal_has_peer_addr()) {
-    _this->_internal_mutable_peer_addr()->::mqas::tools::proto::relay::Address::MergeFrom(
-        from._internal_peer_addr());
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (cached_has_bits & 0x00000003u) {
+    if (cached_has_bits & 0x00000001u) {
+      _this->_internal_mutable_peer_addr()->::mqas::tools::proto::relay::Address::MergeFrom(
+          from._internal_peer_addr());
+    }
+    if (cached_has_bits & 0x00000002u) {
+      _this->_internal_mutable_self_addr()->::mqas::tools::proto::relay::Address::MergeFrom(
+          from._internal_self_addr());
+    }
   }
   if (from._internal_code() != 0) {
     _this->_internal_set_code(from._internal_code());

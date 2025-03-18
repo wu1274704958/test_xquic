@@ -27,6 +27,7 @@ message RespondRelay{
   Code code = 1;
   uint32 id = 2;
   optional Address peer_addr = 3;
+  optional Address self_addr = 4;
 }
 
 message ReqReady{}

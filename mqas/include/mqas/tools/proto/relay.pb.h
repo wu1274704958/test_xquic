@@ -764,6 +764,7 @@ class MQAS_EXTERN RespondRelay final :
 
   enum : int {
     kPeerAddrFieldNumber = 3,
+    kSelfAddrFieldNumber = 4,
     kCodeFieldNumber = 1,
     kIdFieldNumber = 2,
   };
@@ -784,6 +785,24 @@ class MQAS_EXTERN RespondRelay final :
   void unsafe_arena_set_allocated_peer_addr(
       ::mqas::tools::proto::relay::Address* peer_addr);
   ::mqas::tools::proto::relay::Address* unsafe_arena_release_peer_addr();
+
+  // optional .mqas.tools.proto.relay.Address self_addr = 4;
+  bool has_self_addr() const;
+  private:
+  bool _internal_has_self_addr() const;
+  public:
+  void clear_self_addr();
+  const ::mqas::tools::proto::relay::Address& self_addr() const;
+  PROTOBUF_NODISCARD ::mqas::tools::proto::relay::Address* release_self_addr();
+  ::mqas::tools::proto::relay::Address* mutable_self_addr();
+  void set_allocated_self_addr(::mqas::tools::proto::relay::Address* self_addr);
+  private:
+  const ::mqas::tools::proto::relay::Address& _internal_self_addr() const;
+  ::mqas::tools::proto::relay::Address* _internal_mutable_self_addr();
+  public:
+  void unsafe_arena_set_allocated_self_addr(
+      ::mqas::tools::proto::relay::Address* self_addr);
+  ::mqas::tools::proto::relay::Address* unsafe_arena_release_self_addr();
 
   // .mqas.tools.proto.relay.RespondRelay.Code code = 1;
   void clear_code();
@@ -814,6 +833,7 @@ class MQAS_EXTERN RespondRelay final :
     ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     ::mqas::tools::proto::relay::Address* peer_addr_;
+    ::mqas::tools::proto::relay::Address* self_addr_;
     int code_;
     uint32_t id_;
   };
@@ -1445,6 +1465,96 @@ inline void RespondRelay::set_allocated_peer_addr(::mqas::tools::proto::relay::A
   }
   _impl_.peer_addr_ = peer_addr;
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.relay.RespondRelay.peer_addr)
+}
+
+// optional .mqas.tools.proto.relay.Address self_addr = 4;
+inline bool RespondRelay::_internal_has_self_addr() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  PROTOBUF_ASSUME(!value || _impl_.self_addr_ != nullptr);
+  return value;
+}
+inline bool RespondRelay::has_self_addr() const {
+  return _internal_has_self_addr();
+}
+inline void RespondRelay::clear_self_addr() {
+  if (_impl_.self_addr_ != nullptr) _impl_.self_addr_->Clear();
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline const ::mqas::tools::proto::relay::Address& RespondRelay::_internal_self_addr() const {
+  const ::mqas::tools::proto::relay::Address* p = _impl_.self_addr_;
+  return p != nullptr ? *p : reinterpret_cast<const ::mqas::tools::proto::relay::Address&>(
+      ::mqas::tools::proto::relay::_Address_default_instance_);
+}
+inline const ::mqas::tools::proto::relay::Address& RespondRelay::self_addr() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.relay.RespondRelay.self_addr)
+  return _internal_self_addr();
+}
+inline void RespondRelay::unsafe_arena_set_allocated_self_addr(
+    ::mqas::tools::proto::relay::Address* self_addr) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.self_addr_);
+  }
+  _impl_.self_addr_ = self_addr;
+  if (self_addr) {
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.relay.RespondRelay.self_addr)
+}
+inline ::mqas::tools::proto::relay::Address* RespondRelay::release_self_addr() {
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  ::mqas::tools::proto::relay::Address* temp = _impl_.self_addr_;
+  _impl_.self_addr_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::mqas::tools::proto::relay::Address* RespondRelay::unsafe_arena_release_self_addr() {
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.relay.RespondRelay.self_addr)
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  ::mqas::tools::proto::relay::Address* temp = _impl_.self_addr_;
+  _impl_.self_addr_ = nullptr;
+  return temp;
+}
+inline ::mqas::tools::proto::relay::Address* RespondRelay::_internal_mutable_self_addr() {
+  _impl_._has_bits_[0] |= 0x00000002u;
+  if (_impl_.self_addr_ == nullptr) {
+    auto* p = CreateMaybeMessage<::mqas::tools::proto::relay::Address>(GetArenaForAllocation());
+    _impl_.self_addr_ = p;
+  }
+  return _impl_.self_addr_;
+}
+inline ::mqas::tools::proto::relay::Address* RespondRelay::mutable_self_addr() {
+  ::mqas::tools::proto::relay::Address* _msg = _internal_mutable_self_addr();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.relay.RespondRelay.self_addr)
+  return _msg;
+}
+inline void RespondRelay::set_allocated_self_addr(::mqas::tools::proto::relay::Address* self_addr) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.self_addr_;
+  }
+  if (self_addr) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(self_addr);
+    if (message_arena != submessage_arena) {
+      self_addr = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, self_addr, submessage_arena);
+    }
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  _impl_.self_addr_ = self_addr;
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.relay.RespondRelay.self_addr)
 }
 
 // -------------------------------------------------------------------

@@ -15,6 +15,7 @@ public://udp same
 RelayStreamClient(){}
 void bind(const sockaddr& addr,unsigned int flags);
 void get_sock_addr(sockaddr& addr) const;
+void get_peer_addr(sockaddr& name) const;
 int try_send(const std::vector<std::span<uint8_t>>& d, const sockaddr& addr);
 int try_send(const std::span<uint8_t>& d, const sockaddr& addr);
 void recv_start();
