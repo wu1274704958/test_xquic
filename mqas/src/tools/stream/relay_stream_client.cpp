@@ -31,6 +31,11 @@ namespace mqas::tools {
             io::Ip::str2addr(msg->peer_addr().ip().c_str(),msg->peer_addr().port(),_peer_addr);
             io::Ip::str2addr(msg->self_addr().ip().c_str(),msg->self_addr().port(),_bind_addr);
 
+#if !NDEBUG
+            LOG(DEBUG) << "relay client peer address = " << msg->peer_addr().ip() << ':' << msg->peer_addr().port();
+            LOG(DEBUG) << "relay client self address = " << msg->self_addr().ip() << ':' << msg->self_addr().port();
+#endif
+
             _on_recv_datagram_conn = conn->on_recv_datagram.connect(sigc::mem_fun(*this,&RelayStreamClient::on_recv_datagram));
 
             proto::relay::ReqReady ready_msg;

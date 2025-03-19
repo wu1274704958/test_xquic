@@ -550,9 +550,6 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 				if (current_state() == ui_state::helper_main)
 					pop_state();
 				append_state(ui_state::p2p_main);
-				::sockaddr addr;
-				sock->get_sock_addr(addr);
-				relay_stream->bind(addr,0);
 				launch_p2p(helper_result,relay_stream);
 			}
 		},sock);
@@ -708,25 +705,23 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 		
 	io::Ip::str2addr(msg->peer_addr().ip().c_str(), msg->peer_addr().port(), p2p_addr);
 
-	::sockaddr white_list_addr = p2p_addr;
-
 	if constexpr(std::is_same_v<SOCK,tools::RelayStreamClient>)
 	{
-		sock->get_peer_addr(white_list_addr);
+		sock->get_peer_addr(p2p_addr);
 	}
 
 #if !NDEBUG
-	LOG(DEBUG)  <<  " p2p white list addr = "  << io::Ip::addr2str(white_list_addr) << ":" << io::Ip::addr_get_port(white_list_addr);
+	LOG(DEBUG)  <<  " p2p white list addr = "  << io::Ip::addr2str(p2p_addr) << ":" << io::Ip::addr_get_port(p2p_addr);
 #endif
 
 	std::function<void(std::shared_ptr<core::Connect<P2PStreamType>>)> func = std::bind(&tui::on_new_p2p_connect, this, std::placeholders::_1, msg->is_server());
 	std::function<void(const std::exception&)> exception_func = [this](const std::exception&) {
 		on_p2p_peer_quit(nullptr);
 	};
-	std::function<void(EngineTy&)> on_init_func = [&white_list_addr](EngineTy& e)
+	std::function<void(EngineTy&)> on_init_func = [this](EngineTy& e)
 	{
-		e.get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(white_list_addr));
-		e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(white_list_addr));
+		e.get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(p2p_addr));
+		e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(p2p_addr));
 	};
 	auto p2p_conf = toml::find<std::string>(*config,"p2p","conf");
 	if (msg->is_server())

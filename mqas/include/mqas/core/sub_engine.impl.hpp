@@ -131,6 +131,8 @@ namespace mqas::core {
 			_socket = std::move(sock);
 		_socket->get_sock_addr(this->_local_addr);
 
+		MQAS_DBG("sub engine socket local addr = " << io::Ip::addr2str(_local_addr) << ':' << io::Ip::addr_get_port(_local_addr));
+
 	}
 	SUB_ENGINE_TEMPLATE_DECL
 	void sub_engine<E,ED,SC>::init_timer()
@@ -240,7 +242,8 @@ namespace mqas::core {
 				{
 					const int ret = ::lsquic_engine_packet_in(_engine, reinterpret_cast<const unsigned char*>(buf->data()), nread,
 						&this->_local_addr, addr, (void*)&(_peer_context_mgr.get_or_create(addr,this)), 0);
-					LOG(INFO) << "@V@ lsquic_engine_packet_in ret = " << ret << " size = " << nread;
+					if(ret == -1)
+						LOG(WARNING) << "lsquic_engine_packet_in return -1 " << " size = " << nread;
 					this->process_conns();
 				}
 #if !NDEBUG
