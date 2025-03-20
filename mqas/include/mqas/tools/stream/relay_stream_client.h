@@ -4,6 +4,7 @@
 #include <mqas/tools/stream/MsgDef.h>
 #include <mqas/core/pb_stream.h>
 #include <sigc++/sigc++.h>
+#include <mqas/tools/datagram_buffer.h>
 
 namespace mqas::tools{
 
@@ -32,6 +33,8 @@ void on_close();
 protected:
 void on_recv_datagram(const uint8_t* buf,size_t size);
 std::optional<uint16_t> try_load_datagram_min_size() const;
+void on_check_has_listener(io::Idle* idle);
+inline void emit_msg(const std::span<uint8_t>&) const;
 
 private:
     uint32_t _id;
@@ -39,6 +42,9 @@ private:
     ::sockaddr _bind_addr;
     sigc::connection _on_recv_datagram_conn;
     std::vector<uint8_t> _buffer;
+    datagram_buffer _recv_buffer;
+    std::shared_ptr<io::Idle> _check_has_listener_task;
+    uint8_t _listener_count = 1;
 };
 
 }

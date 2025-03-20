@@ -132,14 +132,46 @@ namespace mqas::tools {
     void RelayStreamClient::on_recv_datagram(const uint8_t* buf,size_t size)
     {
         std::span<uint8_t> span((uint8_t*)buf,size);
-        #if !NDEBUG
-        LOG(INFO) << "relay on receive " << size << " bytes " << io::Ip::addr2str(_peer_addr) << ":" <<  io::Ip::addr_get_port(_peer_addr);
-        #endif
-        on_recv_signal.emit(nullptr,span,span.size(),&_peer_addr,0);
-        if(on_recv_signal.empty())
+        
+        if(on_recv_signal.size() < _listener_count)
         {
-            LOG(INFO) << "relay on receive but no listen " << size << " bytes " << io::Ip::addr2str(_peer_addr) << ":" <<  io::Ip::addr_get_port(_peer_addr);
+            _recv_buffer.push(span);
+            if(!_check_has_listener_task)
+            {
+                LOG(INFO) << "relay on receive but no listen launch check task";
+                _check_has_listener_task = connect_cxt_->engine_cxt_->io_cxt.make_shared<io::Idle>();
+                _check_has_listener_task->start(std::bind(&RelayStreamClient::on_check_has_listener,this,std::placeholders::_1));
+            }
+        }else{
+            while(!_recv_buffer.empty())
+            {
+                auto buf = _recv_buffer.pop();
+                emit_msg(*buf);
+            }
+            emit_msg(span);
         }
+    }
+
+    void RelayStreamClient::on_check_has_listener(io::Idle* idle)
+    {
+        if(on_recv_signal.size() >= _listener_count)
+        {
+            idle->stop();
+            while(!_recv_buffer.empty())
+            {
+                auto buf = _recv_buffer.pop();
+                LOG(INFO) << "relay listener in place emit msg " << buf->size() << " bytes " << io::Ip::addr2str(_peer_addr) << ":" <<  io::Ip::addr_get_port(_peer_addr);
+                emit_msg(*buf);
+            }
+        }
+    }
+
+    void RelayStreamClient::emit_msg(const std::span<uint8_t>& buf) const
+    {
+        #if !NDEBUG
+        LOG(INFO) << "relay on receive " << buf.size() << " bytes " << io::Ip::addr2str(_peer_addr) << ":" <<  io::Ip::addr_get_port(_peer_addr);
+        #endif
+        on_recv_signal.emit(nullptr,buf,buf.size(),&_peer_addr,0);
     }
 
     std::optional<uint16_t> RelayStreamClient::try_load_datagram_min_size() const

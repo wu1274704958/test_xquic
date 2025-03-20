@@ -240,7 +240,10 @@ namespace mqas::tools::controller {
 		if (reason)
 			msg.set_reason(reason.value());
 		if (has_relay_config())
+		{
 			append_relay(id,msg);
+			msg.set_is_server(idx == 0);
+		}
 		_notify_connect_result[idx](msg);
 	}
 	bool p2p_helper_controller::peer_exist(uint32_t id) const
