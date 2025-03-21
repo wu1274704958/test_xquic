@@ -1,5 +1,7 @@
 #include "VoiceStream.h"
 
+#define DEBUG_LOG 0
+
 mqas::core::StreamVariantErrcode VoiceStream::on_change(const std::span<uint8_t> &params,
     std::vector<uint8_t> &ret_buf)
 {
@@ -53,6 +55,9 @@ bool VoiceStream::init_audio_stream()
     on_record_conn = audio_stream.reg_on_record_callback(sigc::mem_fun(*this,&VoiceStream::on_record_data));
     on_recv_connect = conn->on_recv_datagram.connect([this](const uint8_t* buf,size_t size){
         std::span<uint8_t> span((uint8_t*)buf,size);
+#if DEBUG_LOG 
+        LOG(DEBUG) << "voice recv " << size << " bytes";
+#endif
         audio_stream.on_receive_data_def(span);
     });
     is_audio_stream_init = true;
@@ -67,7 +72,12 @@ void VoiceStream::on_record_data(const std::span<uint8_t>& data, uint16_t frames
     if(!conn)
         return;
     conn->write_datagram(data);
-    assert(conn->flush_datagram());
+    auto success = conn->flush_datagram();
+    assert(success);
+    #if DEBUG_LOG 
+        if(success)
+            LOG(DEBUG) << "voice send " << data.size() << " bytes";
+    #endif
 }
 
 void VoiceStream::close_audio_stream()
