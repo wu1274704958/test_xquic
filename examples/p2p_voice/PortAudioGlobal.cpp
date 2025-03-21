@@ -10,15 +10,12 @@ extern void PaUtil_SetDebugPrintFunction(PaUtilLogCallback  cb);
 //initialize easylogging
 void PortAudioGlobal::EasyLogInitForPortAudio()
 {
-    const auto logger = el::Loggers::getLogger("portaudio");
+    const auto portaudio_logger = el::Loggers::getLogger("portaudio");
+    const auto audio_logger = el::Loggers::getLogger("audio");
 	el::Configurations c;
 	c.setFromBase(el::Loggers::getLogger("default")->configurations());
-	auto fmt = c.get(el::Level::Global, el::ConfigurationType::Format)->value();
-	bool erase_succ = mqas::comm::erase_substr(fmt, "[%level]");
-	if (!erase_succ) erase_succ = mqas::comm::erase_substr(fmt, "[%levshort]");
-	if (erase_succ)
-		c.set(el::Level::Global, el::ConfigurationType::Format, fmt);
-	el::Loggers::reconfigureLogger(logger, c);
+	el::Loggers::reconfigureLogger(portaudio_logger, c);
+    el::Loggers::reconfigureLogger(audio_logger, c);
 }
 
 void PortAudioGlobal::PaLogCallback(const char *log)

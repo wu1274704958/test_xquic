@@ -62,8 +62,8 @@ private:
     int max_packet_size = 4000;
     int noise_suppress = -30;
     //buffer
-    std::vector<int16_t> decode_buffer;
     std::vector<int16_t> processed_buffer;
+    std::vector<int16_t> last_play_buffer;
     //swap buffer
     std::array<std::vector<uint8_t>, 2> record_buffer;
     std::array<std::vector<int16_t>, 2> far_end_buffer;

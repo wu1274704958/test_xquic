@@ -3,7 +3,7 @@
 #include "PortAudioGlobal.h"
 
 constexpr int SAMPLE_RATE     = 48000;
-constexpr int CHANNELS        = 2;
+constexpr int CHANNELS        = 1;
 constexpr int FRAME_SIZE      = 480;       // 每帧 10ms 数据
 constexpr int MAX_PACKET_SIZE = 4000;      // Opus 编码后数据最大长度
 
