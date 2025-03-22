@@ -9,6 +9,7 @@
 #include <vector>
 #include <cstring>
 #include <bit>
+#include <assert.h>
 
 namespace mqas::comm {
     template<typename T>
@@ -37,14 +38,29 @@ namespace mqas::comm {
     }
 
     template<typename T>
-    T from_big_endian(const std::span<uint8_t> &data) {
+    void to_big_endian(T val, std::span<uint8_t>& out,size_t offset = 0) {
+        assert(out.size() >= offset + sizeof(T));
+        if constexpr (std::endian::native == std::endian::big) {
+            std::memcpy(out.data() + offset, &val, sizeof(T));
+        }
+        else {
+            unsigned char* data = reinterpret_cast<unsigned char*>(&val);
+            for (int i = 0; i < sizeof(T); i++) {
+                out[i + offset] = data[sizeof(T) - i - 1];
+            }
+        }
+    }
+
+    template<typename T>
+    T from_big_endian(const std::span<uint8_t> &data,size_t offset = 0) {
+        assert(data.size() >= offset + sizeof(T));
         T result;
         if constexpr (std::endian::native == std::endian::big) {
-            std::memcpy(&result, data.data(), sizeof(T));
+            std::memcpy(&result, data.data() + offset, sizeof(T));
         } else {
             uint8_t *temp_data = reinterpret_cast<uint8_t *>(&result);
             for (int i = 0; i < sizeof(T); i++) {
-                temp_data[sizeof(T) - i - 1] = data[i];
+                temp_data[sizeof(T) - i - 1] = data[i + offset];
             }
         }
         return result;
