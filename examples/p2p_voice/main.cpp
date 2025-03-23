@@ -166,7 +166,7 @@ extern int main2();
 
 int main(int argc, const char** argv)
 {
-	PortAudioGlobal port_audio_global;
+	PortAudioGlobal port_audio_global("audio_log_conf.txt");
 	Context<core::InitFlags::BOTH> context;
 	io::Context io_cxt;
 	comm::locator::inst()->deposit<std::reference_wrapper<io::Context>>(io_cxt);

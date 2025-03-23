@@ -8,12 +8,15 @@ extern void PaUtil_SetDebugPrintFunction(PaUtilLogCallback  cb);
 }
         
 //initialize easylogging
-void PortAudioGlobal::EasyLogInitForPortAudio()
+void PortAudioGlobal::EasyLogInitForPortAudio(const char* log_file)
 {
+    el::Configurations c;
+    c.setToDefault();
+    c.parseFromFile(log_file);
+
     const auto portaudio_logger = el::Loggers::getLogger("portaudio");
     const auto audio_logger = el::Loggers::getLogger("audio");
-	el::Configurations c;
-	c.setFromBase(el::Loggers::getLogger("default")->configurations());
+
 	el::Loggers::reconfigureLogger(portaudio_logger, c);
     el::Loggers::reconfigureLogger(audio_logger, c);
 }
@@ -24,9 +27,9 @@ void PortAudioGlobal::PaLogCallback(const char *log)
 }
 
 //initialize portaudio
-PortAudioGlobal::PortAudioGlobal()
+PortAudioGlobal::PortAudioGlobal(const char* log_file)
 {
-    EasyLogInitForPortAudio();
+    EasyLogInitForPortAudio(log_file);
     PaUtil_SetDebugPrintFunction(PaLogCallback);
     PaError pa_err = Pa_Initialize();
 

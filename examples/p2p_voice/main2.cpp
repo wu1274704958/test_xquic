@@ -10,7 +10,7 @@ constexpr int MAX_PACKET_SIZE = 4000;      // Opus 编码后数据最大长度
 
 int main2() {
 
-    PortAudioGlobal port_audio_global;
+    PortAudioGlobal port_audio_global("audio_log_conf.txt");
     mqas::io::Context io_cxt;
     std::atomic<bool> is_running = true;
     AudioStream audio_stream;

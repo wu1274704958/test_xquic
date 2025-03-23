@@ -66,10 +66,8 @@ private:
     std::vector<int16_t> last_play_buffer;
     //swap buffer
     std::array<std::vector<uint8_t>, 2> record_buffer;
-    std::array<std::vector<int16_t>, 2> far_end_buffer;
     //swap index
     std::atomic<int> swap_index_record = 0;
-    std::atomic<int> swap_index_far_end = 0;
 
     mqas::io::Context* io_cxt;
     //record emit timer run on main thread
@@ -77,5 +75,5 @@ private:
     int last_record_index = -1;
     int last_record_size = 0;
     int last_record_frames = 0;
-    int last_far_end_index = -1;
+    
 };

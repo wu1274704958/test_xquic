@@ -7,9 +7,9 @@
 class PortAudioGlobal
 {
     public:
-    PortAudioGlobal();
+    PortAudioGlobal(const char* log_file);
     ~PortAudioGlobal();
     private:
-    static void EasyLogInitForPortAudio();
+    static void EasyLogInitForPortAudio(const char* log_file);
     static void PaLogCallback(const char *log);
 };

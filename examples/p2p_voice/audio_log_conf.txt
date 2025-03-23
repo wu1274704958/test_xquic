@@ -1,0 +1,8 @@
+* GLOBAL:
+    FORMAT               =  "%datetime [%logger] [%level] %msg"
+    FILENAME             =  "audio.log"
+    ENABLED              =  true
+    TO_FILE              =  true
+    TO_STANDARD_OUTPUT   =  false
+    SUBSECOND_PRECISION  =  6
+    PERFORMANCE_TRACKING =  true
