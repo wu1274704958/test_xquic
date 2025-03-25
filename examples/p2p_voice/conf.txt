@@ -29,3 +29,4 @@ channels=1
 frame_size=480
 max_packet_size=4000
 noise_suppress=-30
+jitter_buf_size=16

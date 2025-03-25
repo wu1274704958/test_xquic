@@ -18,3 +18,10 @@ ssl_key_path="key-def.pem"
 [lsquic_settings]
 es_datagrams=1
 es_base_plpmtu=1500
+[audio]
+sample_rate=48000
+channels=1
+frame_size=480
+max_packet_size=4000
+noise_suppress=-5
+jitter_buf_size=16

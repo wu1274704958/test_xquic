@@ -49,7 +49,9 @@ bool VoiceStream::init_audio_stream()
         toml::find_or<int>(*config,"audio","channels",1),
         toml::find_or<int>(*config,"audio","frame_size",480),
         toml::find_or<int>(*config,"audio","max_packet_size",4000),
-        toml::find_or<int>(*config,"audio","noise_suppress",-30)))
+        toml::find_or<int>(*config,"audio","noise_suppress",-30),
+        toml::find_or<int>(*config,"audio","jitter_buf_size",12)
+    ))
         return false;
     auto conn = connect.lock();
     on_record_conn = audio_stream.reg_on_record_callback(sigc::mem_fun(*this,&VoiceStream::on_record_data));

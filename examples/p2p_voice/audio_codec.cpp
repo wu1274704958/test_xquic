@@ -20,7 +20,7 @@ const char* audio_codec::strerror(int error_code)
 	return opus_strerror(error_code);
 }
 
-int audio_codec::init(int sample_rate, int channels,int frame_size, int application)
+int audio_codec::init(int sample_rate, int channels,int frame_size, int application,int jitter_buf_size)
 {
     _frame_size = frame_size;
 	_sample_rate = sample_rate;
@@ -44,6 +44,9 @@ int audio_codec::init(int sample_rate, int channels,int frame_size, int applicat
     END:
     if(is_err)
         close();
+
+    _jitter_max_count = jitter_buf_size * 2;
+    _jitter_half_count = jitter_buf_size;
 
     _jitter_buffer.resize(_jitter_max_count * _frame_size * channels,0);
     _cached_index.resize(_jitter_max_count,0);
@@ -76,6 +79,9 @@ int audio_codec::encode(const std::span<int16_t>& in, int frame_size, std::span<
     mqas::comm::to_big_endian(++_send_index,out);
     uint16_t crc = static_cast<uint16_t>(crc32(0, out.data() + HEADER_SIZE, byte_size));
     mqas::comm::to_big_endian(crc, out, sizeof(uint32_t));
+    #if !NDEBUG
+    CLOG(ERROR, "audio") << "send index : " << _send_index;
+    #endif
 	return byte_size + HEADER_SIZE;
 }
 
@@ -95,33 +101,36 @@ int audio_codec::decode(const std::span<uint8_t>& in, int frame_size)
 		return OPUS_OK;
     }
 
-    if (index < recv_base_index)
+    if (recv_base_index > 0 &&  index < (recv_base_index * _jitter_max_count) - _jitter_half_count )
     {
         CLOG(ERROR, "audio") << "audio_codec decode recv previous index. index = " << index << " current =  " << recv_base_index  << " checksum = " << checksum << " size = " << in.size() - HEADER_SIZE;
 		return OPUS_OK;
     }
-
+    auto recv_count = _recv_count.load(std::memory_order::memory_order_acquire) + 1;
     std::span<int16_t> out = try_get_jitter_buffer(index);
     
     int byte_size = opus_decode(_decoder, in.data() + HEADER_SIZE, in.size() - HEADER_SIZE, out.data(), frame_size, 0);
     if (byte_size < 0) {
-#if !NDEBUG
+        #if !NDEBUG
         CLOG(ERROR, "audio") << "Opus decode failed: " << opus_strerror(byte_size);
-#endif
+        #endif
     }
 
     if(byte_size <= 0)
         byte_size = opus_decode(_decoder, nullptr, 0, out.data(), frame_size, 1);
-   
-    CLOG(DEBUG, "audio") << "decode new index: " << index;
-    
+    #if !NDEBUG
+        CLOG(DEBUG, "audio") << "decode new index: " << index;
+    #endif
     if(index / _jitter_max_count > recv_base_index )
     {
         recv_base_index = index / _jitter_max_count;
-        CLOG(DEBUG, "audio") << "base index change to " << recv_base_index;
+        #if !NDEBUG
+            CLOG(DEBUG, "audio") << "base index change to " << recv_base_index;
+        #endif
         _recv_base_index.store(recv_base_index,std::memory_order::memory_order_release);
     }
 
+    _recv_count.store(recv_count,std::memory_order::memory_order_release);
 	return byte_size;
 }
 
@@ -135,7 +144,8 @@ std::pair<int,uint32_t> audio_codec::next_far_end_data(std::span<int16_t>& out,i
 { 
     const int size = _frame_size * _channels;
     auto recv_base_index = _recv_base_index.load(std::memory_order::memory_order_acquire);
-    if(recv_base_index == 0)
+    auto recv_count = _recv_count.load(std::memory_order::memory_order_acquire);
+    if(recv_base_index == 0 && recv_count < _jitter_half_count)
     {
         auto byte_size = opus_decode(_decoder, nullptr, 0, out.data(), frame_size, 1);
         if(byte_size <= 0)
@@ -145,7 +155,7 @@ std::pair<int,uint32_t> audio_codec::next_far_end_data(std::span<int16_t>& out,i
     auto played_index = _played_index.load(std::memory_order::memory_order_acquire) + 1;
    
     const int offset = (played_index % _jitter_max_count) * frame_size;
-
+    
     const std::lock_guard<std::mutex> lock(_jitter_using);
 
     if(_cached_index[played_index % _jitter_max_count] == played_index)
@@ -155,6 +165,9 @@ std::pair<int,uint32_t> audio_codec::next_far_end_data(std::span<int16_t>& out,i
         auto byte_size = opus_decode(_decoder, nullptr, 0, out.data(), frame_size, 1);
         if(byte_size <= 0)
             std::memset(out.data(),0,size);
+        ++_loses_pack_num;
+        CLOG(DEBUG, "audio") << "curr = " << played_index << " total " << " lose " << _loses_pack_num << " pack. lose rate " 
+             << _loses_pack_num / (float)played_index;
     }
 
     _played_index.store(played_index,std::memory_order::memory_order_release);
@@ -168,7 +181,17 @@ std::span<int16_t> audio_codec::try_get_jitter_buffer(uint32_t index)
     const std::lock_guard<std::mutex> lock(_jitter_using);
     const int frame_size = _frame_size * _channels;
     const int offset = (index % _jitter_max_count) * frame_size;
-    return std::span<int16_t>( _jitter_buffer.data() + offset, frame_size );
-
     _cached_index[index % _jitter_max_count] = index;
+    return std::span<int16_t>( _jitter_buffer.data() + offset, frame_size );
+}
+
+size_t audio_codec::get_cache_index_offset(uint32_t index) const
+{
+    return index % _jitter_max_count;
+}
+
+size_t audio_codec::get_jitter_buf_offset(uint32_t index) const
+{
+    const int size = _frame_size * _channels;
+    return (index % _jitter_max_count) * size;
 }

@@ -19,7 +19,7 @@ public:
     ~AudioStream();
 
     bool start(mqas::io::Context* io_cxt,int sample_rate = 48000, int channels = 1, int frame_size = 480, int max_packet_size = 4000,
-         int noise_suppress = -30);
+         int noise_suppress = -30,int jitter_buf_size = 12);
     void close();
 
     //always used on main thread

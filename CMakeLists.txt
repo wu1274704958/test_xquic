@@ -5,6 +5,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   add_compile_options("/permissive-")
 endif()
 
+add_definitions(-DELPP_THREAD_SAFE)
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 	add_definitions(-DWIN32_LEAN_AND_MEAN -DWIN32 -DNOMINMAX)
 	add_compile_options(/EHsc)

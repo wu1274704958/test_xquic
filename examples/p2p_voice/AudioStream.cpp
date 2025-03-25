@@ -15,7 +15,7 @@ AudioStream::~AudioStream()
     close();
 }
 
-bool AudioStream::start(mqas::io::Context* io_cxt,int sample_rate, int channels, int frame_size, int max_packet_size, int noise_suppress)
+bool AudioStream::start(mqas::io::Context* io_cxt,int sample_rate, int channels, int frame_size, int max_packet_size, int noise_suppress,int jitter_buf_size)
 {
     if(io_cxt == nullptr)
         return false;
@@ -30,7 +30,7 @@ bool AudioStream::start(mqas::io::Context* io_cxt,int sample_rate, int channels,
     //init decoder encoder
     PaError pa_err = paNoError;
 #if USE_OPUS
-    int opus_err = _codec.init(sample_rate, channels,frame_size,OPUS_APPLICATION_VOIP);
+    int opus_err = _codec.init(sample_rate, channels,frame_size,OPUS_APPLICATION_VOIP,jitter_buf_size);
     if(opus_err != OPUS_OK)
     {
 		is_err = true;
@@ -138,6 +138,8 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
                                 const PaStreamCallbackTimeInfo* timeInfo,
                                 PaStreamCallbackFlags statusFlags)
 {
+    if(!is_start.load(std::memory_order_acquire))
+        return paComplete;
     //test
     // if(!inputBuffer)
     //     return paContinue;
@@ -148,6 +150,7 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
     
     std::span<int16_t> out( (int16_t*)outputBuffer, byte_size );
     _codec.next_far_end_data(out,framesPerBuffer);
+    on_decode_far_end_data.emit(out);
 
     //process record
     if(!inputBuffer)
