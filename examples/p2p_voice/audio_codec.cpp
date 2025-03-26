@@ -97,6 +97,9 @@ int audio_codec::encode(const std::span<int16_t>& in, int frame_size, std::span<
 
 int audio_codec::decode(const std::span<uint8_t>& in, int frame_size)
 {
+    #if USE_OPUS
+    if(_encoder == nullptr || _decoder == nullptr) return 0;
+    #endif
     auto recv_base_index = _recv_base_index.load(std::memory_order::memory_order_acquire);
     if(in.size() < HEADER_SIZE)
 		return OPUS_BAD_ARG;

@@ -384,11 +384,18 @@ void tui::draw()
 		int count = std::min((size_t)p2p_cxt->width,far_end_data.size());
 		int y_limit = p2p_cxt->height;
 		int x = 1;
+		int mid = p2p_cxt->height / 2;
 		for (size_t i = 0; i < count; i++)
 		{
-			float normalized = (((float)far_end_data[i] / 240) + 1.0f) * 0.5f;
+			float normalized = (((float)far_end_data[i] / 3200) + 1.0f) * 0.5f;
 			int y_real = (int)(normalized * y_limit);
-			wmove(win,y + y_real,x + i);
+			while (y_real != mid)
+			{
+				wmove(win,y + y_real,x + i);
+				wprintw(win,"*");
+				y_real += y_real > mid ? -1 : 1;
+			}
+			wmove(win,y + mid,x + i);
 			wprintw(win,"*");
 		}
 	}
