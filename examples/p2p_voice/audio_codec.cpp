@@ -189,7 +189,7 @@ std::pair<int,uint32_t> audio_codec::next_far_end_data(std::span<int16_t>& out,i
     {
         memcpy(out.data(),_jitter_buffer.data() + offset,size);
         #if JITTER_BUF_CHECKSUM
-        if(_jitter_checksum_buf[get_cache_index_offset(played_index)] != crc32(0,(uint8_t*)(_jitter_buffer.data() + offset),size * sizeof(uint16_t)))
+        if(_jitter_checksum_buf[get_cache_index_offset(played_index)] != crc32(0,(uint8_t*)(_jitter_buffer.data() + offset),size))
             CLOG(DEBUG, "audio") << "curr = " << played_index << " jitter checksum failed ";
         #endif
         _jitter_using.unlock();
