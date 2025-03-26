@@ -35,8 +35,8 @@ private:
     std::vector<int16_t> _jitter_buffer;
     std::vector<uint32_t> _cached_index;
     std::mutex _jitter_using;
-    std::atomic_uint8_t _jitter_max_count = 10;
-    std::atomic_uint8_t _jitter_half_count = 5;
+    std::atomic_uint16_t _jitter_max_count = 10;
+    std::atomic_uint16_t _jitter_half_count = 5;
     std::atomic_uint32_t _loses_pack_num = 0;
     //std::atomic_uint8_t _jitter_count = 0;
     bool _fec_enabled:1 = false;

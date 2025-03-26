@@ -75,10 +75,8 @@ bool AudioStream::start(mqas::io::Context* io_cxt,int sample_rate, int channels,
     {
         processed_buffer.resize(frame_size * channels, 0);
         last_play_buffer.resize(frame_size * channels, 0);
-        for (size_t i = 0; i < record_buffer.size(); i++)
-        {
-            record_buffer[i].resize(frame_size * sizeof(uint16_t) * channels + audio_codec::HEADER_SIZE , 0);
-        }
+        
+        record_buffer.resize(frame_size * sizeof(uint16_t) * channels + audio_codec::HEADER_SIZE , 0);
     }
 
     idle = io_cxt->make_shared<mqas::io::Idle>();
@@ -125,12 +123,14 @@ inline int get_other_index(int index)
     
 void AudioStream::emit_idle_callback(mqas::io::Idle* idle)
 {
-    auto swap_index = get_other_index(swap_index_record.load(std::memory_order_acquire));
-    if(last_record_index != swap_index)
+    auto record_count = _record_count.load(std::memory_order_acquire);
+    std::optional<std::span<uint8_t>> record_data;
     {
-        on_record_signal.emit(std::span<uint8_t>(record_buffer[swap_index].data(), last_record_size), last_record_frames);
-        last_record_index = swap_index;
+        std::lock_guard<std::mutex> lock(record_mutex);
+        while ((bool)(record_data = record_datagram_buffer.pop()))
+            on_record_signal.emit(*record_data, frame_size);
     }
+    _record_count.store(0, std::memory_order_release);
 }
 
 int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer,
@@ -160,11 +160,9 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
     
     speex_echo_cancellation(echo_state, in, last_play_buffer.data(), processed_buffer.data());
     speex_preprocess_run(preprocess_state, processed_buffer.data());
-   
-    auto& record_buf = record_buffer[swap_index_for_record];
 
 #if USE_OPUS
-    auto tmp_buf = std::span<uint8_t>{ record_buf };
+    auto tmp_buf = std::span<uint8_t>{ record_buffer };
     last_record_size = _codec.encode(processed_buffer, framesPerBuffer, tmp_buf);
     if(last_record_size < 0)
     {
@@ -175,6 +173,14 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
     last_record_size = byte_size;
     std::memcpy(record_buf.data(),processed_buffer.data(),byte_size);
 #endif
+
+    auto record_count = _record_count.load(std::memory_order_acquire);
+    {
+        std::lock_guard<std::mutex> lock(record_mutex);
+        record_datagram_buffer.push(std::span<uint8_t>(record_buffer.data(), last_record_size));
+    }
+    _record_count.store(record_datagram_buffer.count(),std::memory_order_release);
+
 
     //copy to last play buffer
     std::memcpy(last_play_buffer.data(),outputBuffer,byte_size);

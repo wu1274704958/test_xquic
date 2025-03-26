@@ -143,9 +143,8 @@ void audio_codec::set_fec(bool enable) {
 std::pair<int,uint32_t> audio_codec::next_far_end_data(std::span<int16_t>& out,int frame_size)
 { 
     const int size = _frame_size * _channels;
-    auto recv_base_index = _recv_base_index.load(std::memory_order::memory_order_acquire);
     auto recv_count = _recv_count.load(std::memory_order::memory_order_acquire);
-    if(recv_base_index == 0 && recv_count < _jitter_half_count)
+    if(recv_count < _jitter_half_count)
     {
         auto byte_size = opus_decode(_decoder, nullptr, 0, out.data(), frame_size, 1);
         if(byte_size <= 0)
@@ -156,12 +155,14 @@ std::pair<int,uint32_t> audio_codec::next_far_end_data(std::span<int16_t>& out,i
    
     const int offset = (played_index % _jitter_max_count) * frame_size;
     
-    const std::lock_guard<std::mutex> lock(_jitter_using);
+    _jitter_using.lock();
 
     if(_cached_index[played_index % _jitter_max_count] == played_index)
     {
         memcpy(out.data(),_jitter_buffer.data() + offset,size);
+        _jitter_using.unlock();
     }else{
+        _jitter_using.unlock();
         auto byte_size = opus_decode(_decoder, nullptr, 0, out.data(), frame_size, 1);
         if(byte_size <= 0)
             std::memset(out.data(),0,size);

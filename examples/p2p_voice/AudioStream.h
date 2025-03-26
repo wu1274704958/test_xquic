@@ -11,6 +11,7 @@
 #include <array>
 #include <mqas/io/idle.h>
 #include "audio_codec.h"
+#include <mqas/tools/datagram_buffer.h>
 
 class AudioStream
 {
@@ -64,8 +65,11 @@ private:
     //buffer
     std::vector<int16_t> processed_buffer;
     std::vector<int16_t> last_play_buffer;
-    //swap buffer
-    std::array<std::vector<uint8_t>, 2> record_buffer;
+    //record buffer
+    std::vector<uint8_t> record_buffer;
+    mqas::tools::datagram_buffer record_datagram_buffer;
+    std::atomic_uint32_t _record_count = 0;
+    std::mutex record_mutex;
     //swap index
     std::atomic<int> swap_index_record = 0;
 
