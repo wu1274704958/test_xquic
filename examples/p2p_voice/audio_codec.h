@@ -6,6 +6,8 @@
 #include <mutex>
 #include <functional>
 
+#define JITTER_BUF_CHECKSUM 1
+
 struct audio_codec
 {                                         //index + checksum
     static constexpr size_t HEADER_SIZE = sizeof(uint32_t) + sizeof(uint16_t);
@@ -33,7 +35,10 @@ private:
     std::atomic_uint32_t _recv_base_index = 0;
     std::atomic_uint32_t _recv_count = 0;
     std::vector<int16_t> _jitter_buffer;
-    std::vector<uint32_t> _cached_index;
+    std::vector<uint32_t> _cached_index_buf;
+    #if JITTER_BUF_CHECKSUM
+    std::vector<uint32_t> _jitter_checksum_buf;
+    #endif
     std::mutex _jitter_using;
     std::atomic_uint16_t _jitter_max_count = 10;
     std::atomic_uint16_t _jitter_half_count = 5;

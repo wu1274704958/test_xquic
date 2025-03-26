@@ -3,7 +3,7 @@
 #include <mqas/comm/binary.hpp>
 #include <speex/speex_echo.h>
 
-#define USE_OPUS 1
+#define USE_SPEEX 1
 
 AudioStream::AudioStream()
 {
@@ -29,14 +29,14 @@ bool AudioStream::start(mqas::io::Context* io_cxt,int sample_rate, int channels,
     bool is_err = false;
     //init decoder encoder
     PaError pa_err = paNoError;
-#if USE_OPUS
-    int opus_err = _codec.init(sample_rate, channels,frame_size,OPUS_APPLICATION_VOIP,jitter_buf_size);
+    int opus_err = _codec.init(sample_rate, channels,frame_size,OPUS_APPLICATION_AUDIO,jitter_buf_size);
     if(opus_err != OPUS_OK)
     {
 		is_err = true;
 		goto END;
 	}
-#endif
+
+    #if USE_SPEEX
     //init Speex noise suppression
     preprocess_state = speex_preprocess_state_init(frame_size * channels, sample_rate);
     if(preprocess_state == nullptr)
@@ -55,7 +55,7 @@ bool AudioStream::start(mqas::io::Context* io_cxt,int sample_rate, int channels,
         CLOG(ERROR,"audio") << "speex_echo_state_init failed";
         goto END;
     }
-
+    #endif
     //init PortAudio stream
     pa_err = Pa_OpenDefaultStream(&stream, channels, channels, paInt16, sample_rate, frame_size, port_audio_callback_static, this);
     if (pa_err != paNoError) {
@@ -148,7 +148,7 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
     //process far end
     const size_t byte_size = framesPerBuffer * channels * sizeof(int16_t);
     
-    std::span<int16_t> out( (int16_t*)outputBuffer, byte_size );
+    std::span<int16_t> out( (int16_t*)outputBuffer, framesPerBuffer * channels );
     _codec.next_far_end_data(out,framesPerBuffer);
     on_decode_far_end_data.emit(out);
 
@@ -157,11 +157,12 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
         return paContinue;
     auto swap_index_for_record = swap_index_record.load(std::memory_order_acquire);
     const int16_t* in = static_cast<const int16_t*>(inputBuffer);
-    
+    #if USE_SPEEX
     speex_echo_cancellation(echo_state, in, last_play_buffer.data(), processed_buffer.data());
     speex_preprocess_run(preprocess_state, processed_buffer.data());
-
-#if USE_OPUS
+    #else
+    std::memcpy(processed_buffer.data(),in,byte_size);
+    #endif
     auto tmp_buf = std::span<uint8_t>{ record_buffer };
     last_record_size = _codec.encode(processed_buffer, framesPerBuffer, tmp_buf);
     if(last_record_size < 0)
@@ -169,10 +170,6 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
         CLOG(ERROR,"audio") << "Opus encode failed: " << opus_strerror(last_record_size);
         return paContinue;
     }
-#else
-    last_record_size = byte_size;
-    std::memcpy(record_buf.data(),processed_buffer.data(),byte_size);
-#endif
 
     auto record_count = _record_count.load(std::memory_order_acquire);
     {
