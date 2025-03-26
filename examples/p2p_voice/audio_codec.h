@@ -6,7 +6,7 @@
 #include <mutex>
 #include <functional>
 
-#define JITTER_BUF_CHECKSUM 1
+#define JITTER_BUF_CHECKSUM 0
 
 struct audio_codec
 {                                         //index + checksum
