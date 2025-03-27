@@ -19,6 +19,7 @@ struct audio_codec
     int encode(const std::span<int16_t>& in,int frame_size,std::span<uint8_t>& out);
     int decode(const std::span<uint8_t>& in, int frame_size);
     std::pair<int,uint32_t> next_far_end_data(std::span<int16_t>& out,int frame_size);
+    bool initialized() const;
 private:
     std::span<int16_t> try_get_jitter_buffer(uint32_t index);
     void set_fec(bool enable); 
@@ -44,5 +45,6 @@ private:
     std::atomic_uint16_t _jitter_half_count = 5;
     std::atomic_uint32_t _loses_pack_num = 0;
     //std::atomic_uint8_t _jitter_count = 0;
+    std::atomic_bool _initialized = false;
     bool _fec_enabled:1 = false;
 };

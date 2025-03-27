@@ -45,8 +45,10 @@ int audio_codec::init(int sample_rate, int channels,int frame_size, int applicat
     #endif
     END:
     if(is_err)
+    {
         close();
-
+        return opus_err;
+    }
     _jitter_max_count = jitter_buf_size * 2;
     _jitter_half_count = jitter_buf_size;
 
@@ -58,6 +60,7 @@ int audio_codec::init(int sample_rate, int channels,int frame_size, int applicat
     #if USE_OPUS
     set_fec(true);
     #endif
+    _initialized.store(true,std::memory_order::memory_order_release);
 	return opus_err;
 }
 
@@ -69,6 +72,7 @@ void audio_codec::close()
         opus_decoder_destroy(_decoder);
     _encoder = nullptr;
     _decoder = nullptr;
+    _initialized.store(false,std::memory_order::memory_order_release);
 }
 
 int audio_codec::encode(const std::span<int16_t>& in, int frame_size, std::span<uint8_t>& out)
@@ -97,9 +101,6 @@ int audio_codec::encode(const std::span<int16_t>& in, int frame_size, std::span<
 
 int audio_codec::decode(const std::span<uint8_t>& in, int frame_size)
 {
-    #if USE_OPUS
-    if(_encoder == nullptr || _decoder == nullptr) return 0;
-    #endif
     auto recv_base_index = _recv_base_index.load(std::memory_order::memory_order_acquire);
     if(in.size() < HEADER_SIZE)
 		return OPUS_BAD_ARG;
@@ -215,6 +216,10 @@ std::pair<int,uint32_t> audio_codec::next_far_end_data(std::span<int16_t>& out,i
 	return { size , played_index};
 }
 
+bool audio_codec::initialized() const
+{
+    return _initialized.load(std::memory_order::memory_order_acquire);
+}
 
 std::span<int16_t> audio_codec::try_get_jitter_buffer(uint32_t index)
 {

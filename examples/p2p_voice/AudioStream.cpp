@@ -138,7 +138,7 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
                                 const PaStreamCallbackTimeInfo* timeInfo,
                                 PaStreamCallbackFlags statusFlags)
 {
-    if(!is_start.load(std::memory_order_acquire))
+    if(!is_start.load(std::memory_order_acquire) || !_codec.initialized())
         return paComplete;
     //test
     // if(!inputBuffer)
