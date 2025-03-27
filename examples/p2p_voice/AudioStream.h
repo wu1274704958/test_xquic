@@ -70,14 +70,8 @@ private:
     mqas::tools::datagram_buffer record_datagram_buffer;
     std::atomic_uint32_t _record_count = 0;
     std::mutex record_mutex;
-    //swap index
-    std::atomic<int> swap_index_record = 0;
 
     mqas::io::Context* io_cxt;
     //record emit timer run on main thread
     std::shared_ptr<mqas::io::Idle> idle;
-    int last_record_index = -1;
-    int last_record_size = 0;
-    int last_record_frames = 0;
-    
 };

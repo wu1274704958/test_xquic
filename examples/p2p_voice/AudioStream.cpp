@@ -116,10 +116,6 @@ int AudioStream::port_audio_callback_static(const void* inputBuffer, void* outpu
     return static_cast<AudioStream*>(userData)->port_audio_callback(inputBuffer, outputBuffer, framesPerBuffer, timeInfo, statusFlags);
 }
 
-inline int get_other_index(int index)
-{
-    return index == 0 ? 1 : 0;
-}
     
 void AudioStream::emit_idle_callback(mqas::io::Idle* idle)
 {
@@ -155,7 +151,6 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
     //process record
     if(!inputBuffer)
         return paContinue;
-    auto swap_index_for_record = swap_index_record.load(std::memory_order_acquire);
     const int16_t* in = static_cast<const int16_t*>(inputBuffer);
     #if USE_SPEEX
     speex_echo_cancellation(echo_state, in, last_play_buffer.data(), processed_buffer.data());
@@ -164,26 +159,22 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
     std::memcpy(processed_buffer.data(),in,byte_size);
     #endif
     auto tmp_buf = std::span<uint8_t>{ record_buffer };
-    last_record_size = _codec.encode(processed_buffer, framesPerBuffer, tmp_buf);
-    if(last_record_size < 0)
+    auto record_size = _codec.encode(processed_buffer, framesPerBuffer, tmp_buf);
+    if(record_size < 0)
     {
-        CLOG(ERROR,"audio") << "Opus encode failed: " << opus_strerror(last_record_size);
+        CLOG(ERROR,"audio") << "Opus encode failed: " << opus_strerror(record_size);
         return paContinue;
     }
 
     auto record_count = _record_count.load(std::memory_order_acquire);
     {
         std::lock_guard<std::mutex> lock(record_mutex);
-        record_datagram_buffer.push(std::span<uint8_t>(record_buffer.data(), last_record_size));
+        record_datagram_buffer.push(std::span<uint8_t>(record_buffer.data(), record_size));
     }
     _record_count.store(record_datagram_buffer.count(),std::memory_order_release);
 
-
     //copy to last play buffer
     std::memcpy(last_play_buffer.data(),outputBuffer,byte_size);
-
-    last_record_frames = framesPerBuffer;
-    swap_index_record.store(get_other_index(swap_index_for_record), std::memory_order_release);
 
     return paContinue;
 }
