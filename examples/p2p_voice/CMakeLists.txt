@@ -34,6 +34,7 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
         Opus::opus
         portaudio
         ${SPEEXDSP_LIBRARIES}
+        WebRTC::AudioProcessing
 )
 
 get_target_property(mqas_TARGET_TYPE mqas TYPE)
