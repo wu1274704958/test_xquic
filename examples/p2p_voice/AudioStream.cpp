@@ -1,5 +1,3 @@
-#define USE_SPEEX 0
-#define USE_WEBRTC 1
 #include "AudioStream.h"
 #include "easylogging++.h"
 #include <mqas/comm/binary.hpp>
@@ -42,9 +40,13 @@ bool AudioStream::start(mqas::io::Context* io_cxt,int sample_rate, int channels,
     apm_config.echo_canceller.enforce_high_pass_filtering = true;
     apm_config.echo_canceller.export_linear_aec_output = false;
     apm_config.noise_suppression.enabled = true;
+    apm_config.high_pass_filter.enabled = true;
+    apm_config.gain_controller1.enabled = true;
+    apm_config.gain_controller1.mode = webrtc::AudioProcessing::Config::GainController1::kAdaptiveAnalog;
+    apm_config.gain_controller2.enabled = true;
     apm_config.noise_suppression.level = webrtc::AudioProcessing::Config::NoiseSuppression::Level::kHigh;
-    audio_processing = webrtc::AudioProcessingBuilder()
-        .SetConfig(apm_config).Create();
+    audio_processing = webrtc::AudioProcessingBuilder().Create();
+    audio_processing->ApplyConfig(apm_config);
     stream_config.set_sample_rate_hz(sample_rate);
     stream_config.set_num_channels(channels);
     #endif
@@ -168,6 +170,9 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
     
     std::span<int16_t> out( (int16_t*)outputBuffer, framesPerBuffer * channels );
     _codec.next_far_end_data(out,framesPerBuffer);
+    #if USE_WEBRTC
+    audio_processing->ProcessReverseStream(out.data(),stream_config,stream_config,out.data());
+    #endif
     on_decode_far_end_data.emit(out);
 
     //process record

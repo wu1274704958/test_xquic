@@ -1,5 +1,8 @@
 #pragma once
 
+#define USE_SPEEX 0
+#define USE_WEBRTC 1
+
 #include <portaudio.h>
 #include <sigc++/sigc++.h>
 #include <span>
