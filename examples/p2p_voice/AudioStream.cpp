@@ -1,9 +1,12 @@
+#define USE_SPEEX 0
+#define USE_WEBRTC 1
 #include "AudioStream.h"
 #include "easylogging++.h"
 #include <mqas/comm/binary.hpp>
+#if USE_SPEEX
 #include <speex/speex_echo.h>
+#endif
 
-#define USE_SPEEX 1
 
 AudioStream::AudioStream()
 {
@@ -29,6 +32,23 @@ bool AudioStream::start(mqas::io::Context* io_cxt,int sample_rate, int channels,
     bool is_err = false;
     //init decoder encoder
     PaError pa_err = paNoError;
+
+
+    #if USE_WEBRTC
+    //init webrtc echo cancellation
+    webrtc::AudioProcessing::Config apm_config;
+    apm_config.echo_canceller.enabled = true;
+    apm_config.echo_canceller.mobile_mode = false;
+    apm_config.echo_canceller.enforce_high_pass_filtering = true;
+    apm_config.echo_canceller.export_linear_aec_output = false;
+    apm_config.noise_suppression.enabled = true;
+    apm_config.noise_suppression.level = webrtc::AudioProcessing::Config::NoiseSuppression::Level::kHigh;
+    audio_processing = webrtc::AudioProcessingBuilder()
+        .SetConfig(apm_config).Create();
+    stream_config.set_sample_rate_hz(sample_rate);
+    stream_config.set_num_channels(channels);
+    #endif
+
     int opus_err = _codec.init(sample_rate, channels,frame_size,OPUS_APPLICATION_AUDIO,jitter_buf_size);
     if(opus_err != OPUS_OK)
     {
@@ -95,10 +115,12 @@ void AudioStream::close()
         return;
 
     _codec.close();
+    #if USE_SPEEX
     if(preprocess_state)
         speex_preprocess_state_destroy(preprocess_state);
     if(echo_state)
         speex_echo_state_destroy(echo_state);
+    #endif
     if (stream)
         Pa_CloseStream(stream);
     if(idle)
@@ -155,6 +177,8 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
     #if USE_SPEEX
     speex_echo_cancellation(echo_state, in, last_play_buffer.data(), processed_buffer.data());
     speex_preprocess_run(preprocess_state, processed_buffer.data());
+    #elif USE_WEBRTC
+    audio_processing->ProcessStream(in,stream_config,stream_config,processed_buffer.data());
     #else
     std::memcpy(processed_buffer.data(),in,byte_size);
     #endif
@@ -172,10 +196,10 @@ int AudioStream::port_audio_callback(const void* inputBuffer, void* outputBuffer
         record_datagram_buffer.push(std::span<uint8_t>(record_buffer.data(), record_size));
     }
     _record_count.store(record_datagram_buffer.count(),std::memory_order_release);
-
+    #if USE_SPEEX
     //copy to last play buffer
     std::memcpy(last_play_buffer.data(),outputBuffer,byte_size);
-
+    #endif
     return paContinue;
 }
 

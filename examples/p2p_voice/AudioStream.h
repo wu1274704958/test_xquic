@@ -6,12 +6,19 @@
 #include <atomic>
 #include <mutex>
 #include <opus/opus.h>
+#if USE_SPEEX
 #include <speex/speex_preprocess.h>
 #include <speex/speex_echo.h>
+#endif
 #include <array>
 #include <mqas/io/idle.h>
 #include "audio_codec.h"
 #include <mqas/tools/datagram_buffer.h>
+
+#if USE_WEBRTC
+#include <api/scoped_refptr.h>
+#include <modules/audio_processing/include/audio_processing.h>
+#endif
 
 class AudioStream
 {
@@ -50,10 +57,16 @@ private:
     std::atomic<bool> is_start = false;
     //decoder encoder
     audio_codec _codec;
+    #if USE_SPEEX
     //Speex noise suppression
     SpeexPreprocessState* preprocess_state = nullptr;
     //Speex echo suppression
     SpeexEchoState* echo_state = nullptr;
+    #endif
+    #if USE_WEBRTC
+    webrtc::scoped_refptr<webrtc::AudioProcessing> audio_processing;
+    webrtc::StreamConfig stream_config;
+    #endif
     //stream
     PaStream* stream = nullptr;
     //config
