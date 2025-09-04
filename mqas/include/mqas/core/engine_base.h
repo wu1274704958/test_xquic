@@ -21,10 +21,10 @@ namespace mqas::core
 	template<typename E, typename ED = engine_driver,typename SC = io::UdpSocket>
 	requires requires
 	{
-		requires IsVaildEngineDriver<ED>;
+		requires mqas::core::IsVaildEngineDriver<ED>;
 		requires std::is_default_constructible_v<E>;
-		requires std::is_base_of_v<IEngine, E>;
-		requires IsVaildSocket<SC>;
+		requires std::is_base_of_v<mqas::core::IEngine, E>;
+		requires mqas::core::IsVaildSocket<SC>;
 	}
 	class MQAS_EXTERN engine_base
 	{

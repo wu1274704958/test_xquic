@@ -1,3 +1,15 @@
 [submodule "third_party/webrtc-audio-processing"]
 	path = third_party/webrtc-audio-processing
 	url = git@github.com:wu1274704958/webrtc-audio-processing.git
+[submodule "third_party/lsquic"]
+	path = third_party/lsquic
+	url = https://github.com/litespeedtech/lsquic.git
+[submodule "third_party/boringssl"]
+	path = third_party/boringssl
+	url = https://boringssl.googlesource.com/boringssl
+[submodule "third_party/protobuf"]
+	path = third_party/protobuf
+	url = https://github.com/protocolbuffers/protobuf.git
+[submodule "third_party/easyloggingpp"]
+	path = third_party/easyloggingpp
+	url = https://github.com/abumq/easyloggingpp.git

@@ -178,7 +178,7 @@ int main(int argc, const char** argv)
 		if(!io::Ip::str2addr_ipv4(ip.c_str(), port, addr))
 			throw new std::exception("Not found target address!");
 		auto c = e.get_engine()->connect(addr, N_LSQVER);
-		e.get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(addr));
+		e.get_engine()->whitelist_addr.push_back(addr);
 		e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(addr));
 		ui.config = e.get_engine()->get_config();
 		auto conn = c.lock();
@@ -720,7 +720,7 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 	};
 	std::function<void(EngineTy&)> on_init_func = [this](EngineTy& e)
 	{
-		e.get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(p2p_addr));
+		e.get_engine()->whitelist_addr.push_back(p2p_addr);
 		e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(p2p_addr));
 	};
 	auto p2p_conf = toml::find<std::string>(*config,"p2p","conf");
@@ -795,7 +795,7 @@ bool tui::launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConn
 	relay_engine = comm::engine_util::launch_sub_engine<RelayStreamType>(io_cxt.value().get(), relay_conf.c_str(),
 			core::EngineFlags::None, sock, on_connect, &relay_addr,exception_func);
 
-	relay_engine->get_engine()->whitelist_addr.push_back(std::make_unique<sockaddr>(relay_addr));
+	relay_engine->get_engine()->whitelist_addr.push_back(relay_addr);
 	relay_engine->get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(relay_addr));
 	return true;
 }

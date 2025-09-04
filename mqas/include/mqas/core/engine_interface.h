@@ -40,7 +40,7 @@ namespace mqas::core
 		const std::shared_ptr<io::UdpSocket> get_socket() const;
 		const std::shared_ptr<engine_config> get_engine_config() const;
 		std::vector<uint16_t> whitelist_port;
-		std::vector<std::unique_ptr<sockaddr>> whitelist_addr;
+		std::vector<sockaddr> whitelist_addr;
 	public:
 		std::shared_ptr<engine_cxt> context;
 	protected:

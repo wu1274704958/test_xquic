@@ -118,7 +118,7 @@ namespace mqas::core {
     sigc::connection ProtoBufStream<S,M...>::add_handler(size_t mid,const HANDLER_FUN_TY::slot_type& f)
     {
         if(!msg_handlers_.contains(mid))
-            msg_handlers_.emplace(mid);
+            msg_handlers_.emplace(std::make_pair(mid, HANDLER_FUN_TY{}));
         return msg_handlers_[mid].connect(f);
     }
     MQAS_PB_STREAM_TEMPLATE_DECL

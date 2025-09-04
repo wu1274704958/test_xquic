@@ -38,7 +38,7 @@ bool mqas::core::IEngine::on_recv(const std::optional<std::span<uint8_t>>& buf, 
 	}
 	if (!whitelist_addr.empty())
 	{
-		auto it = std::find_if(whitelist_addr.begin(), whitelist_addr.end(), [addr](const std::unique_ptr<sockaddr>& a){ return io::Ip::compare_ip(*addr, *a, true); });
+		auto it = std::find_if(whitelist_addr.begin(), whitelist_addr.end(), [addr](const sockaddr& a){ return io::Ip::compare_ip(*addr, a, true); });
 		if (it == whitelist_addr.end())
 			return false;
 	}

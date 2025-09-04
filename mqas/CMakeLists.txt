@@ -30,24 +30,30 @@ else()
     endif()
 endif()
 
+add_dependencies(${CUR_TARGET_NAME} lsquic easyloggingpp)
+
+set(mqas_dependencies_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" ${easyloggingpp_INCLUDE_DIR} ${protobuf_INCLUDE_DIR})
+
 set_target_properties(${CUR_TARGET_NAME} PROPERTIES 
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    INTERFACE_INCLUDE_DIRECTORIES ${mqas_dependencies_INCLUDE_DIR})
 
 
 target_include_directories(${CUR_TARGET_NAME} PRIVATE 
     ${boringssl_INCLUDE_DIR}
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     ${easyloggingpp_INCLUDE_DIR}
+    ${protobuf_INCLUDE_DIR}
 )
 
 target_link_libraries(${CUR_TARGET_NAME} PRIVATE 
     lsquic::lsquic
+    lsquic
     ${OTH_LIBRARY}
     ${boringssl_LIBRARY}
     ZLIB::ZLIB
     $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
     toml11::toml11
-    ${easyloggingpp_LIBRARY}
+    easyloggingpp
     protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
     sigc-3.0
 )

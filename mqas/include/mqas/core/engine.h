@@ -68,7 +68,7 @@ namespace mqas::core {
 	template<typename C>
 	requires requires{
 		requires std::is_default_constructible_v<C>;
-		requires std::is_base_of_v<IConnect, C>;
+		requires std::is_base_of_v<mqas::core::IConnect, C>;
 	}
 	class engine : public mqas::core::IEngine,public std::enable_shared_from_this<engine<C>>
 	{
