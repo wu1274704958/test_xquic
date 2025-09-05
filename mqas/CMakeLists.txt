@@ -57,3 +57,5 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
     protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
     sigc-3.0
 )
+
+

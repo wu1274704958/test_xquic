@@ -5,9 +5,10 @@
 #include <typeindex>
 #include <memory>
 #include <optional>
+#include <mqas/macro.h>
 
 namespace mqas::comm {
-	class locator {
+	class MQAS_EXTERN locator {
 
 		public:
 			static std::shared_ptr<locator> inst();

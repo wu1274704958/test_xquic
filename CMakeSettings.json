@@ -9,7 +9,7 @@
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "cmakeCommandArgs": "-DBUILD_MQAS_EXAMPLES=ON",
+      "cmakeCommandArgs": "-DBUILD_MQAS_EXAMPLES=ON -DBUILD_P2P_VOICE=ON",
       "variables": [
         {
           "name": "BUILD_MQAS_LIB_OBJ",
@@ -75,8 +75,7 @@
       "cmakeCommandArgs": "-DBUILD_MQAS_EXAMPLES=ON -DBUILD_SHARED_LIBS=OFF",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "inheritEnvironments": [ "clang_cl_x64_x64" ],
-      "variables": []
+      "inheritEnvironments": [ "clang_cl_x64_x64" ]
     }
   ]
 }

@@ -13,8 +13,7 @@ using Stream = core::StreamVariant<
 >;
 int main(int argc,const char** argv)
 {
-    if(argc < 2) return -1;
-    auto file_path = argv[1];
+    auto file_path = "C:\\Users\\shuaijiewu\\Pictures\\Screenshots\\Screenshot 2025-07-18 185100.png";
     auto buf_size = 2048;
     bool overlay = false;
     if(argc >= 3)

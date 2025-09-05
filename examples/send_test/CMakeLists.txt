@@ -7,16 +7,16 @@ target_include_directories(${CUR_TARGET_NAME} PRIVATE
 )
 target_link_libraries(${CUR_TARGET_NAME} PRIVATE 
     lsquic::lsquic
+    lsquic
     ${OTH_LIBRARY}
     ${boringssl_LIBRARY}
     ZLIB::ZLIB
     $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
     mqas
     sigc-3.0
+    protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
 )
 
-get_target_property(mqas_TARGET_TYPE mqas TYPE)
-if(mqas_TARGET_TYPE STREQUAL "SHARED_LIBRARY")
-    add_custom_command(TARGET ${CUR_TARGET_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:mqas> ${CMAKE_CURRENT_BINARY_DIR})
-endif()
+include(fileop)
+
+bulk_copy_files(${CUR_TARGET_NAME} ${CMAKE_CURRENT_BINARY_DIR} POST_BUILD mqas_dependencies_BINARY)

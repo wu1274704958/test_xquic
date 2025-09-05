@@ -26,7 +26,7 @@ namespace mqas::core
 		requires std::is_base_of_v<mqas::core::IEngine, E>;
 		requires mqas::core::IsVaildSocket<SC>;
 	}
-	class MQAS_EXTERN engine_base
+	class engine_base
 	{
 		friend E;
 	public:

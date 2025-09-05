@@ -7,7 +7,7 @@
 namespace mqas::tools {
 
 	template<typename T>
-	class MQAS_EXTERN peer_context_mgr
+	class peer_context_mgr
 	{
 		public:
 		core::peer_context<T>& get_or_create(const sockaddr* addr,T* t);

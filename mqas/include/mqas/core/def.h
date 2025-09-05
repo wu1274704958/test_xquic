@@ -122,7 +122,7 @@ namespace mqas::core
     };
 
     template<typename T>
-    struct MQAS_EXTERN peer_context {
+    struct peer_context {
         peer_context():engine(nullptr) {}
         peer_context(T* e):engine(e) {}
         T* engine;
@@ -139,9 +139,9 @@ struct MQAS_EXTERN toml::from<mqas::core::engine_config>
 
 namespace std {
     template <>
-    struct hash<sockaddr> {
+    struct MQAS_EXTERN hash<sockaddr> {
         size_t operator()(const sockaddr& addr) const;
     };
 }
 
-bool operator==(const sockaddr&,const sockaddr&);
+bool MQAS_EXTERN operator==(const sockaddr&,const sockaddr&);

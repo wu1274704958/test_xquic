@@ -18,5 +18,10 @@ else()
         ${boringssl_crypto_LIBRARY}
     )
 endif()
+
+    
+string(REPLACE "${CMAKE_STATIC_LIBRARY_SUFFIX}" "${CMAKE_SHARED_LIBRARY_SUFFIX}" boringssl_BINARY "${boringssl_LIBRARY}")
+string(REPLACE "lib" "bin" boringssl_BINARY "${boringssl_BINARY}")
 message("boringssl_INCLUDE_DIR = ${boringssl_INCLUDE_DIR}")
 message("boringssl_LIBRARY = ${boringssl_LIBRARY}")
+message("boringssl_BINARY = ${boringssl_BINARY}")

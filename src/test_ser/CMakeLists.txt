@@ -7,6 +7,7 @@ target_include_directories(${CUR_TARGET_NAME} PRIVATE
 )
 target_link_libraries(${CUR_TARGET_NAME} PRIVATE 
     lsquic::lsquic
+    lsquic
     ${OTH_LIBRARY}
     ${boringssl_LIBRARY}
     ZLIB::ZLIB
