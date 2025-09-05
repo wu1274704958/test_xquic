@@ -8,6 +8,14 @@ if(NOT SSL_PATH)
         ${boringssl_ssl_LIBRARY}
         ${boringssl_crypto_LIBRARY}
     )
+
+    find_file(boringssl_ssl_BINARY "ssl${CMAKE_SHARED_LIBRARY_SUFFIX}" REQUIED)
+    find_file(boringssl_crypto_BINARY "crypto${CMAKE_SHARED_LIBRARY_SUFFIX}" REQUIED)
+    set(boringssl_BINARY
+        ${boringssl_ssl_BINARY}
+        ${boringssl_crypto_BINARY}
+    )
+
 else()
     message("${SSL_PATH}/include")
     find_path(boringssl_INCLUDE_DIR openssl "${SSL_PATH}/include" REQUIED)
@@ -17,11 +25,16 @@ else()
         ${boringssl_ssl_LIBRARY}
         ${boringssl_crypto_LIBRARY}
     )
+
+    find_file(boringssl_ssl_BINARY "ssl${CMAKE_SHARED_LIBRARY_SUFFIX}" "${SSL_PATH}/bin" REQUIED)
+    find_file(boringssl_crypto_BINARY "crypto${CMAKE_SHARED_LIBRARY_SUFFIX}" "${SSL_PATH}/bin" REQUIED)
+    set(boringssl_BINARY
+        ${boringssl_ssl_BINARY}
+        ${boringssl_crypto_BINARY}
+    )
 endif()
 
-    
-string(REPLACE "${CMAKE_STATIC_LIBRARY_SUFFIX}" "${CMAKE_SHARED_LIBRARY_SUFFIX}" boringssl_BINARY "${boringssl_LIBRARY}")
-string(REPLACE "lib" "bin" boringssl_BINARY "${boringssl_BINARY}")
+
 message("boringssl_INCLUDE_DIR = ${boringssl_INCLUDE_DIR}")
 message("boringssl_LIBRARY = ${boringssl_LIBRARY}")
 message("boringssl_BINARY = ${boringssl_BINARY}")

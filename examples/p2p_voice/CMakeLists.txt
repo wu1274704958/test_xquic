@@ -43,6 +43,10 @@ include(fileop)
 
 bulk_copy_files(${CUR_TARGET_NAME} ${CMAKE_CURRENT_BINARY_DIR} POST_BUILD mqas_dependencies_BINARY)
 
+get_target_property(WebRTC_AudioProcessing_BINARY WebRTC::AudioProcessing IMPORTED_LOCATION)
+
+bulk_copy_files(${CUR_TARGET_NAME} ${CMAKE_CURRENT_BINARY_DIR} POST_BUILD WebRTC_AudioProcessing_BINARY)
+
 if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/conf.txt")
     add_custom_command(TARGET ${CUR_TARGET_NAME}
         POST_BUILD
