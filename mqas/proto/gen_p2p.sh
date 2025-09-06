@@ -1,4 +1,4 @@
-protoc --cpp_out=dllexport_decl=MQAS_EXTERN:. p2p.proto
+#protoc --cpp_out=dllexport_decl=MQAS_EXTERN:. p2p.proto
 sed -i '/#include[[:space:]]*"p2p.pb.h"/c#include "mqas\/tools\/proto\/p2p.pb.h"' p2p.pb.cc
 sed -i '/#include <string>/i#include "mqas\/macro.h"' p2p.pb.h
 mkdir --parents ../src/tools/proto/

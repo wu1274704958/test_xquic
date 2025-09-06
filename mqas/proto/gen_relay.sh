@@ -1,4 +1,4 @@
-protoc --cpp_out=dllexport_decl=MQAS_EXTERN:. relay.proto
+#protoc --cpp_out=dllexport_decl=MQAS_EXTERN:. relay.proto
 sed -i '/#include[[:space:]]*"relay.pb.h"/c#include "mqas\/tools\/proto\/relay.pb.h"' relay.pb.cc
 sed -i '/#include <string>/i#include "mqas\/macro.h"' relay.pb.h
 mkdir --parents ../src/tools/proto/

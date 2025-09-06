@@ -58,4 +58,5 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
     sigc-3.0
 )
 
+add_subdirectory(proto)
 
