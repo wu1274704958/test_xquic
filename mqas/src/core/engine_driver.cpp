@@ -187,81 +187,154 @@ namespace mqas::core {
 
 	engine_base_interface* engine_driver::get_engine_by_cxt(void* cxt)
 	{
-		return static_cast<engine_base_interface*>(cxt);
+		if(cxt == nullptr) return nullptr;
+		auto engine = reinterpret_cast<engine_base_interface*>(cxt);
+		if(engine == nullptr || !engine_base_interface::is_valid(engine))
+			return nullptr;
+		return engine;
 	}
-		
 
 	lsquic_conn_ctx_t* engine_driver::on_new_conn_s(void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
 	{
 		auto ptr = get_engine_by_cxt(stream_if_ctx);
+		if(ptr == nullptr)
+		{
+			CLOG(ERROR, "lsquic") << "on_new_conn_s get_engine_by_cxt is null! cxt = " << stream_if_ctx << " conn = " << lsquic_conn;
+			return nullptr;
+		}
 		ptr->on_new_conn_s(stream_if_ctx,lsquic_conn);
 		return reinterpret_cast<lsquic_conn_ctx_t*>(stream_if_ctx);
 	}
 	void engine_driver::on_conn_closed_s(lsquic_conn_t* lsquic_conn)
 	{
 		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(lsquic_conn));
+		if(ptr == nullptr)
+		{
+			CLOG(ERROR, "lsquic") << "on_conn_closed_s get_engine_by_cxt is null! conn = " << lsquic_conn;
+			return;
+		}
 		ptr->on_conn_closed_s(lsquic_conn);
 	}
 	lsquic_stream_ctx_t* engine_driver::on_new_stream_s(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
 	{
 		auto ptr = get_engine_by_cxt(stream_if_ctx);
+		if(ptr == nullptr)
+		{
+			CLOG(ERROR, "lsquic") << "on_new_stream_s get_engine_by_cxt is null! cxt = " << stream_if_ctx << " stream = " << lsquic_stream;
+			return nullptr;
+		}
 		ptr->on_new_stream_s(stream_if_ctx, lsquic_stream);
 		return reinterpret_cast<lsquic_stream_ctx_t*>(stream_if_ctx);
 	}
 	void engine_driver::on_read_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 	{
 		auto ptr = get_engine_by_cxt(lsquic_stream_ctx);
+		if(ptr == nullptr)
+		{
+			CLOG(ERROR, "lsquic") << "on_read_s get_engine_by_cxt is null! stream = " << lsquic_stream << " cxt = " << lsquic_stream_ctx;
+			return;
+		}
 		ptr->on_read_s(lsquic_stream, lsquic_stream_ctx);
 	}
 	void engine_driver::on_write_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 	{
 		auto ptr = get_engine_by_cxt(lsquic_stream_ctx);
+		if(ptr == nullptr)
+		{
+			CLOG(ERROR, "lsquic") << "on_write_s get_engine_by_cxt is null! stream = " << lsquic_stream << " cxt = " << lsquic_stream_ctx;
+			return;
+		}
 		MQAS_DBG("driver on_write_s stream = " << lsquic_stream << " cxt = " << ptr);
 		ptr->on_write_s(lsquic_stream, lsquic_stream_ctx);
 	}
 	void engine_driver::on_close_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 	{
 		auto ptr = get_engine_by_cxt(lsquic_stream_ctx);
+		if(ptr == nullptr)
+		{
+			CLOG(ERROR, "lsquic") << "on_close_s get_engine_by_cxt is null! stream = " << lsquic_stream << " cxt = " << lsquic_stream_ctx;
+			return;
+		}
 		ptr->on_close_s(lsquic_stream, lsquic_stream_ctx);
 	}
 	//optional callback
 	void engine_driver::on_goaway_received(lsquic_conn_t* c)
 	{
 		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c));
+		if(ptr == nullptr)
+		{
+			CLOG(DEBUG, "lsquic") << "on_goaway_received get_engine_by_cxt is null! conn = " << c;
+			return;
+		}
 		ptr->on_goaway_received(c);
 	}
 
 	ssize_t engine_driver::on_dg_write(lsquic_conn_t* c, void* buf, size_t buf_sz)
 	{
-		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c));
+		const auto ctx = ::lsquic_conn_get_ctx(c);
+		if(ctx == nullptr) 
+		{
+			CLOG(ERROR, "lsquic") << "on_dg_write get_engine_by_cxt is null! conn = " << c;
+			return 0;
+		}
+		auto ptr = get_engine_by_cxt(ctx);
 		return ptr->on_dg_write(c, buf, buf_sz);
 	}
 
 	void engine_driver::on_datagram(lsquic_conn_t* c, const void* buf, size_t sz)
 	{
-		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c));
+		const auto ctx = ::lsquic_conn_get_ctx(c);
+		if(ctx == nullptr)
+		{
+			CLOG(ERROR, "lsquic") << "on_datagram get_engine_by_cxt is null! conn = " << c;
+			return;
+		}
+		auto ptr = get_engine_by_cxt(ctx);
 		ptr->on_datagram(c,buf,sz);
 	}
 
 	void engine_driver::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s)
 	{
-		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c));
+		const auto ctx = ::lsquic_conn_get_ctx(c);
+		if(ctx == nullptr)
+		{
+			CLOG(DEBUG, "lsquic") << "on_hsk_done get_engine_by_cxt is null! conn = " << c;
+			return;
+		}
+		auto ptr = get_engine_by_cxt(ctx);
 		ptr->on_hsk_done(c, s);
 	}
 	void engine_driver::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
 	{
-		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c));
+		const auto ctx = ::lsquic_conn_get_ctx(c);
+		auto ptr = get_engine_by_cxt(ctx);
+		if(ptr == nullptr)
+		{
+			CLOG(DEBUG, "lsquic") << "on_new_token get_engine_by_cxt is null! conn = " << c;
+			return;
+		}
 		ptr->on_new_token(c, token,token_size);
 	}
 	void engine_driver::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)
 	{
 		auto ptr = get_engine_by_cxt(h);
+		if(ptr == nullptr)
+		{
+			CLOG(DEBUG, "lsquic") << "on_reset get_engine_by_cxt is null! stream = " << s << " cxt = " << h;
+			return;
+		}
 		ptr->on_reset(s, h, how);
 	}
 
 	void engine_driver::on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len)
 	{
-		auto ptr = get_engine_by_cxt(::lsquic_conn_get_ctx(c));
+		const auto ctx = ::lsquic_conn_get_ctx(c);
+		auto ptr = get_engine_by_cxt(ctx);
+		if(ptr == nullptr)
+		{
+			CLOG(DEBUG, "lsquic") << "on_conncloseframe_received get_engine_by_cxt is null! conn = " << c;
+			return;
+		}
 		ptr->on_conncloseframe_received(c, app_error, error_code,reason,reason_len);
 	}
 

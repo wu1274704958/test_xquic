@@ -58,6 +58,14 @@ if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/conf_relay.txt")
         )
 endif()
 
+if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/conf_p2p.txt")
+    add_custom_command(TARGET ${CUR_TARGET_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "conf_p2p.txt"   ${CMAKE_CURRENT_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        )
+endif()
+
 if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/cert-def.pem")
 #openssl req -newkey rsa:4096 -nodes -sha256 -keyout key-def.pem -x509 -days 365 -out cert-def.pem
     add_custom_command(TARGET ${CUR_TARGET_NAME}

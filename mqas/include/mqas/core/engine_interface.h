@@ -13,6 +13,11 @@ namespace mqas::core
 	class MQAS_EXTERN IEngine
 	{
 	public:
+		constexpr static char CHECK_CODE = 99;
+		inline static bool is_valid(const IEngine* e) 
+		{ 
+			return *(reinterpret_cast<const char*>(e) + offsetof(IEngine,_check_code)) == CHECK_CODE;
+		}
 		void init(std::shared_ptr<engine_cxt> cxt);
 		void on_new_lsquic_engine(::lsquic_engine_api&, EngineFlags);
 		void on_init_socket(std::shared_ptr<io::UdpSocket> socket);
@@ -39,6 +44,8 @@ namespace mqas::core
 		const std::shared_ptr<toml::value> get_config() const;
 		const std::shared_ptr<io::UdpSocket> get_socket() const;
 		const std::shared_ptr<engine_config> get_engine_config() const;
+	private:
+		char _check_code = CHECK_CODE;
 		std::vector<uint16_t> whitelist_port;
 		std::vector<sockaddr> whitelist_addr;
 	public:

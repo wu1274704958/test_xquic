@@ -13,6 +13,11 @@ namespace mqas::core
 	class MQAS_EXTERN engine_base_interface
 	{
 		public:
+			constexpr static char CHECK_CODE = 99;
+			inline static bool is_valid(const engine_base_interface* e) 
+			{ 
+				return *(reinterpret_cast<const char*>(e) + offsetof(engine_base_interface,_check_code)) == CHECK_CODE;
+			}
 			virtual ::lsquic_engine* get_origin() const = 0;
 			virtual EngineFlags get_engine_flags() const = 0;
 			virtual void on_new_conn_s(void* stream_if_ctx, lsquic_conn_t* lsquic_conn) = 0;
@@ -29,7 +34,9 @@ namespace mqas::core
 			virtual void on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size) = 0;
 			virtual void on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how) = 0;
 			virtual void on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len) = 0;
-	};
+			private:
+			char _check_code = CHECK_CODE;
+		};
 
 	class MQAS_EXTERN base_engine_driver {
 	public:

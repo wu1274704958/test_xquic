@@ -298,6 +298,16 @@ std::string mqas::core::engine_base<E,ED,SC>::load_config(const char* conf_file)
 	return ss.str();
 }
 
+ENGINE_BASE_TEMPLATE_DECL
+E* mqas::core::engine_base<E,ED,SC>::get_engine_by_cxt(void* cxt)
+{
+	if(cxt == nullptr) return nullptr;
+	auto engine = reinterpret_cast<E*>(cxt);
+	if(engine == nullptr || !IEngine::is_valid(engine))
+		return nullptr;
+	return engine;
+}
+
 
 //lsquic callback function implement
 ENGINE_BASE_TEMPLATE_DECL
@@ -306,43 +316,75 @@ int mqas::core::engine_base<E,ED,SC>::lsquic_log_func(void* logger_ctx, const ch
 	CLOG(ERROR, "lsquic") << buf;
 	return 0;
 }
+
 ENGINE_BASE_TEMPLATE_DECL
 lsquic_conn_ctx_t* mqas::core::engine_base<E,ED,SC>::on_new_conn_s(void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
 {
-	const auto engine = static_cast<E*>(stream_if_ctx);
+	const auto engine = get_engine_by_cxt(stream_if_ctx);
+	if(engine == nullptr)
+	{
+		CLOG(ERROR, "lsquic") << "on_new_conn_s get_engine_by_cxt is null! cxt = " << stream_if_ctx << " conn = " << lsquic_conn;
+		return nullptr;
+	}
 	engine->on_new_conn(stream_if_ctx,lsquic_conn);
 	return reinterpret_cast<lsquic_conn_ctx_t*>(engine);
 }
+
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_conn_closed_s(lsquic_conn_t* lsquic_conn)
 {
-	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(lsquic_conn));
+	const auto engine = get_engine_by_cxt(::lsquic_conn_get_ctx(lsquic_conn));
+	if(engine == nullptr)
+	{
+		CLOG(ERROR, "lsquic") << "on_conn_closed_s get_engine_by_cxt is null! conn = " << lsquic_conn;
+		return;
+	}
 	engine->on_conn_closed(lsquic_conn);
 	::lsquic_conn_set_ctx(lsquic_conn, NULL);
 }
 ENGINE_BASE_TEMPLATE_DECL
 lsquic_stream_ctx_t* mqas::core::engine_base<E,ED,SC>::on_new_stream_s(void* stream_if_ctx, lsquic_stream_t* lsquic_stream)
 {
-	const auto engine = static_cast<E*>(stream_if_ctx);
+	const auto engine = get_engine_by_cxt(stream_if_ctx);
+	if(engine == nullptr)
+	{
+		CLOG(ERROR, "lsquic") << "on_new_stream_s get_engine_by_cxt is null! cxt = " << stream_if_ctx << " stream = " << lsquic_stream;
+		return nullptr;
+	}
 	engine->on_new_stream(stream_if_ctx, lsquic_stream);
 	return reinterpret_cast<lsquic_stream_ctx_t*>(engine);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_read_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 {
-	const auto engine = reinterpret_cast<E*>(lsquic_stream_ctx);
+	const auto engine = get_engine_by_cxt(lsquic_stream_ctx);
+	if(engine == nullptr)
+	{
+		CLOG(ERROR, "lsquic") << "on_read_s get_engine_by_cxt is null! stream = " << lsquic_stream << " cxt = " << lsquic_stream_ctx;
+		return;
+	}
 	engine->on_read(lsquic_stream,lsquic_stream_ctx);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_write_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 {
-	const auto engine = reinterpret_cast<E*>(lsquic_stream_ctx);
+	const auto engine = get_engine_by_cxt(lsquic_stream_ctx);
+	if(engine == nullptr)
+	{
+		CLOG(ERROR, "lsquic") << "on_write_s get_engine_by_cxt is null! stream = " << lsquic_stream << " cxt = " << lsquic_stream_ctx;
+		return;
+	}
 	engine->on_write(lsquic_stream, lsquic_stream_ctx);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_close_s(lsquic_stream_t* lsquic_stream, lsquic_stream_ctx_t* lsquic_stream_ctx)
 {
-	const auto engine = reinterpret_cast<E*>(lsquic_stream_ctx);
+	const auto engine = get_engine_by_cxt(lsquic_stream_ctx);
+	if(engine == nullptr)
+	{
+		CLOG(ERROR, "lsquic") << "on_close_s get_engine_by_cxt is null! stream = " << lsquic_stream << " cxt = " << lsquic_stream_ctx;
+		return;
+	}
 	engine->on_close(lsquic_stream, lsquic_stream_ctx);
 }
 
@@ -428,55 +470,83 @@ ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_goaway_received(lsquic_conn_t* c)
 {
 	const auto cxt = ::lsquic_conn_get_ctx(c);
-	if(cxt == nullptr) return;
-	const auto engine = reinterpret_cast<E*>(cxt);
+	const auto engine = get_engine_by_cxt(cxt);
+	if(engine == nullptr)
+	{
+		CLOG(ERROR, "lsquic") << "on_goaway_received get_engine_by_cxt is null! conn = " << c;
+		return;
+	}
 	engine->on_goaway_received(c);
 }
 ENGINE_BASE_TEMPLATE_DECL
 ssize_t mqas::core::engine_base<E,ED,SC>::on_dg_write(lsquic_conn_t* c, void* buf, size_t buf_sz)
 {
 	const auto cxt = ::lsquic_conn_get_ctx(c);
-	if(cxt == nullptr) return -1;
-	const auto engine = reinterpret_cast<E*>(cxt);
+	const auto engine = get_engine_by_cxt(cxt);
+	if(engine == nullptr)
+	{
+		CLOG(ERROR, "lsquic") << "on_dg_write get_engine_by_cxt is null! conn = " << c;
+		return 0;
+	}
 	return engine->on_dg_write(c,buf,buf_sz);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_datagram(lsquic_conn_t* c, const void* buf, size_t buf_sz)
 {
 	const auto cxt = ::lsquic_conn_get_ctx(c);
-	if(cxt == nullptr) return;
-	const auto engine = reinterpret_cast<E*>(cxt);
+	const auto engine = get_engine_by_cxt(cxt);
+	if(engine == nullptr)
+	{
+		CLOG(ERROR, "lsquic") << "on_datagram get_engine_by_cxt is null! conn = " << c;
+		return;
+	}
 	engine->on_datagram(c, buf, buf_sz);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s)
 {
 	const auto cxt = ::lsquic_conn_get_ctx(c);
-	if(cxt == nullptr) return;
-	const auto engine = reinterpret_cast<E*>(cxt);
+	const auto engine = get_engine_by_cxt(cxt);
+	if(engine == nullptr)
+	{
+		CLOG(DEBUG, "lsquic") << "on_hsk_done get_engine_by_cxt is null! conn = " << c;
+		return;
+	}
 	engine->on_hsk_done(c, s);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
 {
 	const auto cxt = ::lsquic_conn_get_ctx(c);
-	if(cxt == nullptr) return;
-	const auto engine = reinterpret_cast<E*>(cxt);
+	const auto engine = get_engine_by_cxt(cxt);
+	if(engine == nullptr)
+	{
+		CLOG(DEBUG, "lsquic") << "on_new_token get_engine_by_cxt is null! conn = " << c;
+		return;
+	}
 	engine->on_new_token(c,token, token_size);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)
 {
-	if(h == nullptr) return;
-	const auto engine = reinterpret_cast<E*>(h);
+	const auto engine = get_engine_by_cxt(h);
+	if(engine == nullptr)
+	{
+		CLOG(ERROR, "lsquic") << "on_reset get_engine_by_cxt is null! stream = " << s;
+		return;
+	}
 	engine->on_reset(s,h,how);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len)
 {
 	const auto cxt = ::lsquic_conn_get_ctx(c);
-	if(cxt == nullptr) return;
-	const auto engine = reinterpret_cast<E*>(cxt);
+	const auto engine = get_engine_by_cxt(cxt);
+	if(engine == nullptr)
+	{
+		CLOG(DEBUG, "lsquic") << "on_conncloseframe_received get_engine_by_cxt is null! conn = " << c;
+		return;
+	}
 	engine->on_conncloseframe_received(c,app_error,error_code,reason, reason_len);
 }
 

@@ -30,6 +30,7 @@ namespace mqas::core
 	{
 		friend E;
 	public:
+		static E* get_engine_by_cxt(void* cxt);
 		engine_base(io::Context&);
 		engine_base(engine_base&&) noexcept;
 		engine_base(const engine_base&) = delete;
