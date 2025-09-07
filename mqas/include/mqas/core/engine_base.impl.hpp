@@ -427,43 +427,56 @@ ssl_ctx_st* mqas::core::engine_base<E,ED,SC>::on_get_ssl_ctx(void* peer_ctx, con
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_goaway_received(lsquic_conn_t* c)
 {
-	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
+	const auto cxt = ::lsquic_conn_get_ctx(c);
+	if(cxt == nullptr) return;
+	const auto engine = reinterpret_cast<E*>(cxt);
 	engine->on_goaway_received(c);
 }
 ENGINE_BASE_TEMPLATE_DECL
 ssize_t mqas::core::engine_base<E,ED,SC>::on_dg_write(lsquic_conn_t* c, void* buf, size_t buf_sz)
 {
-	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
+	const auto cxt = ::lsquic_conn_get_ctx(c);
+	if(cxt == nullptr) return -1;
+	const auto engine = reinterpret_cast<E*>(cxt);
 	return engine->on_dg_write(c,buf,buf_sz);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_datagram(lsquic_conn_t* c, const void* buf, size_t buf_sz)
 {
-	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
+	const auto cxt = ::lsquic_conn_get_ctx(c);
+	if(cxt == nullptr) return;
+	const auto engine = reinterpret_cast<E*>(cxt);
 	engine->on_datagram(c, buf, buf_sz);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s)
 {
-	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
+	const auto cxt = ::lsquic_conn_get_ctx(c);
+	if(cxt == nullptr) return;
+	const auto engine = reinterpret_cast<E*>(cxt);
 	engine->on_hsk_done(c, s);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
 {
-	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
+	const auto cxt = ::lsquic_conn_get_ctx(c);
+	if(cxt == nullptr) return;
+	const auto engine = reinterpret_cast<E*>(cxt);
 	engine->on_new_token(c,token, token_size);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)
 {
+	if(h == nullptr) return;
 	const auto engine = reinterpret_cast<E*>(h);
 	engine->on_reset(s,h,how);
 }
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len)
 {
-	const auto engine = reinterpret_cast<E*>(::lsquic_conn_get_ctx(c));
+	const auto cxt = ::lsquic_conn_get_ctx(c);
+	if(cxt == nullptr) return;
+	const auto engine = reinterpret_cast<E*>(cxt);
 	engine->on_conncloseframe_received(c,app_error,error_code,reason, reason_len);
 }
 
