@@ -26,6 +26,18 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
         unofficial::pdcurses::pdcurses
 )
 
+
+add_custom_command(
+    OUTPUT test_p2p.pb.cc test_p2p.pb.h
+    COMMAND $<TARGET_FILE:protobuf::protoc> --cpp_out=. test_p2p.proto
+    DEPENDS test_p2p.proto
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+add_custom_target(test_p2p_proto DEPENDS test_p2p.pb.cc test_p2p.pb.h)
+
+add_dependencies(${CUR_TARGET_NAME} test_p2p_proto)
+
 include(fileop)
 
 bulk_copy_files(${CUR_TARGET_NAME} ${CMAKE_CURRENT_BINARY_DIR} POST_BUILD mqas_dependencies_BINARY)

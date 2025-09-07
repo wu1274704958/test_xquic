@@ -20,6 +20,19 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
         sigc-3.0
 )
 
+add_custom_command(
+    OUTPUT say_hello.pb.cc say_hello.pb.h
+    COMMAND $<TARGET_FILE:protobuf::protoc> --cpp_out=. say_hello.proto
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different say_hello.pb.cc ../test_variant_stream_ser/
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different say_hello.pb.h ../test_variant_stream_ser/
+    DEPENDS say_hello.proto
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+add_custom_target(test_variant_stream_proto DEPENDS say_hello.pb.cc say_hello.pb.h)
+
+add_dependencies(${CUR_TARGET_NAME} test_variant_stream_proto)
+
 include(fileop)
 
 bulk_copy_files(${CUR_TARGET_NAME} ${CMAKE_CURRENT_BINARY_DIR} POST_BUILD mqas_dependencies_BINARY)
