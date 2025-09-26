@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20.0)
 project(test_quic VERSION 0.1.0)
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   add_compile_options("/permissive-")
 endif()

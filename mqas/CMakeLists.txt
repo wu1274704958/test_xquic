@@ -38,14 +38,14 @@ set_target_properties(${CUR_TARGET_NAME} PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${mqas_dependencies_INCLUDE_DIR})
 
 
-target_include_directories(${CUR_TARGET_NAME} PRIVATE 
+target_include_directories(${CUR_TARGET_NAME} PUBLIC 
     ${boringssl_INCLUDE_DIR}
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     ${easyloggingpp_INCLUDE_DIR}
     ${protobuf_INCLUDE_DIR}
 )
 
-target_link_libraries(${CUR_TARGET_NAME} PRIVATE 
+target_link_libraries(${CUR_TARGET_NAME} PUBLIC 
     lsquic::lsquic
     lsquic
     ${OTH_LIBRARY}
