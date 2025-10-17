@@ -46,10 +46,10 @@ namespace mqas::core
 		const std::shared_ptr<engine_config> get_engine_config() const;
 	private:
 		char _check_code = CHECK_CODE;
-		std::vector<uint16_t> whitelist_port;
-		std::vector<sockaddr> whitelist_addr;
 	public:
 		std::shared_ptr<engine_cxt> context;
+		std::vector<uint16_t> whitelist_port;
+		std::vector<sockaddr> whitelist_addr;
 	protected:
 		std::shared_ptr<toml::value> config;
 		std::shared_ptr<io::UdpSocket> socket_;
