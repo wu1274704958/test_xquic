@@ -10,6 +10,7 @@ namespace mqas::core{
             datagram_supported_ = true;
 	}
 	void IConnect::on_close() {
+	    on_close_signal.emit(*this);
         lsquic_conn_set_ctx(conn_, nullptr);
     }
 	void IConnect::on_new_stream(::lsquic_stream_t* lsquic_stream) {}

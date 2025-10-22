@@ -15,6 +15,7 @@ namespace mqas::core {
 	class MQAS_EXTERN IConnect {
 	public:
 		sigc::signal<void(const uint8_t*, size_t)> on_recv_datagram;
+		sigc::signal<void(IConnect&)> on_close_signal;
 		void init(::lsquic_conn_t* conn, std::shared_ptr<engine_cxt> cxt);
 		void on_close();
 		void on_new_stream(::lsquic_stream_t* lsquic_stream);
