@@ -13,16 +13,7 @@ target_include_directories(${CUR_TARGET_NAME} PRIVATE
     ${easyloggingpp_INCLUDE_DIR}
 )
 target_link_libraries(${CUR_TARGET_NAME} PRIVATE
-        lsquic::lsquic
-        lsquic
-        ${OTH_LIBRARY}
-        ${boringssl_LIBRARY}
-        ZLIB::ZLIB
-        $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
         mqas
-        easyloggingpp
-        protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
-        sigc-3.0
         unofficial::pdcurses::pdcurses
 )
 
