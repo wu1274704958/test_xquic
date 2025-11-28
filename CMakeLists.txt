@@ -63,41 +63,6 @@ endif()
 
 add_subdirectory(mqas)
 
-#collect dependeny binary
-set(mqas_dependencies_BINARY ${boringssl_BINARY} CACHE STRING "mqas dependencies binary files")
-
-get_target_property(mqas_TARGET_TYPE mqas TYPE)
-if(mqas_TARGET_TYPE STREQUAL "SHARED_LIBRARY")
-    list(APPEND mqas_dependencies_BINARY "$<TARGET_FILE:mqas>")
-	list(APPEND mqas_dependencies_BINARY "$<TARGET_FILE:libuv::uv>")
-endif()
-
-get_target_property(libprotobuf_TARGET_TYPE protobuf::libprotobuf TYPE)
-if(libprotobuf_TARGET_TYPE STREQUAL "SHARED_LIBRARY")
-    list(APPEND mqas_dependencies_BINARY "$<TARGET_FILE:protobuf::libprotobuf>")
-	list(APPEND mqas_dependencies_BINARY "$<TARGET_FILE:protobuf::libprotoc>")
-	list(APPEND mqas_dependencies_BINARY "$<TARGET_FILE:protobuf::libprotobuf-lite>")
-endif()
-
-if(TARGET abseil_dll)
-	get_target_property(abseil_dll_TARGET_TYPE abseil_dll TYPE)
-	if(abseil_dll_TARGET_TYPE STREQUAL "SHARED_LIBRARY")
-		list(APPEND mqas_dependencies_BINARY "$<TARGET_FILE:abseil_dll>")
-	endif()
-endif()
-
-get_target_property(utf8_range_TARGET_TYPE utf8_range TYPE)
-if(utf8_range_TARGET_TYPE STREQUAL "SHARED_LIBRARY")
-    list(APPEND mqas_dependencies_BINARY "$<TARGET_FILE:utf8_range>")
-endif()
-
-get_target_property(utf8_validity_TARGET_TYPE utf8_validity TYPE)
-if(utf8_validity_TARGET_TYPE STREQUAL "SHARED_LIBRARY")
-    list(APPEND mqas_dependencies_BINARY "$<TARGET_FILE:utf8_validity>")
-endif()
-message("mqas_dependencies_BINARY = ${mqas_dependencies_BINARY}")
-#=======================================
-
 if(asio_FOUND)
 	add_definitions(-DHAS_ASIO)
 	add_subdirectory(src/test_ser)

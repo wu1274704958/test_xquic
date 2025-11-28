@@ -51,12 +51,66 @@ target_link_libraries(${CUR_TARGET_NAME} PUBLIC
     ${OTH_LIBRARY}
     ${boringssl_LIBRARY}
     ZLIB::ZLIB
-    $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
+    libuv::uv
     toml11::toml11
     easyloggingpp
     protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
     sigc-3.0
 )
 
+set(mqas_binary_dependencies ${boringssl_BINARY})
+
+find_file(zlib_BINARY "zlib1${CMAKE_SHARED_LIBRARY_SUFFIX}" PATHS ${VCPKG_BINARAY_DIR})
+if(zlib_BINARY)
+    list(APPEND mqas_binary_dependencies ${zlib_BINARY})
+endif()
+
+include(CheckTargetType)
+
+get_target_property(mqas_LINK_LIBRARIES mqas LINK_LIBRARIES)
+
+foreach(lib ${mqas_LINK_LIBRARIES})
+    check_target_is_shared(${lib} isSharedLib)
+    if(isSharedLib)
+        list(FIND mqas_binary_dependencies $<TARGET_FILE:${lib}> found_index)
+        if(found_index EQUAL -1)
+            list(APPEND mqas_binary_dependencies $<TARGET_FILE:${lib}>)
+        endif ()
+    endif ()
+    if(TARGET ${lib})
+        get_target_property(temp_LINK_LIBRARIES ${lib} LINK_LIBRARIES)
+        if(temp_LINK_LIBRARIES)
+            foreach(lib ${temp_LINK_LIBRARIES})
+                check_target_is_shared(${lib} isSharedLib)
+                if(isSharedLib)
+                    list(FIND mqas_binary_dependencies $<TARGET_FILE:${lib}> found_index)
+                    if(found_index EQUAL -1)
+                        list(APPEND mqas_binary_dependencies $<TARGET_FILE:${lib}>)
+                    endif ()
+                endif ()
+            endforeach ()
+        endif ()
+    endif ()
+endforeach ()
+
 add_subdirectory(proto)
+
+set(index 0)
+
+foreach (lib ${mqas_binary_dependencies})
+    if(index EQUAL 0)
+        set(mode "OVERWRITE")
+    else()
+        set(mode "APPEND")
+    endif()
+    add_custom_command(TARGET mqas POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            -D TARGET_FILE="$<TARGET_FILE_DIR:mqas>/dependencies.ini"
+            -D Content="${lib}"
+            -D MODE=${mode}
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/WriteFile.cmake"
+            COMMENT "Writing mqas binary dependencies"
+    )
+    math(EXPR index "${index} + 1")
+endforeach ()
 
