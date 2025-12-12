@@ -31,6 +31,7 @@ namespace mqas
 		~Context()
 		{
 			::lsquic_global_cleanup();
+			IsRunning() = false;
 		}
 		Context(const Context&)=delete;
 		Context(Context&&) = delete;
