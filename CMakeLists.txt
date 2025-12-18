@@ -41,6 +41,8 @@ add_subdirectory(third_party/lsquic)
 add_subdirectory(third_party/protobuf)
 add_subdirectory(third_party/easyloggingpp)
 
+target_compile_definitions(easyloggingpp PUBLIC ELPP_THREAD_SAFE ELPP_AS_DLL)
+
 add_library(lsquic::lsquic OBJECT IMPORTED GLOBAL)
 
 set(lsquic_include_dirs 

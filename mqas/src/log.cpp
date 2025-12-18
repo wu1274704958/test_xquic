@@ -1,17 +1,6 @@
 #include <mqas/log.h>
 #include <easylogging++.h>
 
-//namespace el {
-//	namespace base {
-//		 ELPP_EXPORT el::base::type::StoragePointer elStorage(new el::base::Storage(el::LogBuilderPtr(new el::base::DefaultLogBuilder())));
-//	}
-//	el::base::debug::CrashHandler elCrashHandler(ELPP_USE_DEF_CRASH_HANDLER);
-//}
-
-el::base::type::StoragePointer mqas::log::elStorage = std::make_shared<el::base::Storage>(el::LogBuilderPtr(new el::base::DefaultLogBuilder()));
-
-SHARE_EASYLOGGINGPP(mqas::log::elStorage)
-
 void mqas::log::init(const std::string& conf)
 {
 	if(!conf.empty())
@@ -33,3 +22,6 @@ void mqas::log::init(const char* log_name, const std::string& conf, const std::o
 	c.parseFromText(conf);
 	el::Loggers::reconfigureLogger(el::Loggers::getLogger(log_name),c);
 }
+
+
+MQAS_SHARE_EASYLOGGINGPP

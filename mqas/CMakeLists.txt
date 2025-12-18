@@ -11,6 +11,7 @@ aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/src/tools" CUR_SRC_FILES)
 
 set(CUR_TARGET_NAME mqas)
 if(BUILD_MQAS_LIB_OBJ)
+    message(FATAL_ERROR "mqas only support shared library,beacuse depeney easylogging++")
     add_library(${CUR_TARGET_NAME} OBJECT ${CUR_SRC_FILES})
     target_compile_definitions(${CUR_TARGET_NAME} PRIVATE MQAS_NO_EXPORT)
     set_target_properties(${CUR_TARGET_NAME} PROPERTIES 
@@ -19,10 +20,11 @@ else()
     message("BUILD_SHARED_LIBS = ${BUILD_SHARED_LIBS}")
     if(BUILD_SHARED_LIBS)
         add_library(${CUR_TARGET_NAME} SHARED ${CUR_SRC_FILES})
-        target_compile_definitions(${CUR_TARGET_NAME} PRIVATE BUILDING_MQAS_SHARED )
+        target_compile_definitions(${CUR_TARGET_NAME} PRIVATE BUILDING_MQAS_SHARED ELPP_EXPORT_SYMBOLS)
         set_target_properties(${CUR_TARGET_NAME} PROPERTIES
                 INTERFACE_COMPILE_DEFINITIONS "MQAS_SHARED=1")
     else()
+        message(FATAL_ERROR "mqas only support shared library,beacuse depeney easylogging++")
         add_library(${CUR_TARGET_NAME} STATIC ${CUR_SRC_FILES})
         target_compile_definitions(${CUR_TARGET_NAME} PRIVATE MQAS_NO_EXPORT)
         set_target_properties(${CUR_TARGET_NAME} PROPERTIES 
