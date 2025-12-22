@@ -28,7 +28,7 @@ namespace mqas::core{
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
     void Connect<S>::on_close()
     {
-
+        IConnect::on_close();
     }
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
     void Connect<S>::on_new_stream(::lsquic_stream_t* lsquic_stream)
