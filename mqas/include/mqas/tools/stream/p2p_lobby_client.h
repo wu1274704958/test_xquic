@@ -17,9 +17,10 @@ namespace mqas::tools::p2p {
 
 
 	public:
-		sigc::signal<void(std::shared_ptr<proto::p2p::RespondPeerList>)> on_get_peer_list_signal;
-		sigc::signal<void(std::shared_ptr<proto::p2p::RespondConnectPeer>)> on_get_respond;
-		sigc::signal<void(const proto::p2p::PeerData&)> on_want_connect;
+		sigc::signal<void(std::shared_ptr<proto::p2p::RespondPeerList>)> on_peer_list_signal;
+		sigc::signal<void(std::shared_ptr<proto::p2p::RespondConnectPeer>)> on_connect_response_signal;
+		sigc::signal<void(const proto::p2p::PeerData&)> on_request_connect_signal;
+		sigc::signal<void(const std::shared_ptr<proto::p2p::RespondRegistePeer>&)> on_register_signal;
 
 		~P2PLobbyClientStream();
 

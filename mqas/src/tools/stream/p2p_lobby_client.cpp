@@ -31,6 +31,9 @@ namespace mqas::tools::p2p {
 			id = msg->id();
 			connect_cxt_->set_cxt(&id);
 		}
+		if (code != core::StreamVariantErrcode::ok)
+			msg->set_ret(proto::p2p::RetCode::failed);
+		on_register_signal.emit(msg);
 	}
 
 	void P2PLobbyClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::RespondPeerList>& msg)
@@ -56,19 +59,19 @@ namespace mqas::tools::p2p {
 
 	void P2PLobbyClientStream::on_get_peer_list() 
 	{
-		on_get_peer_list_signal.emit(peer_list);
+		on_peer_list_signal.emit(peer_list);
 	}
 
 	void P2PLobbyClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyPeerWantConnect>& msg)
 	{
-		on_want_connect.emit(msg->peer());	
+		on_request_connect_signal.emit(msg->peer());
 		waiting_respond.insert(msg->peer().id());
 		return;
 	}
 
 	void P2PLobbyClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::RespondConnectPeer>& msg)
 	{
-		on_get_respond.emit(msg);
+		on_connect_response_signal.emit(msg);
 		if(msg->ret() == proto::p2p::RetCode::ok)
 		{ 
 			proto::p2p::ReqConnectPeer req_msg;
