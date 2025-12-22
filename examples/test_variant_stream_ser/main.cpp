@@ -9,7 +9,7 @@
 #include <mqas/comm/locator.h>
 
 using namespace mqas;
-MQAS_SHARE_EASYLOGGINGPP
+
 using SayHelloMsgPair = core::PBMsgPair<1, proto::SayHelloMsg>;
 using SayByeMsgPair = core::PBMsgPair<2, proto::SayByeMsg>;
 using SayHelloMsg2Pair = core::PBMsgPair<3, proto::SayHelloMsg2>;

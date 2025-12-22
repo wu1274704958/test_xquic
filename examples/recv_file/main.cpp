@@ -9,7 +9,7 @@
 #include <mqas/tools/stream/recv_file.h>
 using namespace mqas;
 
-MQAS_SHARE_EASYLOGGINGPP
+
 int main(int argc,const char** argv)
 {
 	Context<core::InitFlags::GLOBAL_SERVER> context;

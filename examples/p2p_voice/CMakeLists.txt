@@ -2,7 +2,7 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} CUR_SRC_FILES)
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(CUR_TARGET_NAME ${CURRENT_DIR_NAME})
 add_executable(${CUR_TARGET_NAME} ${CUR_SRC_FILES})
-add_dependencies(${CUR_TARGET_NAME} mqas easyloggingpp)
+add_dependencies(${CUR_TARGET_NAME} mqas)
 
 
 find_package(unofficial-pdcurses CONFIG REQUIRED)
@@ -11,10 +11,8 @@ find_package(portaudio CONFIG REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(SPEEXDSP REQUIRED speexdsp)
 
-target_include_directories(${CUR_TARGET_NAME} PRIVATE 
-    ${boringssl_INCLUDE_DIR}
+target_include_directories(${CUR_TARGET_NAME} PRIVATE
     ${SPEEXDSP_INCLUDE_DIRS}
-    ${easyloggingpp_INCLUDE_DIR}
 )
 
 target_link_directories(${CUR_TARGET_NAME} PRIVATE 
@@ -22,16 +20,7 @@ target_link_directories(${CUR_TARGET_NAME} PRIVATE
 )
 
 target_link_libraries(${CUR_TARGET_NAME} PRIVATE
-        lsquic::lsquic
-        lsquic
-        ${OTH_LIBRARY}
-        ${boringssl_LIBRARY}
-        ZLIB::ZLIB
-        $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
         mqas
-        easyloggingpp
-        protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
-        sigc-3.0
         unofficial::pdcurses::pdcurses
         Opus::opus
         portaudio
@@ -39,9 +28,13 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
         WebRTC::AudioProcessing
 )
 
-include(fileop)
-
-bulk_copy_files(${CUR_TARGET_NAME} ${CMAKE_CURRENT_BINARY_DIR} POST_BUILD mqas_dependencies_BINARY)
+add_custom_command(TARGET ${CUR_TARGET_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND}
+        -D TARGET_DIR="$<TARGET_FILE_DIR:${CUR_TARGET_NAME}>"
+        -D FILE_LIST="$<TARGET_FILE_DIR:mqas>/dependencies.ini"
+        -P "${CMAKE_SOURCE_DIR}/cmake/CopyFiles.cmake"
+        COMMENT "Copying mqas dependencies binary files"
+)
 
 get_target_property(WebRTC_AudioProcessing_BINARY WebRTC::AudioProcessing IMPORTED_LOCATION)
 

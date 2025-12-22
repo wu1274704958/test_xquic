@@ -15,7 +15,6 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
     ${boringssl_LIBRARY}
     ZLIB::ZLIB
     $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
-    mqas
 )
 
 if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/cert-def.pem")

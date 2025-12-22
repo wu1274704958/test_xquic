@@ -11,7 +11,7 @@
 #include <mqas/comm/engine.h>
 
 using namespace mqas;
-MQAS_SHARE_EASYLOGGINGPP
+
 
 
 int main(int argc,const char** argv)

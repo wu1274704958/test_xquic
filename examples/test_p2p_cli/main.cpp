@@ -17,7 +17,6 @@
 #include <mqas/tools/stream/relay_stream_client.h>
 
 using namespace mqas;
-MQAS_SHARE_EASYLOGGINGPP
 
 
 #define KEY_ESC 27

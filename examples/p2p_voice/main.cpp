@@ -17,7 +17,7 @@
 #include "VoiceStream.h"
 #include "PortAudioGlobal.h"
 using namespace mqas;
-MQAS_SHARE_EASYLOGGINGPP
+
 
 
 #define KEY_ESC 27

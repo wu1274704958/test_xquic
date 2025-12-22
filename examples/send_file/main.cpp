@@ -7,7 +7,7 @@
 #include <mqas/core/pb_stream.h>
 #include <mqas/tools/stream/send_file.h>
 using namespace mqas;
-MQAS_SHARE_EASYLOGGINGPP
+
 using Stream = core::StreamVariant<
         core::StreamVariantPair<1,tools::SendFileStream>
 >;

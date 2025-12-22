@@ -12,7 +12,7 @@ using namespace mqas;
 
 using StreamTy = core::StreamVariant<core::StreamVariantPair<1,tools::RelayStreamClient>>;
 
-MQAS_SHARE_EASYLOGGINGPP
+
 int main(int argc,const char** argv)
 {
 	Context<core::InitFlags::GLOBAL_CLIENT> context;

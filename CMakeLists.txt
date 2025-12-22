@@ -18,6 +18,8 @@ endif()
 message("CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 set(CMAKE_CXX_STANDARD 20)
 
+option(MQAS_BUILD_SHARED_LIBS "mqas build shared library" ON)
+
 find_package(ZLIB REQUIRED)
 find_package(boringssl REQUIRED)
 #find_package(lsquic CONFIG REQUIRED)
