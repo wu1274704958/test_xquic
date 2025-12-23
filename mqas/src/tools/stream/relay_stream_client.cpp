@@ -36,7 +36,7 @@ namespace mqas::tools {
             LOG(DEBUG) << "relay client self address = " << msg->self_addr().ip() << ':' << msg->self_addr().port();
 #endif
 
-            _on_recv_datagram_conn = conn->on_recv_datagram.connect(sigc::mem_fun(*this,&RelayStreamClient::on_recv_datagram));
+            _on_recv_datagram_conn = conn->on_recv_datagram_signal.connect(sigc::mem_fun(*this,&RelayStreamClient::on_recv_datagram));
 
             proto::relay::ReqReady ready_msg;
             send<tools::relay::ReqReadyPair>(ready_msg);

@@ -153,7 +153,7 @@ namespace mqas::tools{
         if(_on_recv_datagram_conn)
             return;
         auto conn = connect.lock();
-        _on_recv_datagram_conn = conn->on_recv_datagram.connect(sigc::mem_fun(*this,&RelayStream::on_recv_datagram));
+        _on_recv_datagram_conn = conn->on_recv_datagram_signal.connect(sigc::mem_fun(*this,&RelayStream::on_recv_datagram));
         auto min_size = try_load_datagram_min_size();
         if(min_size)
             conn->set_min_datagram_size(min_size.value());

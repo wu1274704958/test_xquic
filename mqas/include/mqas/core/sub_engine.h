@@ -29,6 +29,9 @@ namespace mqas::core {
 		void start_recv();
 		std::shared_ptr<E> get_engine() const;
 		void close();
+		[[nodiscard]] ::lsquic_engine* get_origin() const override { return _engine;}
+		[[nodiscard]] EngineFlags get_engine_flags() const override { return _engine_flags;}
+		[[nodiscard]] std::shared_ptr<E> get_real_engine() const { return _engine_extern;}
 	protected:
 		void init_engine_core();
 		void init_socket(std::shared_ptr<SC> sock = nullptr);
@@ -37,12 +40,8 @@ namespace mqas::core {
 
 		void init_config(const char* conf_file);
 		bool has_engine_setting() const;
-
-
 		void close_timer();
 		///// lsquic event
-		::lsquic_engine* get_origin() const override { return _engine;}
-		EngineFlags get_engine_flags() const override { return _engine_flags;}
 		void on_new_conn_s(void* stream_if_ctx, lsquic_conn_t* lsquic_conn) override;
 		void on_conn_closed_s(lsquic_conn_t* lsquic_conn) override;
 		void on_new_stream_s(void* stream_if_ctx, lsquic_stream_t* lsquic_stream) override;

@@ -14,8 +14,9 @@ namespace mqas::core {
 
 	class MQAS_EXTERN IConnect {
 	public:
-		sigc::signal<void(const uint8_t*, size_t)> on_recv_datagram;
+		sigc::signal<void(const uint8_t*, size_t)> on_recv_datagram_signal;
 		sigc::signal<void(IConnect&)> on_close_signal;
+		sigc::signal<void(IConnect&,::lsquic_hsk_status)> on_hsk_done_signal;
 		void init(::lsquic_conn_t* conn, std::shared_ptr<engine_cxt> cxt);
 		void on_close();
 		void on_new_stream(::lsquic_stream_t* lsquic_stream);
@@ -54,9 +55,10 @@ namespace mqas::core {
 		bool write_stream(::lsquic_stream_t*,const std::span<uint8_t>&);
 		[[nodiscard]] ::lsquic_hsk_status get_hsk_status() const;
         bool has_stream(lsquic_stream_t*) const;
+		[[nodiscard]] std::shared_ptr<engine_cxt> get_engine_cxt() const;
 	protected:
 		::lsquic_conn_t* conn_ = nullptr;
-		void* cxt_;
+		void* cxt_ = nullptr;
 		std::shared_ptr<engine_cxt> engine_cxt_;
 		std::vector<uint8_t> datagram_buf_;
 		std::queue<short> datagram_queue_;

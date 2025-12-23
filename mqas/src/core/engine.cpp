@@ -56,11 +56,12 @@ namespace mqas::core{
 	}
 	void IConnect::on_datagram(const void* buf, size_t size)
     {
-        on_recv_datagram.emit(reinterpret_cast<const uint8_t*>(buf),size);
+        on_recv_datagram_signal.emit(reinterpret_cast<const uint8_t*>(buf),size);
     }
 	void IConnect::on_hsk_done(enum lsquic_hsk_status s)
 	{
 		hsk_status_ = s;
+	    on_hsk_done_signal.emit(*this,s);
 	}
 	void IConnect::on_new_token(const unsigned char* token, size_t token_size){}
     void IConnect::on_stream_reset(lsquic_stream_t* s, int how){}
@@ -162,6 +163,10 @@ namespace mqas::core{
 
     bool IConnect::has_stream(lsquic_stream_t *) const {
         return false;
+    }
+
+    std::shared_ptr<engine_cxt> IConnect::get_engine_cxt() const {
+	    return engine_cxt_;
     }
 
     void IConnect::make_stream() {
