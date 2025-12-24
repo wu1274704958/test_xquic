@@ -22,7 +22,10 @@ namespace mqas
 				throw std::runtime_error("Context instance must only one!");
 			}
             IsRunning() = true;
+			#ifdef MQAS_DISABLE_SIGNAL_HANDLER
+			#else
 			::signal(SIGINT, sig_handler);
+			#endif
 			if (0 != ::lsquic_global_init(static_cast<int>(F)))
 			{
 				throw std::runtime_error("Init lsquic failed!");
