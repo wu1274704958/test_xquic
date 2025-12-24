@@ -44,6 +44,7 @@ namespace mqas::core {
         [[nodiscard]] unsigned int pending_streams() const;
         [[nodiscard]] unsigned int avail_streams() const;
         [[nodiscard]] LSQUIC_CONN_STATUS status(char* buf = nullptr,size_t buf_len = 0) const;
+		[[nodiscard]] bool is_closed() const;
         void make_stream();
 
 		//interface
@@ -66,6 +67,7 @@ namespace mqas::core {
 		::lsquic_hsk_status hsk_status_ = ::lsquic_hsk_status::LSQ_HSK_FAIL;
 		bool goaway_receive_:1 = false; 
 		bool datagram_supported_:1 = false;
+		bool is_closed_:1 = false;
 	};
 
 	template<typename C>

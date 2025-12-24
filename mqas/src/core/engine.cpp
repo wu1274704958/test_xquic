@@ -10,6 +10,7 @@ namespace mqas::core{
             datagram_supported_ = true;
 	}
 	void IConnect::on_close() {
+	    is_closed_ = true;
 	    on_close_signal.emit(*this);
         lsquic_conn_set_ctx(conn_, nullptr);
     }
@@ -114,15 +115,21 @@ namespace mqas::core{
     }
 
     void IConnect::close() {
-        lsquic_conn_close(conn_);
+		if (!is_closed_)
+		{
+			lsquic_conn_close(conn_);
+			engine_cxt_->process_conns_lazy();
+		}
     }
 
     void IConnect::abort() const {
         lsquic_conn_abort(conn_);
+	    engine_cxt_->process_conns_lazy();
     }
 
     void IConnect::going_away() const {
         lsquic_conn_going_away(conn_);
+	    engine_cxt_->process_conns_lazy();
     }
 
     const char *IConnect::get_sni() const {
@@ -159,6 +166,10 @@ namespace mqas::core{
 
     LSQUIC_CONN_STATUS IConnect::status(char* buf,size_t buf_len) const {
         return lsquic_conn_status(conn_,buf,buf_len);
+    }
+
+    bool IConnect::is_closed() const{
+		return is_closed_;
     }
 
     bool IConnect::has_stream(lsquic_stream_t *) const {
