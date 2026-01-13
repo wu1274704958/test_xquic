@@ -124,7 +124,7 @@ namespace mqas::core{
     {
         if(stream_tag_ == 0)
         {
-            return IStream::want_read();
+            return IStream::want_read(f);
         }else{
             bool ret = false;
             ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->want_read(f)),...);
@@ -136,7 +136,7 @@ namespace mqas::core{
     {
         if(stream_tag_ == 0)
         {
-            return IStream::want_write();
+            return IStream::want_write(f);
         }else{
             bool ret = false;
             ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->want_write(f)),...);
@@ -237,11 +237,11 @@ namespace mqas::core{
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    void StreamVariant<S...>::on_peer_change_ret(StreamVariantErrcode code,const std::span<uint8_t>& params)
+    void StreamVariant<S...>::on_peer_change_ack(StreamVariantErrcode code,const std::span<uint8_t>& params)
     {
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->on_peer_change_ret(code,params),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->on_peer_change_ack(code,params),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -257,11 +257,11 @@ namespace mqas::core{
         return StreamVariantErrcode::failed_not_find;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    void StreamVariant<S...>::on_peer_quit_ret(StreamVariantErrcode e,const std::span<uint8_t>& d)
+    void StreamVariant<S...>::on_peer_quit_ack(StreamVariantErrcode e,const std::span<uint8_t>& d)
     {
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->on_peer_quit_ret(e,d),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->on_peer_quit_ack(e,d),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -275,21 +275,21 @@ namespace mqas::core{
         return ret;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    bool StreamVariant<S...>::isWaitPeerChangeRet() const
+    bool StreamVariant<S...>::isWaitingPeerChangeAck() const
     {
         bool ret = false;
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->isWaitPeerChangeRet()),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->isWaitingPeerChangeAck()),...);
         }
         return ret;
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    void StreamVariant<S...>::setIsWaitPeerChangeRet(bool v)
+    void StreamVariant<S...>::setWaitingPeerChangeAck(bool v)
     {
         if(stream_tag_ > 0)
         {
-            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->setIsWaitPeerChangeRet(v),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_) && (std::get<std::shared_ptr<typename S::STREAM_TYPE>>(stream_var_)->setWaitingPeerChangeAck(v),false)),...);
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
@@ -310,9 +310,9 @@ namespace mqas::core{
                     }
                     else {
                         current_state = variant_stream_state::active;
-                        setIsWaitPeerChangeRet(false);
+                        setWaitingPeerChangeAck(false);
                     }
-                    on_peer_change_ret(msg->errcode,msg->extra_params);
+                    on_peer_change_ack(msg->errcode,msg->extra_params);
                 }else // is req
                 {
                     std::vector<uint8_t> ret_buf{};
@@ -348,7 +348,7 @@ namespace mqas::core{
                 if(msg->param3 == 1) // is ack
                 {
                     assert(current_state == variant_stream_state::quit_wait_ack);
-                    on_peer_quit_ret(msg->errcode,msg->extra_params);
+                    on_peer_quit_ack(msg->errcode,msg->extra_params);
                     if (msg->errcode != StreamVariantErrcode::ok)
                     {
                         current_state = variant_stream_state::active;
@@ -469,14 +469,14 @@ namespace mqas::core{
     requires (std::is_base_of_v<IStream,CS>)
     size_t StreamVariant<S...>::do_read_curr(CS& cs)
     {
-        if(cs.isWaitPeerChangeRet())
+        if(cs.isWaitingPeerChangeAck())
             return do_read_shell();
         const auto ret = cs.do_read();
         while (cs.has_unread_data()) {
             const auto span = cs.read_all_not_move();
             if (const size_t read_len = cs.on_read(span);read_len > 0) {
                 cs.move_read_pos_uncheck(read_len);
-                if(cs.has_unread_data() && cs.isWaitPeerChangeRet())
+                if(cs.has_unread_data() && cs.isWaitingPeerChangeAck())
                 {
                     hold_stream_unread_moveto_shell(cs);
                     return do_read_shell();
@@ -535,7 +535,7 @@ namespace mqas::core{
         stream->setStreamTag(stream_tag_);
         stream->set_outer(this->weak_from_this());
         stream->set_cxt(cxt_);
-        stream->on_init(stream_,connect_cxt_,connect);
+        stream->on_init(_stream,connect_cxt_,connect);
         StreamVariantErrcode res;
         if constexpr (!IS_LOCAL)
         {
@@ -552,7 +552,7 @@ namespace mqas::core{
                 clear_curr_stream();
                 return res;
             }
-            stream->setIsWaitPeerChangeRet(true);
+            stream->setWaitingPeerChangeAck(true);
         }
         return res;
     }

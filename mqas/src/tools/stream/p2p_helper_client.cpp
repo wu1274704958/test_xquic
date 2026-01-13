@@ -40,7 +40,7 @@ namespace mqas::tools::p2p {
 		return mqas::core::StreamVariantErrcode::ok;
 	}
 
-	void P2PHelperClientStream::on_peer_change_ret_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondConnectPeer>& res)
+	void P2PHelperClientStream::on_peer_change_ack_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondConnectPeer>& res)
 	{
 		on_change_result.emit(res);
 		if (code != core::StreamVariantErrcode::ok)

@@ -19,7 +19,7 @@ public:
         std::vector<uint8_t>& ret_buf);
     mqas::core::StreamVariantErrcode on_local_change_msg_s(const std::shared_ptr<test::ReqDirectChat>& msg,
         std::vector<uint8_t>& ret_buf);
-    void on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<test::RespondDirectChat>& msg);
+    void on_peer_change_ack_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<test::RespondDirectChat>& msg);
 
     void on_read_msg_s(const std::shared_ptr<test::ChatMessage>& m);
 

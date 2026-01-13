@@ -182,29 +182,27 @@ int main(int argc, const char** argv)
 		ui.config = e.get_engine()->get_config();
 		auto conn = c.lock();
 		auto t = io_cxt.make_handle<io::Timer>();
-		std::weak_ptr<StreamType> stream_out;
-		conn->make_stream([&e,&io_cxt, &stream_out,&ui](std::weak_ptr<StreamType> stream) {
-			stream_out = stream;
+		std::weak_ptr<StreamType> stream;
+		stream = conn->make_stream();
+	    auto s = stream.lock();
+	    mqas::tools::proto::p2p::ReqRegistePeer msg;
+	    s->req_change<LobbyStream, mqas::tools::p2p::ReqRegistePeerPair>(msg);
+	    auto lobby_stream = s->get_holds_stream<LobbyStream>();
+	    lobby_stream->on_change_helper = [stream,&ui](const mqas::tools::proto::p2p::ReqRespondPeerReqConnect& msg)
+	    {
+	        auto s = stream.lock();
+	        s->req_change< mqas::tools::p2p::P2PHelperClientStream, mqas::tools::p2p::ReqRespondPeerReqConnectPair>(msg);
+	        ui.reg_helper_stream(s->get_holds_stream<mqas::tools::p2p::P2PHelperClientStream>());
+	    };
+	    lobby_stream->on_change_helper_by_req = [stream,&ui](const mqas::tools::proto::p2p::ReqConnectPeer& msg)
+	    {
+	        auto s = stream.lock();
+	        s->req_change< mqas::tools::p2p::P2PHelperClientStream, mqas::tools::p2p::ReqConnectPeerPair>(msg);
+	        ui.reg_helper_stream(s->get_holds_stream<mqas::tools::p2p::P2PHelperClientStream>());
+	    };
+	    ui.init_stream(lobby_stream);
+		t->start([&stream](mqas::io::Timer* t) {
 			auto s = stream.lock();
-			mqas::tools::proto::p2p::ReqRegistePeer msg;
-			s->req_change<LobbyStream, mqas::tools::p2p::ReqRegistePeerPair>(msg);
-			auto lobby_stream = s->get_holds_stream<LobbyStream>();
-			lobby_stream->on_change_helper = [stream,&ui](const mqas::tools::proto::p2p::ReqRespondPeerReqConnect& msg)
-			{
-				auto s = stream.lock();
-				s->req_change< mqas::tools::p2p::P2PHelperClientStream, mqas::tools::p2p::ReqRespondPeerReqConnectPair>(msg);
-				ui.reg_helper_stream(s->get_holds_stream<mqas::tools::p2p::P2PHelperClientStream>());
-			};
-			lobby_stream->on_change_helper_by_req = [stream,&ui](const mqas::tools::proto::p2p::ReqConnectPeer& msg)
-			{
-				auto s = stream.lock();
-				s->req_change< mqas::tools::p2p::P2PHelperClientStream, mqas::tools::p2p::ReqConnectPeerPair>(msg);
-				ui.reg_helper_stream(s->get_holds_stream<mqas::tools::p2p::P2PHelperClientStream>());
-			};
-			ui.init_stream(lobby_stream);
-		});
-		t->start([&stream_out](mqas::io::Timer* t) {
-			auto s = stream_out.lock();
 			if (s && s->has_holds_stream())
 			{
 				s->get_holds_stream<LobbyStream>()->req_peer_list();
@@ -773,18 +771,17 @@ bool tui::launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConn
 	tui* ui = this;	
 	std::function<void(std::shared_ptr<core::Connect<RelayStreamType>>)> on_connect = [&msg,callback,ui](std::shared_ptr<core::Connect<RelayStreamType>> conn)
 	{
-		conn->make_stream([&msg,callback,ui](std::shared_ptr<RelayStreamType> stream){
-			tools::proto::relay::ReqRelay req;
-			auto token = req.mutable_token();
-			token->set_data(msg->relay_token());
-        	stream->req_change<tools::RelayStreamClient,tools::relay::ReqRelayPair>(req);
-			ui->relay_stream = stream->get_holds_stream<tools::RelayStreamClient>();
-			ui->relay_stream->on_connect_result.connect([callback](core::StreamVariantErrcode code,std::optional<tools::proto::relay::RespondRelay_Code> ret){
-				if(!ret.has_value() || ret.value() != tools::proto::relay::RespondRelay_Code::RespondRelay_Code_success)
-					callback(false);
-			});
-			ui->relay_stream->on_ready.connect([callback](){ callback(true); });
-		});
+		auto stream = conn->make_stream();
+	    tools::proto::relay::ReqRelay req;
+	    auto token = req.mutable_token();
+	    token->set_data(msg->relay_token());
+	    stream->req_change<tools::RelayStreamClient,tools::relay::ReqRelayPair>(req);
+	    ui->relay_stream = stream->get_holds_stream<tools::RelayStreamClient>();
+	    ui->relay_stream->on_connect_result.connect([callback](core::StreamVariantErrcode code,std::optional<tools::proto::relay::RespondRelay_Code> ret){
+            if(!ret.has_value() || ret.value() != tools::proto::relay::RespondRelay_Code::RespondRelay_Code_success)
+                callback(false);
+        });
+	    ui->relay_stream->on_ready.connect([callback](){ callback(true); });
 	};
 
 	std::function<void(const std::exception&)> exception_func = [this,callback](const std::exception&) {

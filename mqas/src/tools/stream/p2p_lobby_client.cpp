@@ -24,7 +24,7 @@ namespace mqas::tools::p2p {
 		connect_cxt_->set_cxt<int>(nullptr);
 	}
 
-	void P2PLobbyClientStream::on_peer_change_ret_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondRegistePeer>& msg)
+	void P2PLobbyClientStream::on_peer_change_ack_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondRegistePeer>& msg)
 	{
 		if (code == core::StreamVariantErrcode::ok && msg->ret() == proto::p2p::RetCode::ok)
 		{

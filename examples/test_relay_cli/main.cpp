@@ -45,40 +45,40 @@ int main(int argc,const char** argv)
 	if(!io::Ip::str2addr_ipv4(relay_ip.c_str(), relay_port, relay_addr))
 		throw new std::exception("Not found relay address!");
 
-    conn->make_stream([&io_cxt,&relay_ip,relay_port,relay_active,&relay_addr](std::weak_ptr<StreamTy> stream){
-        auto s_ = stream.lock();
-        tools::proto::relay::ReqRelay req;
-		boost::uuids::uuid token;
-		std::memset(&token,0,sizeof(boost::uuids::uuid));
-		token.data[0] = 1;
-		req.mutable_token()->set_data((const char*)&token.data, token.size());
-        s_->req_change<tools::RelayStreamClient,tools::relay::ReqRelayPair>(req);
-		s_->on_close_signal.connect([](std::shared_ptr<core::IStreamVariant>){
-			printf("stream closed\n");	
-			IsRunning() = false;
-		});
+    auto stream = conn->make_stream();
 
-		auto relay = s_->get_holds_stream<tools::RelayStreamClient>();
-		relay->on_recv_signal.connect([relay,&relay_addr](io::UdpSocket*, const std::optional<std::span<uint8_t>>& data, ssize_t nread, const sockaddr* addr, unsigned){
-			if(data.has_value())
-			{
-				auto num = comm::from_big_endian<uint32_t>(data.value());
-				printf("recv %d\n",num);
-
-				std::array<uint8_t,4> buf;
-				comm::to_big_endian(num + 1,buf);
-				relay->try_send(buf,relay_addr);
-			}
-		});
-		if(relay_active)
-		{
-			relay->on_ready.connect([relay,&relay_addr](){
-				std::array<uint8_t,4> buf;
-				comm::to_big_endian(1,buf);
-				relay->try_send(buf,relay_addr);
-			});
-		}
+    tools::proto::relay::ReqRelay req;
+    boost::uuids::uuid token;
+    std::memset(&token,0,sizeof(boost::uuids::uuid));
+    token.data[0] = 1;
+    req.mutable_token()->set_data((const char*)&token.data, token.size());
+    stream->req_change<tools::RelayStreamClient,tools::relay::ReqRelayPair>(req);
+    stream->on_close_signal.connect([](std::shared_ptr<core::IStreamVariant>){
+        printf("stream closed\n");
+        IsRunning() = false;
     });
+
+    auto relay = stream->get_holds_stream<tools::RelayStreamClient>();
+    relay->on_recv_signal.connect([relay,&relay_addr](io::UdpSocket*, const std::optional<std::span<uint8_t>>& data, ssize_t nread, const sockaddr* addr, unsigned){
+        if(data.has_value())
+        {
+            auto num = comm::from_big_endian<uint32_t>(data.value());
+            printf("recv %d\n",num);
+
+            std::array<uint8_t,4> buf;
+            comm::to_big_endian(num + 1,buf);
+            relay->try_send(buf,relay_addr);
+        }
+    });
+    if(relay_active)
+    {
+        relay->on_ready.connect([relay,&relay_addr](){
+            std::array<uint8_t,4> buf;
+            comm::to_big_endian(1,buf);
+            relay->try_send(buf,relay_addr);
+        });
+    }
+
 	io_cxt.run_until(IsRunning());
 	
 	return 0;

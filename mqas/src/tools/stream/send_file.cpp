@@ -38,7 +38,7 @@ mqas::tools::SendFileStream::on_local_change_msg_s(const std::shared_ptr<proto::
 }
 
 void
-mqas::tools::SendFileStream::on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code,
+mqas::tools::SendFileStream::on_peer_change_ack_msg_s(mqas::core::StreamVariantErrcode code,
                                                       const std::shared_ptr<proto::ReqSendFileRet>& m)
 {
     if(code != core::StreamVariantErrcode::ok) {
@@ -57,7 +57,7 @@ void mqas::tools::SendFileStream::on_read_msg_s(const std::shared_ptr<proto::Req
     LOG(ERROR) << "SendFileStream peer quit ret code = " << ret->code() << " error = " << ret->error_code();
     on_peer_change_ret_err_cb_.emit(this,*ret);
 }
-void mqas::tools::SendFileStream::on_peer_quit_ret_msg_s(core::StreamVariantErrcode e,const std::shared_ptr<proto::ReqSendFileRet>& ret)
+void mqas::tools::SendFileStream::on_peer_quit_ack_msg_s(core::StreamVariantErrcode e,const std::shared_ptr<proto::ReqSendFileRet>& ret)
 {
     if(e != core::StreamVariantErrcode::ok) {
         LOG(ERROR) << "SendFileStream peer quit ret code = " << ret->code() << " error = " << ret->error_code();

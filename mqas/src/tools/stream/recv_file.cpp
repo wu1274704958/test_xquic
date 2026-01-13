@@ -65,7 +65,7 @@ size_t mqas::tools::RecvFileStream::on_read(const std::span<const uint8_t> &curr
     buf = uv_buf_init((char *) real_buf.data(), real_buf.size());
     recv_bytes_ += real_size;
     if(is_recv_end())
-        setIsWaitPeerChangeRet(true);
+        setWaitingPeerChangeAck(true);
     if(is_idle) {
         write_req->data = this;
         uv_fs_write(connect_cxt_->engine_cxt_->io_cxt.get_loop().get(), write_req.get(), file_, &buf, 1, -1,

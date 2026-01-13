@@ -32,21 +32,21 @@ namespace mqas::core {
                                                    std::vector<uint8_t> &ret_buf);
         StreamVariantErrcode on_local_change(const std::span<uint8_t>& params,
                                                     std::vector<uint8_t>& ret_buf);
-        void on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params);
+        void on_peer_change_ack(StreamVariantErrcode code, const std::span<uint8_t> &params);
         StreamVariantErrcode on_peer_quit(const std::span<uint8_t>&,std::vector<uint8_t>&);
-        void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
+        void on_peer_quit_ack(StreamVariantErrcode,const std::span<uint8_t>&);
         bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={},bool lazy = false);
-        [[nodiscard]] bool isWaitPeerChangeRet() const;
-        void setIsWaitPeerChangeRet(bool isWaitPeerChangeRet);
+        [[nodiscard]] bool isWaitingPeerChangeAck() const;
+        void setWaitingPeerChangeAck(bool isWaitPeerChangeRet);
         [[nodiscard]] size_t getStreamTag() const;
         void setStreamTag(size_t streamTag);
         virtual void on_req_quit();
         [[nodiscard]] std::shared_ptr<IStreamVariantMgr> get_outer() const;
         void set_outer(std::weak_ptr<IStreamVariantMgr> outer);
     protected:
-        bool is_wait_peer_change_ret_:1 = false;
+        bool _is_waiting_peer_change_ack:1 = false;
         size_t stream_tag_ = 0;
-        std::weak_ptr<IStreamVariantMgr> outer;
+        std::weak_ptr<IStreamVariantMgr> _outer;
     };
 
     template<typename T>
@@ -105,7 +105,7 @@ namespace mqas::core {
         [[nodiscard]] size_t  unread_size() const;
 
         size_t on_read(const std::span<const uint8_t>& current) override;
-        void on_peer_change_ret(StreamVariantErrcode code,const std::span<uint8_t>& params);
+        void on_peer_change_ack(StreamVariantErrcode code,const std::span<uint8_t>& params);
         StreamVariantErrcode change_to(size_t tag,const std::span<uint8_t>& change_params,
                                        std::vector<uint8_t>& ret_buf);
 
@@ -127,10 +127,10 @@ namespace mqas::core {
         std::shared_ptr<IStreamVariant> get_holds_stream(size_t stream_tag);
         [[nodiscard]] bool has_holds_stream() const;
         StreamVariantErrcode on_peer_quit(const std::span<uint8_t> &,std::vector<uint8_t>&);
-        void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
+        void on_peer_quit_ack(StreamVariantErrcode,const std::span<uint8_t>&);
         bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={},bool lazy = false);
-        [[nodiscard]] bool isWaitPeerChangeRet() const;
-        void setIsWaitPeerChangeRet(bool isWaitPeerChangeRet);
+        [[nodiscard]] bool isWaitingPeerChangeAck() const;
+        void setWaitingPeerChangeAck(bool v);
     protected:
         template<typename CS>
         requires (std::is_base_of_v<IStream,CS>)

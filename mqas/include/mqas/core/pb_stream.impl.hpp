@@ -39,18 +39,18 @@ namespace mqas::core {
         : std::true_type {};
 
     template<typename T,typename M,typename = std::void_t<>>
-    struct has_member_function_on_peer_change_ret_msg_s : std::false_type {};
+    struct has_member_function_on_peer_change_ack_msg_s : std::false_type {};
 
     template<typename T,typename M>
-    struct has_member_function_on_peer_change_ret_msg_s<T,M,std::void_t<decltype(std::declval<T>().on_peer_change_ret_msg_s(std::declval<StreamVariantErrcode>(),
+    struct has_member_function_on_peer_change_ack_msg_s<T,M,std::void_t<decltype(std::declval<T>().on_peer_change_ack_msg_s(std::declval<StreamVariantErrcode>(),
             std::declval<std::shared_ptr<M>>()))>>
             : std::true_type {};
 
     template<typename T,typename M,typename = std::void_t<>>
-    struct has_member_function_on_peer_quit_ret_msg_s : std::false_type {};
+    struct has_member_function_on_peer_quit_ack_msg_s : std::false_type {};
 
     template<typename T,typename M>
-    struct has_member_function_on_peer_quit_ret_msg_s<T,M,std::void_t<decltype(std::declval<T>().on_peer_quit_ret_msg_s(std::declval<StreamVariantErrcode>(),
+    struct has_member_function_on_peer_quit_ack_msg_s<T,M,std::void_t<decltype(std::declval<T>().on_peer_quit_ack_msg_s(std::declval<StreamVariantErrcode>(),
             std::declval<std::shared_ptr<M>>()))>>
             : std::true_type {};
 
@@ -246,10 +246,10 @@ namespace mqas::core {
 
 
     MQAS_PB_STREAM_TEMPLATE_DECL
-    void ProtoBufStream<S,M...>::on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params)
+    void ProtoBufStream<S,M...>::on_peer_change_ack(StreamVariantErrcode code, const std::span<uint8_t> &params)
     {
         if(params.empty())
-            return on_peer_change_ret_msg(code,0, nullptr);
+            return on_peer_change_ack_msg(code,0, nullptr);
         auto msg_wrap = parse_base_msg(params);
         if(!msg_wrap) {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_peer_change_ret";
@@ -261,28 +261,28 @@ namespace mqas::core {
             return;
         }
         auto msg = msg_parsers_[mid](*msg_wrap,MsgOrigin::on_peer_change_ret);
-        on_peer_change_ret_msg_forward<M...>(code,mid,msg);
+        on_peer_change_ack_msg_forward<M...>(code,mid,msg);
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
-    void ProtoBufStream<S,M...>::on_peer_change_ret_msg(StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&){}
+    void ProtoBufStream<S,M...>::on_peer_change_ack_msg(StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&){}
     MQAS_PB_STREAM_TEMPLATE_DECL
     template<class F,class ... Ss>
-    void ProtoBufStream<S,M...>::on_peer_change_ret_msg_forward(StreamVariantErrcode code, size_t mid,const std::shared_ptr<google::protobuf::Message>& msg)
+    void ProtoBufStream<S,M...>::on_peer_change_ack_msg_forward(StreamVariantErrcode code, size_t mid,const std::shared_ptr<google::protobuf::Message>& msg)
     {
         if(F::PB_MSG_ID == mid)
         {
-            if constexpr (has_member_function_on_peer_change_ret_msg_s<S,typename F::PB_MSG_TYPE>::value)
+            if constexpr (has_member_function_on_peer_change_ack_msg_s<S,typename F::PB_MSG_TYPE>::value)
             {
-                static_cast<S*>(this)->on_peer_change_ret_msg_s(code,std::static_pointer_cast<typename F::PB_MSG_TYPE>(msg));
+                static_cast<S*>(this)->on_peer_change_ack_msg_s(code,std::static_pointer_cast<typename F::PB_MSG_TYPE>(msg));
             }else{
-                static_cast<S*>(this)->on_peer_change_ret_msg(code,mid,msg);
+                static_cast<S*>(this)->on_peer_change_ack_msg(code,mid,msg);
             }
         }else{
             if constexpr (sizeof...(Ss) == 0)
             {
-                static_cast<S*>(this)->on_peer_change_ret_msg(code,mid,msg);
+                static_cast<S*>(this)->on_peer_change_ack_msg(code,mid,msg);
             }else{
-                on_peer_change_ret_msg_forward<Ss...>(code,mid,msg);
+                on_peer_change_ack_msg_forward<Ss...>(code,mid,msg);
             }
         }
     }
@@ -312,10 +312,10 @@ namespace mqas::core {
     MQAS_PB_STREAM_TEMPLATE_DECL
     void ProtoBufStream<S,M...>::on_read_msg(size_t,const std::shared_ptr<google::protobuf::Message>&){}
     MQAS_PB_STREAM_TEMPLATE_DECL
-    void ProtoBufStream<S,M...>::on_peer_quit_ret(StreamVariantErrcode e,const std::span<uint8_t>& d)
+    void ProtoBufStream<S,M...>::on_peer_quit_ack(StreamVariantErrcode e,const std::span<uint8_t>& d)
     {
         if(d.empty())
-            return on_peer_quit_ret_msg(e,0, nullptr);
+            return on_peer_quit_ack_msg(e,0, nullptr);
         auto msg_wrap = parse_base_msg(d);
         if(!msg_wrap) {
             LOG(ERROR) << "Try parse proto::MsgWrapper failed on_peer_quit_ret";
@@ -327,28 +327,28 @@ namespace mqas::core {
             return ;
         }
         auto msg = msg_parsers_[mid](*msg_wrap,MsgOrigin::on_peer_quit_ret);
-        return on_peer_quit_ret_msg_forward<M...>(e,mid,msg);
+        return on_peer_quit_ack_msg_forward<M...>(e,mid,msg);
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
-    void ProtoBufStream<S,M...>::on_peer_quit_ret_msg(StreamVariantErrcode,size_t,const std::shared_ptr<google::protobuf::Message>&){}
+    void ProtoBufStream<S,M...>::on_peer_quit_ack_msg(StreamVariantErrcode,size_t,const std::shared_ptr<google::protobuf::Message>&){}
     MQAS_PB_STREAM_TEMPLATE_DECL
     template<class F,class ... Ss>
-    void ProtoBufStream<S,M...>::on_peer_quit_ret_msg_forward(StreamVariantErrcode e,size_t mid,const std::shared_ptr<google::protobuf::Message>& msg)
+    void ProtoBufStream<S,M...>::on_peer_quit_ack_msg_forward(StreamVariantErrcode e,size_t mid,const std::shared_ptr<google::protobuf::Message>& msg)
     {
         if(F::PB_MSG_ID == mid)
         {
-            if constexpr (has_member_function_on_peer_quit_ret_msg_s<S,typename F::PB_MSG_TYPE>::value)
+            if constexpr (has_member_function_on_peer_quit_ack_msg_s<S,typename F::PB_MSG_TYPE>::value)
             {
-                static_cast<S*>(this)->on_peer_quit_ret_msg_s(e,std::static_pointer_cast<typename F::PB_MSG_TYPE>(msg));
+                static_cast<S*>(this)->on_peer_quit_ack_msg_s(e,std::static_pointer_cast<typename F::PB_MSG_TYPE>(msg));
             }else{
-                static_cast<S*>(this)->on_peer_quit_ret_msg(e,mid,msg);
+                static_cast<S*>(this)->on_peer_quit_ack_msg(e,mid,msg);
             }
         }else{
             if constexpr (sizeof...(Ss) == 0)
             {
-                static_cast<S*>(this)->on_peer_quit_ret_msg(e,mid,msg);
+                static_cast<S*>(this)->on_peer_quit_ack_msg(e,mid,msg);
             }else{
-                on_peer_quit_ret_msg_forward<Ss...>(e,mid,msg);
+                on_peer_quit_ack_msg_forward<Ss...>(e,mid,msg);
             }
         }
     }
@@ -446,7 +446,7 @@ namespace mqas::core {
         msg.extra_params = {*buf};
         auto data = msg.generate();
         if(!data)return false;
-        auto out = outer.lock();
+        auto out = _outer.lock();
         auto outer_ret = out == nullptr ? -1 : out->on_send_sv_msg(msg, data.value());
         if (outer_ret == -1)
         {
@@ -461,7 +461,7 @@ namespace mqas::core {
     MQAS_PB_STREAM_TEMPLATE_DECL
     size_t ProtoBufStream<S, M...>::try_parse_outer(const std::span<const uint8_t>& current)
     {
-        auto out_stream = outer.lock();
+        auto out_stream = _outer.lock();
         if (!out_stream)
             return -1;
         return out_stream->on_read(current);

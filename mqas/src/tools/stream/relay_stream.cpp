@@ -55,6 +55,7 @@ namespace mqas::tools{
             launch_timeout_timer();
             return core::StreamVariantErrcode::skip_and_manual;
         }
+        return core::StreamVariantErrcode::failed;
     }
 
     void RelayStream::set_peer_addr(mqas::tools::proto::relay::Address* addr)

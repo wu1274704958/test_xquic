@@ -55,7 +55,7 @@ namespace mqas::core {
 		[[nodiscard]] bool flush_datagram() const;
 		bool write_stream(::lsquic_stream_t*,const std::span<uint8_t>&);
 		[[nodiscard]] ::lsquic_hsk_status get_hsk_status() const;
-        bool has_stream(lsquic_stream_t*) const;
+        bool has_stream(::lsquic_stream_t*) const;
 		[[nodiscard]] std::shared_ptr<engine_cxt> get_engine_cxt() const;
 	protected:
 		::lsquic_conn_t* conn_ = nullptr;

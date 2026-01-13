@@ -33,36 +33,34 @@ int main(int argc,const char** argv)
         auto c = e.get_engine()->connect(addr,N_LSQVER);
         auto conn = c.lock();
         auto t = io_cxt.make_handle<io::Timer>();
-        conn->make_stream([file_path,buf_size,overlay](std::weak_ptr<Stream> stream){
-            auto s = stream.lock();
-            if(s)
-            {
-                std::cout << "connect stream \n";
-                tools::proto::ReqSendFile msg;
-                msg.set_name(file_path);
-                msg.set_buf_size(buf_size);
-                msg.set_overlay(overlay);
-                printf("overlay = %d\n",msg.overlay());
-                s->req_change<tools::SendFileStream,tools::ReqSendFileMsgPair>(msg);
-                auto real_stream = s->get_holds_stream<tools::SendFileStream>();
-                if(!real_stream)
-                {
-                    std::cout << "file not found or can not read" << std::endl;
-                }
-                real_stream->add_on_success_cb([](tools::SendFileStream* s){
-                    printf("send success\n");
-                    s->close();
-                });
-                real_stream->add_on_read_failed_cb([](tools::SendFileStream* s,ssize_t code){
-                    std::cout <<  "read failed " << code << std::endl;
-                    s->close();
-                });
-                real_stream->add_on_change_ret_err_cb([](tools::SendFileStream* s,const tools::proto::ReqSendFileRet& ret){
-                    std::cout <<  "peer ret code " << ret.code() << " err = " << ret.error_code() << std::endl;
-                    s->close();
-                });
-            }
-        });
+        auto s = conn->make_stream();
+	    if(s)
+	    {
+	        std::cout << "connect stream \n";
+	        tools::proto::ReqSendFile msg;
+	        msg.set_name(file_path);
+	        msg.set_buf_size(buf_size);
+	        msg.set_overlay(overlay);
+	        printf("overlay = %d\n",msg.overlay());
+	        s->req_change<tools::SendFileStream,tools::ReqSendFileMsgPair>(msg);
+	        auto real_stream = s->get_holds_stream<tools::SendFileStream>();
+	        if(!real_stream)
+	        {
+	            std::cout << "file not found or can not read" << std::endl;
+	        }
+	        real_stream->add_on_success_cb([](tools::SendFileStream* s){
+                printf("send success\n");
+                s->close();
+            });
+	        real_stream->add_on_read_failed_cb([](tools::SendFileStream* s,ssize_t code){
+                std::cout <<  "read failed " << code << std::endl;
+                s->close();
+            });
+	        real_stream->add_on_change_ret_err_cb([](tools::SendFileStream* s,const tools::proto::ReqSendFileRet& ret){
+                std::cout <<  "peer ret code " << ret.code() << " err = " << ret.error_code() << std::endl;
+                s->close();
+            });
+	    }
 	}catch (std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;

@@ -27,8 +27,8 @@ sigc::signal<void(core::StreamVariantErrcode,std::optional<proto::relay::Respond
 sigc::signal<void()> on_ready;
 public:
 core::StreamVariantErrcode on_local_change_msg_s(const std::shared_ptr<proto::relay::ReqRelay>& req,std::vector<uint8_t> &ret_buf);
-void on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code,const std::shared_ptr<proto::relay::RespondRelay>& msg);
-void on_peer_change_ret_msg(core::StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&);
+void on_peer_change_ack_msg_s(mqas::core::StreamVariantErrcode code,const std::shared_ptr<proto::relay::RespondRelay>& msg);
+void on_peer_change_ack_msg(core::StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&);
 void on_close();
 protected:
 void on_recv_datagram(const uint8_t* buf,size_t size);

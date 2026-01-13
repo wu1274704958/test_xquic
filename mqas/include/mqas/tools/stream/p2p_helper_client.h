@@ -21,7 +21,7 @@ namespace mqas::tools::p2p {
 		void on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectPeerData>& msg);
 		mqas::core::StreamVariantErrcode on_peer_quit_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectResult>& res,
 			std::vector<uint8_t>& buf);
-		void on_peer_change_ret_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondConnectPeer>&);
+		void on_peer_change_ack_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondConnectPeer>&);
 		void on_init(::lsquic_stream_t* lsquic_stream, core::connect_cxt* connect_cxt, std::weak_ptr<core::IConnect> connect);
 	protected:
 		void send_verify_msg(const std::shared_ptr<proto::p2p::NotifyConnectPeerData>&) const;

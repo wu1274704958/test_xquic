@@ -17,7 +17,7 @@ namespace mqas::tools {
         return core::StreamVariantErrcode::not_support;
     }
 
-    void RelayStreamClient::on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code,
+    void RelayStreamClient::on_peer_change_ack_msg_s(mqas::core::StreamVariantErrcode code,
         const std::shared_ptr<proto::relay::RespondRelay>& msg)
     {
         if (code == core::StreamVariantErrcode::ok) 
@@ -45,7 +45,7 @@ namespace mqas::tools {
         on_connect_result.emit(code, msg->code());
     }
 
-    void RelayStreamClient::on_peer_change_ret_msg(core::StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&)
+    void RelayStreamClient::on_peer_change_ack_msg(core::StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&)
     {
         on_connect_result.emit(code, std::nullopt);
     }

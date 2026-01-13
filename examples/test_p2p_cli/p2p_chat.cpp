@@ -28,7 +28,7 @@ mqas::core::StreamVariantErrcode P2PChatStream::on_change_msg_s(const std::share
     return mqas::core::StreamVariantErrcode::ok;
 }
 
-void P2PChatStream::on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<test::RespondDirectChat>& msg)
+void P2PChatStream::on_peer_change_ack_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<test::RespondDirectChat>& msg)
 {
     if (code == mqas::core::StreamVariantErrcode::ok)
     {

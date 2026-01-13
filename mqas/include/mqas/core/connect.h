@@ -36,6 +36,7 @@ namespace mqas::core{
         * 2: Stop both reading and writing.
         */
         [[nodiscard]] void* get_cxt() const;
+        [[nodiscard]] ::lsquic_stream* get_origin() const;
         void set_cxt(void*);
         bool shutdown(StreamAspect how);
         bool close();
@@ -59,7 +60,7 @@ namespace mqas::core{
         std::vector<uint8_t> read_buf_;
         size_t buf_write_pos = 0;
         size_t buf_read_pos = 0;
-        ::lsquic_stream_t* stream_ = nullptr;
+        ::lsquic_stream_t* _stream = nullptr;
         StreamAspect reset_val_ = StreamAspect::None;
         ::lsquic_reader reader_ = {};
         connect_cxt* connect_cxt_ = nullptr;
@@ -97,12 +98,13 @@ namespace mqas::core{
         void on_stream_reset(lsquic_stream_t* s, int how);
         bool has_stream(lsquic_stream_t*) const;
         bool write_stream(::lsquic_stream_t*,const std::span<uint8_t>&);
-        sigc::connection make_stream(std::function<void(std::shared_ptr<S>)> f = {});
+        std::shared_ptr<S> make_stream();
         void close();
         std::shared_ptr<S> get_stream(::lsquic_stream_t*) const;
     protected:
-        std::unordered_map<size_t ,std::shared_ptr<S>> stream_map_;
-        connect_cxt connect_cxt_;
+        std::unordered_map<size_t ,std::shared_ptr<S>> _stream_map;
+        connect_cxt _connect_cxt = {};
+        volatile ::lsquic_stream_t* _temp_new_stream_result = nullptr;
     };
 
 }

@@ -28,7 +28,7 @@ public:
         core::ProtoBufMsg::write_msg<SayHelloMsg2Pair>(ret_buf, *hello);
         return core::StreamVariantErrcode::ok;
     }
-    void on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<proto::SayHelloMsg2>& m)
+    void on_peer_change_ack_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<proto::SayHelloMsg2>& m)
     {
         printf("change to hi2\n");
         proto::ChangeNameMsg2 changeMsg;
@@ -40,7 +40,7 @@ public:
         if (core::ProtoBufMsg::write_msg<SayByeMsg2Pair>(buf, quit_msg))
             assert(req_quit(stream_tag_, buf));
     }
-    mqas::core::StreamVariantErrcode on_peer_quit_ret_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<proto::RespSayByeMsg2>& m)
+    mqas::core::StreamVariantErrcode on_peer_quit_ack_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<proto::RespSayByeMsg2>& m)
     {
         printf("stream2 on_peer_quit  %s\n", m->name().c_str());
         return mqas::core::StreamVariantErrcode::ok;
@@ -58,9 +58,9 @@ public:
         return core::StreamVariantErrcode::ok;
     }
 
-    void on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<proto::SayHelloMsg>& m);
+    void on_peer_change_ack_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<proto::SayHelloMsg>& m);
     
-    mqas::core::StreamVariantErrcode on_peer_quit_ret_msg_s(mqas::core::StreamVariantErrcode code,const std::shared_ptr<proto::RespSayByeMsg>& m)
+    mqas::core::StreamVariantErrcode on_peer_quit_ack_msg_s(mqas::core::StreamVariantErrcode code,const std::shared_ptr<proto::RespSayByeMsg>& m)
     {
         printf("stream1 on_peer_quit  %s\n", m->name().c_str());
         return mqas::core::StreamVariantErrcode::ok;
@@ -83,7 +83,7 @@ public:
 using StreamType = core::StreamVariant<core::StreamVariantPair<1, Stream>, core::StreamVariantPair<2, Stream2>>;
 
 
-void Stream::on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<proto::SayHelloMsg>& m)
+void Stream::on_peer_change_ack_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<proto::SayHelloMsg>& m)
 {
     printf("change to hello1\n");
     proto::ChangeNameMsg changeMsg;
@@ -110,10 +110,7 @@ int main(int argc,const char** argv)
         auto c = e.get_engine()->connect(addr,N_LSQVER);
         auto conn = c.lock();
         auto t = io_cxt.make_handle<io::Timer>();
-        std::weak_ptr<StreamType> stream_out;
-        conn->make_stream([&io_cxt,&stream_out](std::weak_ptr<StreamType> stream){
-            stream_out = stream;
-        });
+        std::weak_ptr<StreamType> stream_out = conn->make_stream();
         t->start([&stream_out](io::Timer* t){
             auto s = stream_out.lock();
             if(s && !s->has_holds_stream())

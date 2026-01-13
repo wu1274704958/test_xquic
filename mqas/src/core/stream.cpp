@@ -67,16 +67,16 @@ mqas::core::IStreamVariant::on_local_change(const std::span<uint8_t>& params,
     return StreamVariantErrcode::not_support;
 }
 
-void mqas::core::IStreamVariant::on_peer_change_ret(mqas::core::StreamVariantErrcode code, const std::span<uint8_t> &params) {
+void mqas::core::IStreamVariant::on_peer_change_ack(mqas::core::StreamVariantErrcode code, const std::span<uint8_t> &params) {
 
 }
 
-bool mqas::core::IStreamVariant::isWaitPeerChangeRet() const {
-    return is_wait_peer_change_ret_;
+bool mqas::core::IStreamVariant::isWaitingPeerChangeAck() const {
+    return _is_waiting_peer_change_ack;
 }
 
-void mqas::core::IStreamVariant::setIsWaitPeerChangeRet(bool isWaitPeerChangeRet) {
-    is_wait_peer_change_ret_ = isWaitPeerChangeRet;
+void mqas::core::IStreamVariant::setWaitingPeerChangeAck(bool isWaitPeerChangeRet) {
+    _is_waiting_peer_change_ack = isWaitPeerChangeRet;
 }
 
 mqas::core::StreamVariantErrcode mqas::core::IStreamVariant::on_peer_quit(const std::span<uint8_t> &,std::vector<uint8_t>&) {
@@ -92,13 +92,13 @@ bool mqas::core::IStreamVariant::req_quit(uint32_t curr_tag,const std::span<uint
     if(!data)return false;
     bool ret = lazy ? (write_lazy({*data}),true) : write({*data});
     if (ret) { 
-        setIsWaitPeerChangeRet(true); 
+        setWaitingPeerChangeAck(true);
         on_req_quit();
     }
     return ret;
 }
 
-void mqas::core::IStreamVariant::on_peer_quit_ret(mqas::core::StreamVariantErrcode,const std::span<uint8_t> &) {}
+void mqas::core::IStreamVariant::on_peer_quit_ack(mqas::core::StreamVariantErrcode,const std::span<uint8_t> &) {}
 
 size_t mqas::core::IStreamVariant::getStreamTag() const {
     return stream_tag_;
@@ -111,18 +111,18 @@ void mqas::core::IStreamVariant::setStreamTag(size_t streamTag) {
 
 void mqas::core::IStreamVariant::on_req_quit()
 {
-    auto out = outer.lock();
-    if (out)
-        out->on_req_quit();
+    auto outer = _outer.lock();
+    if (outer)
+        outer->on_req_quit();
 }
 std::shared_ptr<mqas::core::IStreamVariantMgr> mqas::core::IStreamVariant::get_outer() const
 {
-    return outer.lock();
+    return _outer.lock();
 }
 
 void mqas::core::IStreamVariant::set_outer(std::weak_ptr<mqas::core::IStreamVariantMgr> outer)
 {
-    this->outer = std::move(outer);
+    this->_outer = std::move(outer);
 }
 
 std::optional<std::vector<uint8_t>> mqas::core::MsgHeader::generate() const {

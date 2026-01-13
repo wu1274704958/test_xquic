@@ -20,12 +20,12 @@ namespace mqas::tools{
         static constexpr size_t RECOMMEND_BUF_SIZE = 2048;
         core::StreamVariantErrcode on_local_change_msg_s(const std::shared_ptr<proto::ReqSendFile>& req,
                                                    std::vector<uint8_t> &ret_buf);
-        void on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code,const std::shared_ptr<proto::ReqSendFileRet>& m);
+        void on_peer_change_ack_msg_s(mqas::core::StreamVariantErrcode code,const std::shared_ptr<proto::ReqSendFileRet>& m);
         sigc::connection add_on_read_failed_cb(const typename ON_READ_FILE_FAILED_SIGNAL_T::slot_type &);
         sigc::connection add_on_change_ret_err_cb(const typename ON_PEER_CHANGE_RET_ERR_SIGNAL_T::slot_type &);
         sigc::connection add_on_success_cb(const typename ON_SEND_SUCCESS_SIGNAL_T::slot_type &);
         void on_read_msg_s(const std::shared_ptr<proto::ReqSendFileRet>& ret);
-        void on_peer_quit_ret_msg_s(core::StreamVariantErrcode e,const std::shared_ptr<proto::ReqSendFileRet>& ret);
+        void on_peer_quit_ack_msg_s(core::StreamVariantErrcode e,const std::shared_ptr<proto::ReqSendFileRet>& ret);
         void close_file_sync();
         void close_file_async();
         void on_close();

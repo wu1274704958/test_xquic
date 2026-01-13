@@ -37,16 +37,16 @@ namespace mqas::core{
         StreamVariantErrcode on_local_change_msg(size_t, const std::shared_ptr<google::protobuf::Message>&,
             std::vector<uint8_t>& ret_buf);
 
-        void on_peer_change_ret(StreamVariantErrcode code, const std::span<uint8_t> &params);
-        void on_peer_change_ret_msg(StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&);
+        void on_peer_change_ack(StreamVariantErrcode code, const std::span<uint8_t> &params);
+        void on_peer_change_ack_msg(StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&);
         size_t on_read(const std::span<const uint8_t>& current);
         void on_read_msg(size_t,const std::shared_ptr<google::protobuf::Message>&);
         StreamVariantErrcode on_peer_quit(const std::span<uint8_t>&,
                 std::vector<uint8_t>&);
-        void on_peer_quit_ret(StreamVariantErrcode,const std::span<uint8_t>&);
+        void on_peer_quit_ack(StreamVariantErrcode,const std::span<uint8_t>&);
         StreamVariantErrcode on_peer_quit_msg(size_t,const std::shared_ptr<google::protobuf::Message>&,
                                           std::vector<uint8_t>&);
-        void on_peer_quit_ret_msg(StreamVariantErrcode,size_t,const std::shared_ptr<google::protobuf::Message>&);
+        void on_peer_quit_ack_msg(StreamVariantErrcode,size_t,const std::shared_ptr<google::protobuf::Message>&);
         template<class SM>
         requires IsProtoBufMsgConf<SM>
         bool send(const typename SM::PB_MSG_TYPE&);
@@ -75,12 +75,12 @@ namespace mqas::core{
             std::vector<uint8_t>& ret_buf);
 
         template<class F,class ... Ss>
-        void on_peer_change_ret_msg_forward(StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&);
+        void on_peer_change_ack_msg_forward(StreamVariantErrcode code, size_t,const std::shared_ptr<google::protobuf::Message>&);
         template<class F,class ... Ss>
         StreamVariantErrcode on_peer_quit_msg_forward(size_t,const std::shared_ptr<google::protobuf::Message>&,
                                               std::vector<uint8_t>&);
         template<class F,class ... Ss>
-        void on_peer_quit_ret_msg_forward(StreamVariantErrcode,size_t,const std::shared_ptr<google::protobuf::Message>&);
+        void on_peer_quit_ack_msg_forward(StreamVariantErrcode,size_t,const std::shared_ptr<google::protobuf::Message>&);
         std::unordered_map<size_t ,PARSER_FUN_TY> msg_parsers_;
         std::unordered_map<size_t ,HANDLER_FUN_TY> msg_handlers_;
     };
