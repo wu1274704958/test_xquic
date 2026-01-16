@@ -131,6 +131,7 @@ namespace mqas::core {
         bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={},bool lazy = false);
         [[nodiscard]] bool isWaitingPeerChangeAck() const;
         void setWaitingPeerChangeAck(bool v);
+        [[nodiscard]] size_t get_current_stream_tag() const { return _stream_tag; }
     protected:
         template<typename CS>
         requires (std::is_base_of_v<IStream,CS>)
@@ -175,10 +176,10 @@ namespace mqas::core {
         //-1 error; 0 success; 1 success but not write;2 write but failed
         int on_send_sv_msg(const stream_variant_msg& msg,std::vector<uint8_t>& buf) override;
     protected:
-            std::variant<std::monostate,typename std::shared_ptr<typename S::STREAM_TYPE> ...> stream_var_;
-            std::stack<std::pair<size_t,std::shared_ptr<IStreamVariant>>> stack;
-            size_t stream_tag_ = 0;
-            variant_stream_state current_state;
+            std::variant<std::monostate,typename std::shared_ptr<typename S::STREAM_TYPE> ...> _stream_var;
+            std::stack<std::pair<size_t,std::shared_ptr<IStreamVariant>>> _stack;
+            size_t _stream_tag = 0;
+            variant_stream_state _current_state = variant_stream_state::none;
     };
 }
 #include "stream.impl.hpp"
