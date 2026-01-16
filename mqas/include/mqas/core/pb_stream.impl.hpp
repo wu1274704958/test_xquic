@@ -2,10 +2,13 @@
 // Created by Administrator on 2023/3/10.
 //
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "HidingNonVirtualFunction"
 #ifndef MQAS_CORE_PB_STREAM_IMPL_HPP
 #define MQAS_CORE_PB_STREAM_IMPL_HPP
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "HidingNonVirtualFunction"
+#endif
 
 #include <type_traits>
 
@@ -422,12 +425,12 @@ namespace mqas::core {
     MQAS_PB_STREAM_TEMPLATE_DECL
     template<class SM>
     requires IsProtoBufMsgConf<SM>
-    bool ProtoBufStream<S,M...>::send_req_quit(uint32_t curr_tag,const typename SM::PB_MSG_TYPE& m, bool lazy)
+    bool ProtoBufStream<S,M...>::send_req_quit(const typename SM::PB_MSG_TYPE& m, bool lazy)
     {
         auto buf = ProtoBufMsg::write_msg<SM>(m);
         if(!buf)
             return false;
-        return req_quit(curr_tag,{*buf},lazy);
+        return req_quit({*buf},lazy);
     }
     MQAS_PB_STREAM_TEMPLATE_DECL
     template<class SM,stream_variant_cmd C>
@@ -469,6 +472,9 @@ namespace mqas::core {
 }
 
 #undef MQAS_PB_STREAM_TEMPLATE_DECL
-#endif //MQAS_CORE_PB_STREAM_IMPL_HPP
 
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
+
+#endif //MQAS_CORE_PB_STREAM_IMPL_HPP

@@ -169,7 +169,7 @@ namespace mqas::tools::p2p {
     void P2PHelperStream::send_result(const proto::p2p::NotifyConnectResult& msg)
     {
         _notified_result = true;
-        send_req_quit<NotifyConnectResultPair>(stream_tag_, msg,true);
+        send_req_quit<NotifyConnectResultPair>(msg, true);
     }
 
     void P2PHelperStream::on_read_msg_s(const std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>& msg)

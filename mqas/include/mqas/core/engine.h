@@ -1,6 +1,7 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "HidingNonVirtualFunction"
 #pragma once
+#ifdef __clang__
+
+#endif
 #include <mqas/core/engine_base.h>
 #include <mqas/macro.h>
 #include <span>
@@ -114,5 +115,6 @@ namespace mqas::core {
 }
 #include "engine.impl.hpp"
 
-
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif

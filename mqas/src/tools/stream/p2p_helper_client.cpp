@@ -44,7 +44,7 @@ namespace mqas::tools::p2p {
 	{
 		on_change_result.emit(res);
 		if (code != core::StreamVariantErrcode::ok)
-			req_quit(stream_tag_);
+			req_quit();
 	}
 
 	void P2PHelperClientStream::on_init(::lsquic_stream_t* lsquic_stream, core::connect_cxt* connect_cxt, std::weak_ptr<core::IConnect> connect)

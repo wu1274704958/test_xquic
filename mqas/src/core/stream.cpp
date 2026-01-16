@@ -83,10 +83,10 @@ mqas::core::StreamVariantErrcode mqas::core::IStreamVariant::on_peer_quit(const 
     return StreamVariantErrcode::ok;
 }
 
-bool mqas::core::IStreamVariant::req_quit(uint32_t curr_tag,const std::span<uint8_t> &d,bool lazy) {
+bool mqas::core::IStreamVariant::req_quit(const std::span<uint8_t> &d,bool lazy) {
     stream_variant_msg msg{};
     msg.cmd = stream_variant_cmd::req_quit_hold_stream;
-    msg.param1 = curr_tag;
+    msg.param1 = _stream_tag;
     msg.extra_params = d;
     auto data = msg.generate();
     if(!data)return false;
@@ -101,11 +101,11 @@ bool mqas::core::IStreamVariant::req_quit(uint32_t curr_tag,const std::span<uint
 void mqas::core::IStreamVariant::on_peer_quit_ack(mqas::core::StreamVariantErrcode,const std::span<uint8_t> &) {}
 
 size_t mqas::core::IStreamVariant::getStreamTag() const {
-    return stream_tag_;
+    return _stream_tag;
 }
 
 void mqas::core::IStreamVariant::setStreamTag(size_t streamTag) {
-    stream_tag_ = streamTag;
+    _stream_tag = streamTag;
 }
 
 

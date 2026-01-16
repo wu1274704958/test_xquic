@@ -2,12 +2,14 @@
 // Created by Administrator on 2023/3/10.
 //
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "HidingNonVirtualFunction"
 #ifndef MQAS_CORE_PB_STREAM_H
 #define MQAS_CORE_PB_STREAM_H
 
-#include <mqas/macro.h>
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "HidingNonVirtualFunction"
+#endif
+
 #include <mqas/core/stream.h>
 #include <sigc++/sigc++.h>
 #include <memory>
@@ -55,7 +57,7 @@ namespace mqas::core{
         bool send_lazy(const typename SM::PB_MSG_TYPE&);
         template<class SM>
         requires IsProtoBufMsgConf<SM>
-        bool send_req_quit(uint32_t curr_tag,const typename SM::PB_MSG_TYPE&,bool lazy = false);
+        bool send_req_quit(const typename SM::PB_MSG_TYPE&, bool lazy = false);
         template<class SM,stream_variant_cmd C>
         requires IsProtoBufMsgConf<SM>
         bool send_sv_msg(const typename SM::PB_MSG_TYPE&,uint32_t p1,uint16_t p2,uint8_t p3,StreamVariantErrcode errcode,bool lazy = false);
@@ -88,6 +90,7 @@ namespace mqas::core{
 
 #include "pb_stream.impl.hpp"
 
-#endif //MQAS_CORE_PB_STREAM_H
-
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
+#endif //MQAS_CORE_PB_STREAM_H

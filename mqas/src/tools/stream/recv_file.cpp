@@ -38,7 +38,7 @@ mqas::tools::RecvFileStream::on_change_msg_s(const std::shared_ptr<proto::ReqSen
             self->file_ = (uv_file)req->result;
             MD5_Init(&self->md5Ctx_);
         }
-        self->send_sv_msg<ReqSendFileMsgRetPair,core::stream_variant_cmd::req_use_stream_tag>(ret,self->stream_tag_,0,1,errcode);
+        self->send_sv_msg<ReqSendFileMsgRetPair,core::stream_variant_cmd::req_use_stream_tag>(ret,self->_stream_tag,0,1,errcode);
         uv_fs_req_cleanup(req);
     });
     req_msg_ = req;
@@ -163,7 +163,7 @@ void mqas::tools::RecvFileStream::close_file_async() {
             {
                 proto::ReqSendFileRet ret;
                 ret.set_code(proto::ReqSendFileRet_Code_ok);
-                self->send_sv_msg<ReqSendFileMsgRetPair,core::stream_variant_cmd::req_quit_hold_stream>(ret,self->stream_tag_,0,1,core::StreamVariantErrcode::ok);
+                self->send_sv_msg<ReqSendFileMsgRetPair,core::stream_variant_cmd::req_quit_hold_stream>(ret,self->_stream_tag,0,1,core::StreamVariantErrcode::ok);
             }
         });
     }

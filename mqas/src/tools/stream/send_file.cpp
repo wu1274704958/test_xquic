@@ -23,7 +23,7 @@ mqas::tools::SendFileStream::on_local_change_msg_s(const std::shared_ptr<proto::
         }
         self->file_ = (uv_file)req->result;
         MD5_Init(&self->md5Ctx_);
-        self->send_sv_msg<ReqSendFileMsgPair,core::stream_variant_cmd::req_use_stream_tag>(*(self->req_msg_), self->stream_tag_,0,0,core::StreamVariantErrcode::ok);
+        self->send_sv_msg<ReqSendFileMsgPair,core::stream_variant_cmd::req_use_stream_tag>(*(self->req_msg_), self->_stream_tag,0,0,core::StreamVariantErrcode::ok);
         uv_fs_req_cleanup(req);
     });
     const auto filename = path.filename();
@@ -123,7 +123,7 @@ void mqas::tools::SendFileStream::close_file_async() {
             proto::SendFileEnd end;
             end.set_name(self->req_msg_->name());
             end.set_md5(arr,sizeof (arr));
-            self->send_req_quit<SendFileEndMsgPair>(self->stream_tag_,end);
+            self->send_req_quit<SendFileEndMsgPair>(end);
         });
     }
 }

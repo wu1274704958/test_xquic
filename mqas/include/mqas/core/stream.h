@@ -2,10 +2,12 @@
 // Created by Administrator on 2023/3/1.
 //
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "HidingNonVirtualFunction"
 #ifndef MQAS_STREAM_H
 #define MQAS_STREAM_H
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "HidingNonVirtualFunction"
+#endif
 
 #include <variant>
 #include <stack>
@@ -35,7 +37,7 @@ namespace mqas::core {
         void on_peer_change_ack(StreamVariantErrcode code, const std::span<uint8_t> &params);
         StreamVariantErrcode on_peer_quit(const std::span<uint8_t>&,std::vector<uint8_t>&);
         void on_peer_quit_ack(StreamVariantErrcode,const std::span<uint8_t>&);
-        bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={},bool lazy = false);
+        bool req_quit(const std::span<uint8_t> &d={},bool lazy = false);
         [[nodiscard]] bool isWaitingPeerChangeAck() const;
         void setWaitingPeerChangeAck(bool isWaitPeerChangeRet);
         [[nodiscard]] size_t getStreamTag() const;
@@ -45,7 +47,7 @@ namespace mqas::core {
         void set_outer(std::weak_ptr<IStreamVariantMgr> outer);
     protected:
         bool _is_waiting_peer_change_ack:1 = false;
-        size_t stream_tag_ = 0;
+        size_t _stream_tag = 0;
         std::weak_ptr<IStreamVariantMgr> _outer;
     };
 
@@ -128,7 +130,7 @@ namespace mqas::core {
         [[nodiscard]] bool has_holds_stream() const;
         StreamVariantErrcode on_peer_quit(const std::span<uint8_t> &,std::vector<uint8_t>&);
         void on_peer_quit_ack(StreamVariantErrcode,const std::span<uint8_t>&);
-        bool req_quit(uint32_t curr_tag,const std::span<uint8_t> &d={},bool lazy = false);
+        bool req_quit(const std::span<uint8_t> &d={},bool lazy = false);
         [[nodiscard]] bool isWaitingPeerChangeAck() const;
         void setWaitingPeerChangeAck(bool v);
         [[nodiscard]] size_t get_current_stream_tag() const { return _stream_tag; }
@@ -184,6 +186,7 @@ namespace mqas::core {
 }
 #include "stream.impl.hpp"
 
-#endif //MQAS_STREAM_H
-
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
+#endif //MQAS_STREAM_H

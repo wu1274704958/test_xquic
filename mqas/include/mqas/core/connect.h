@@ -1,10 +1,12 @@
 //
 // Created by wws on 2023/2/28.
 //
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "HidingNonVirtualFunction"
 #ifndef MQAS_CONNECT_H
 #define MQAS_CONNECT_H
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "HidingNonVirtualFunction"
+#endif
 
 #include <mqas/macro.h>
 #include <mqas/core/engine.h>
@@ -101,6 +103,8 @@ namespace mqas::core{
         std::shared_ptr<S> make_stream();
         void close();
         std::shared_ptr<S> get_stream(::lsquic_stream_t*) const;
+        [[nodiscard]] std::unordered_map<size_t ,std::shared_ptr<S>>::const_iterator enumerate_stream() const { return _stream_map.begin(); }
+        [[nodiscard]] std::unordered_map<size_t ,std::shared_ptr<S>>::const_iterator enumerate_stream_end() const { return _stream_map.end(); }
     protected:
         std::unordered_map<size_t ,std::shared_ptr<S>> _stream_map;
         connect_cxt _connect_cxt = {};
@@ -109,7 +113,7 @@ namespace mqas::core{
 
 }
 #include "connect.impl.hpp"
-
-#endif //MQAS_CONNECT_H
-
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
+#endif //MQAS_CONNECT_H

@@ -69,8 +69,10 @@ namespace mqas::io
 			}
 		}
 	protected:
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-value"
+#endif
 		template<typename ...HS>
 		void delete_hold_handle_ptr()
 		{
@@ -80,7 +82,9 @@ namespace mqas::io
 			}
 			handle_map.clear();
 		}
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 		template<typename H>
 		void delete_hold_handle_ptr_by_type(H* ptr,size_t key)
 		{

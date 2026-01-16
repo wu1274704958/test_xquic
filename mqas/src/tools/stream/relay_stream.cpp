@@ -86,7 +86,7 @@ namespace mqas::tools{
         respond.set_id(_id);
         respond.set_code(code);
 
-        send_sv_msg<tools::relay::RespondRelayPair,core::stream_variant_cmd::req_use_stream_tag>(respond,stream_tag_,
+        send_sv_msg<tools::relay::RespondRelayPair,core::stream_variant_cmd::req_use_stream_tag>(respond,_stream_tag,
             0,1, code == proto::relay::RespondRelay_Code::RespondRelay_Code_success ? core::StreamVariantErrcode::ok : core::StreamVariantErrcode::failed,lazy);
     }
 

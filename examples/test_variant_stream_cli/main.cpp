@@ -38,7 +38,7 @@ public:
         proto::SayByeMsg2 quit_msg;
         std::vector<uint8_t> buf;
         if (core::ProtoBufMsg::write_msg<SayByeMsg2Pair>(buf, quit_msg))
-            assert(req_quit(stream_tag_, buf));
+            assert(req_quit(buf));
     }
     mqas::core::StreamVariantErrcode on_peer_quit_ack_msg_s(mqas::core::StreamVariantErrcode code, const std::shared_ptr<proto::RespSayByeMsg2>& m)
     {
@@ -72,7 +72,7 @@ public:
         proto::SayByeMsg quit_msg;
         std::vector<uint8_t> buf;
         if (core::ProtoBufMsg::write_msg<SayByeMsgPair>(buf, quit_msg))
-            assert(req_quit(stream_tag_, buf));
+            assert(req_quit(buf));
     }
     void on_pause()
     {

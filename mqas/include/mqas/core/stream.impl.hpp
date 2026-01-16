@@ -2,11 +2,13 @@
 // Created by Administrator on 2023/3/1.
 //
 
+#ifndef MQAS_STREAM_IMPL_HPP
+#define MQAS_STREAM_IMPL_HPP
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "HidingNonVirtualFunction"
 #pragma clang diagnostic ignored "-Wunused-value"
-#ifndef MQAS_STREAM_IMPL_HPP
-#define MQAS_STREAM_IMPL_HPP
+#endif
 
 #include <assert.h>
 
@@ -265,12 +267,12 @@ namespace mqas::core{
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
-    bool StreamVariant<S...>::req_quit(uint32_t curr_tag,const std::span<uint8_t> &d,bool lazy)
+    bool StreamVariant<S...>::req_quit(const std::span<uint8_t> &d,bool lazy)
     {
         bool ret = false;
         if(_stream_tag > 0)
         {
-            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(_stream_var) && (ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(_stream_var)->req_quit(curr_tag,d,lazy),false)),...);
+            ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(_stream_var) && (ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(_stream_var)->req_quit(d,lazy),false)),...);
         }
         return ret;
     }
@@ -720,6 +722,9 @@ namespace mqas::core{
 }
 
 #undef MQAS_STREAM_IMPL_TEMPLATE_DECL
-#endif //MQAS_STREAM_IMPL_HPP
 
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
+
+#endif //MQAS_STREAM_IMPL_HPP

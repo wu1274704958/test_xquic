@@ -2,10 +2,13 @@
 // Created by Administrator on 2023/3/1.
 //
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "HidingNonVirtualFunction"
 #ifndef MQAS_CONNECT_IMPL_HPP
 #define MQAS_CONNECT_IMPL_HPP
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "HidingNonVirtualFunction"
+#endif
 
 #define MQAS_CONNECT_IMPL_TEMPLATE_DECL                                                             \
 template<typename S>                                                                                \
@@ -123,6 +126,9 @@ namespace mqas::core
     }
 }
 #undef  MQAS_CONNECT_IMPL_TEMPLATE_DECL
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 #endif //MQAS_CONNECT_IMPL_HPP
 
-#pragma clang diagnostic pop
+

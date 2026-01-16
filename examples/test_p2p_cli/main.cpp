@@ -586,7 +586,7 @@ void tui::quit_helper()
 {
 	if (helper_stream)
 	{
-		helper_stream->req_quit(helper_stream->getStreamTag());
+		helper_stream->req_quit();
 		helper_stream = nullptr;
 		try_connect_list.clear();
 	}
