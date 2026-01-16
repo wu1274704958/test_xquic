@@ -155,7 +155,7 @@ namespace mqas::core{
         }else{
             void* ret = nullptr;
             ((std::holds_alternative<std::shared_ptr<typename S::STREAM_TYPE>>(_stream_var) && (ret = std::get<std::shared_ptr<typename S::STREAM_TYPE>>(_stream_var)->get_cxt(),false)),...);
-            return ret;
+            return ret == nullptr ? IStream::get_cxt() : ret;
         }
     }
     MQAS_STREAM_IMPL_TEMPLATE_DECL
