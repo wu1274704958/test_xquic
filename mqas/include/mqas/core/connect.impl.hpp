@@ -68,8 +68,13 @@ namespace mqas::core
     {
         const auto key = reinterpret_cast<size_t>(lsquic_stream);
         if (_stream_map.contains(key))
-            _stream_map[key]->on_close();
+        {
+            auto& stream = _stream_map[key];
+            stream->on_close();
+            on_stream_close_signal.emit(stream);
+        }
         _stream_map.erase(key);
+
     }
 
     MQAS_CONNECT_IMPL_TEMPLATE_DECL

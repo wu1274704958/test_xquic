@@ -79,6 +79,7 @@ namespace mqas::core {
 	class engine : public mqas::core::IEngine,public std::enable_shared_from_this<engine<C>>
 	{
 	friend C;
+	    using ConnectionType = C;
 	public:
 		sigc::signal<void(std::shared_ptr<C>)> on_new_connect_signal;
 		sigc::signal<void(std::shared_ptr<C>)> on_connect_closed_signal;

@@ -79,9 +79,9 @@ namespace mqas::core{
         std::function<bool(lsquic_stream_t*,const std::span<uint8_t>&)> write_stream;
         void* cxt;
         template<typename T>
-        void set_cxt(const T* t){ cxt = reinterpret_cast<void*>(const_cast<T*>(t));}
+        void set_cxt(const T* t){ cxt = static_cast<void*>(const_cast<T*>(t));}
         template<typename T>
-        [[nodiscard]] T* get_cxt() { return reinterpret_cast<T*>(cxt); }
+        [[nodiscard]] T* get_cxt() { return static_cast<T*>(cxt); }
     };
     template<typename S>
     requires requires{
@@ -90,7 +90,9 @@ namespace mqas::core{
     }
     class Connect : public IConnect,public std::enable_shared_from_this<Connect<S>>{
     public:
+        using StreamType = S;
         sigc::signal<void(std::shared_ptr<S>)> on_new_stream_signal;
+        sigc::signal<void(std::shared_ptr<S>)> on_stream_close_signal;
         void init(::lsquic_conn_t* conn, std::shared_ptr<engine_cxt> cxt);
         void on_close();
         void on_new_stream(::lsquic_stream_t* lsquic_stream);
