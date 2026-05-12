@@ -24,12 +24,12 @@ public:
 
     void on_read_msg_s(const std::shared_ptr<proto::SayHelloMsg>& m)
     {
-        printf("on_read %s %d %zu\n",m->msg().c_str(),m->num(),(size_t)stream_);
+        printf("on_read %s %d %zu\n",m->msg().c_str(),m->num(),(size_t)_stream);
         proto::SayHelloMsg helloMsg;
         helloMsg.set_num(m->num() + 1);
         helloMsg.set_msg("copy that");
         send <SayHelloMsgPair>(helloMsg);
-        setIsWaitPeerChangeRet(true);
+        setWaitingPeerChangeAck(true);
     }
     mqas::core::StreamVariantErrcode on_peer_quit_msg_s(const std::shared_ptr<proto::SayByeMsg>& m,
                                       std::vector<uint8_t>& buf)

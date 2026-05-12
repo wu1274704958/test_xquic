@@ -21,9 +21,9 @@ public:
         return mqas::core::StreamVariantErrcode::ok;
     }
 
-    void on_peer_change_ret(mqas::core::StreamVariantErrcode code,const std::span<uint8_t>& params)
+    void on_peer_change_ack(mqas::core::StreamVariantErrcode code,const std::span<uint8_t>& params)
     {
-        IStreamVariant::on_peer_change_ret(code,params);
+        IStreamVariant::on_peer_change_ack(code,params);
         std::string_view sv(reinterpret_cast<const char*>(params.data()), params.size());
         std::cout << "on_peer_change_ret " << sv <<std::endl;
 
@@ -52,9 +52,11 @@ int main(int argc,const char** argv)
         auto c = e.get_engine()->connect(addr,N_LSQVER);
         auto conn = c.lock();
         uv_tty_t tty;
-        auto stream = conn->make_stream();
-	    std::string_view sv("req self");
-	    stream->req_change<Stream>(std::span<uint8_t>((uint8_t*)sv.data(),sv.size()));
+        conn->make_stream([&io_cxt,&tty](std::weak_ptr<core::StreamVariant<core::StreamVariantPair<1,Stream>>> stream){
+            auto s_ = stream.lock();
+            std::string_view sv("req self");
+            s_->req_change<Stream>(std::span<uint8_t>((uint8_t*)sv.data(),sv.size()));
+        });
 	}catch (std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;

@@ -102,7 +102,7 @@ namespace mqas::core{
         void on_stream_reset(lsquic_stream_t* s, int how);
         bool has_stream(lsquic_stream_t*) const;
         bool write_stream(::lsquic_stream_t*,const std::span<uint8_t>&);
-        std::shared_ptr<S> make_stream();
+        sigc::connection make_stream(std::function<void(std::shared_ptr<S>)> on_ready);
         void close();
         std::shared_ptr<S> get_stream(::lsquic_stream_t*) const;
         [[nodiscard]] std::unordered_map<size_t ,std::shared_ptr<S>>::const_iterator enumerate_stream() const { return _stream_map.begin(); }
@@ -110,7 +110,6 @@ namespace mqas::core{
     protected:
         std::unordered_map<size_t ,std::shared_ptr<S>> _stream_map;
         connect_cxt _connect_cxt = {};
-        volatile ::lsquic_stream_t* _temp_new_stream_result = nullptr;
     };
 
 }

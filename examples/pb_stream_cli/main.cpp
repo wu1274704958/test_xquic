@@ -21,7 +21,7 @@ public:
         core::ProtoBufMsg::write_msg<SayHelloMsgPair>(ret_buf,*hello);
         return core::StreamVariantErrcode::ok;
     }
-    void on_peer_change_ack_msg_s(mqas::core::StreamVariantErrcode code,const std::shared_ptr<proto::SayHelloMsg>& m)
+    void on_peer_change_ret_msg_s(mqas::core::StreamVariantErrcode code,const std::shared_ptr<proto::SayHelloMsg>& m)
     {
         printf("on_peer_change_ret %s %d\n",m->msg().c_str(),m->num());
         proto::SayHelloMsg helloMsg;
@@ -37,7 +37,7 @@ public:
         bye.set_num2(2);
         send_req_quit<SayByeMsgPair>(bye);
     }
-    void on_peer_quit_ack_msg_s(core::StreamVariantErrcode e,const std::shared_ptr<proto::SayByeMsg>& bye)
+    void on_peer_quit_ret_msg_s(core::StreamVariantErrcode e,const std::shared_ptr<proto::SayByeMsg>& bye)
     {
         printf("on_peer_quit_ret bye %d %d\n",bye->num(),bye->num2());
     }
@@ -59,7 +59,9 @@ int main(int argc,const char** argv)
         auto conn = c.lock();
         auto t = io_cxt.make_handle<io::Timer>();
         std::weak_ptr<core::StreamVariant<core::StreamVariantPair<1,Stream>>> stream_out;
-        stream_out = conn->make_stream();
+        conn->make_stream([&io_cxt,&stream_out](std::weak_ptr<core::StreamVariant<core::StreamVariantPair<1,Stream>>> stream){
+            stream_out = stream;
+        });
         t->start([&stream_out](io::Timer* t){
             auto s = stream_out.lock();
             if(s && !s->has_holds_stream())

@@ -55,7 +55,7 @@ bool VoiceStream::init_audio_stream()
         return false;
     auto conn = connect.lock();
     on_record_conn = audio_stream.reg_on_record_callback(sigc::mem_fun(*this,&VoiceStream::on_record_data));
-    on_recv_connect = conn->on_recv_datagram.connect([this](const uint8_t* buf,size_t size){
+    on_recv_connect = conn->on_recv_datagram_signal.connect([this](const uint8_t* buf,size_t size){
         std::span<uint8_t> span((uint8_t*)buf,size);
 #if DEBUG_LOG 
         LOG(DEBUG) << "voice recv " << size << " bytes";

@@ -43,7 +43,6 @@ namespace mqas::core
         const auto key = reinterpret_cast<size_t>(lsquic_stream);
         _stream_map.emplace(key, std::make_shared<S>());
         _stream_map[key]->on_init(lsquic_stream, &_connect_cxt, this->weak_from_this());
-        _temp_new_stream_result = lsquic_stream;
         on_new_stream_signal.emit(_stream_map[key]);
     }
 
@@ -101,14 +100,13 @@ namespace mqas::core
     }
 
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
-    std::shared_ptr<S> Connect<S>::make_stream()
+    sigc::connection Connect<S>::make_stream(std::function<void(std::shared_ptr<S>)> on_ready)
     {
-        _temp_new_stream_result = nullptr;
+		sigc::connection on_new_stream_signal_connection;
+        if (on_ready)
+            on_new_stream_signal_connection = on_new_stream_signal.connect(on_ready);
         IConnect::make_stream();
-        if (_temp_new_stream_result == nullptr)
-            return nullptr;
-        else
-            return _stream_map.at(reinterpret_cast<size_t>(_temp_new_stream_result));
+		return on_new_stream_signal_connection;
     }
 
     MQAS_CONNECT_IMPL_TEMPLATE_DECL

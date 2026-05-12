@@ -90,7 +90,7 @@ void Stream::on_peer_change_ack_msg_s(mqas::core::StreamVariantErrcode code, con
     changeMsg.set_name("hello1");
     send <ChangeNameMsgPair>(changeMsg);
 
-    auto out = outer.lock();
+    auto out = get_outer();
     auto stream_out = std::dynamic_pointer_cast<StreamType>(out);
     proto::SayHelloMsg2 msg;
     stream_out->req_change<Stream2, SayHelloMsg2Pair>(msg);
@@ -110,7 +110,10 @@ int main(int argc,const char** argv)
         auto c = e.get_engine()->connect(addr,N_LSQVER);
         auto conn = c.lock();
         auto t = io_cxt.make_handle<io::Timer>();
-        std::weak_ptr<StreamType> stream_out = conn->make_stream();
+        std::weak_ptr<StreamType> stream_out;
+        conn->make_stream([&io_cxt,&stream_out](std::weak_ptr<StreamType> stream){
+            stream_out = stream;
+        });
         t->start([&stream_out](io::Timer* t){
             auto s = stream_out.lock();
             if(s && !s->has_holds_stream())
