@@ -14,13 +14,14 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
 
 
 add_custom_command(
-    OUTPUT test_p2p.pb.cc test_p2p.pb.h
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/test_p2p.pb.cc ${CMAKE_CURRENT_SOURCE_DIR}/test_p2p.pb.h
     COMMAND $<TARGET_FILE:protobuf::protoc> --cpp_out=. test_p2p.proto
-    DEPENDS test_p2p.proto
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/test_p2p.proto protobuf::protoc
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating test_p2p proto"
 )
 
-add_custom_target(test_p2p_proto DEPENDS test_p2p.pb.cc test_p2p.pb.h)
+add_custom_target(test_p2p_proto DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/test_p2p.pb.cc ${CMAKE_CURRENT_SOURCE_DIR}/test_p2p.pb.h)
 
 add_dependencies(${CUR_TARGET_NAME} test_p2p_proto)
 

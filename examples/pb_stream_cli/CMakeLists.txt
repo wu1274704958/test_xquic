@@ -9,15 +9,16 @@ target_link_libraries(${CUR_TARGET_NAME} PRIVATE
 
 
 add_custom_command(
-    OUTPUT say_hello.pb.cc say_hello.pb.h
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/say_hello.pb.cc ${CMAKE_CURRENT_SOURCE_DIR}/say_hello.pb.h
     COMMAND $<TARGET_FILE:protobuf::protoc> --cpp_out=. say_hello.proto
     COMMAND ${CMAKE_COMMAND} -E copy_if_different say_hello.pb.cc ../pb_stream_ser/
     COMMAND ${CMAKE_COMMAND} -E copy_if_different say_hello.pb.h ../pb_stream_ser/
-    DEPENDS say_hello.proto
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/say_hello.proto protobuf::protoc
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating say_hello proto"
 )
 
-add_custom_target(test_pb_stream_proto DEPENDS say_hello.pb.cc say_hello.pb.h)
+add_custom_target(test_pb_stream_proto DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/say_hello.pb.cc ${CMAKE_CURRENT_SOURCE_DIR}/say_hello.pb.h)
 
 add_dependencies(${CUR_TARGET_NAME} test_pb_stream_proto)
 
