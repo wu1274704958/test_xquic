@@ -249,7 +249,7 @@ namespace mqas::core {
 #if !NDEBUG
 				else{
 				
-					LOG(WARNING) << "drop packet engine = " << (size_t)_engine << " addr = " << io::Ip::addr2str(*addr) << ":" << io::Ip::addr_get_port(*addr) << " size = " << nread;
+					LOG(WARNING) << "drop packet engine = " << _engine << " addr = " << io::Ip::addr2str(*addr) << ":" << io::Ip::addr_get_port(*addr) << " size = " << nread;
 				}
 #endif
 			});
@@ -286,6 +286,7 @@ namespace mqas::core {
 			}
 			try {
 				sock->try_send(bufs, *out_spec[n].dest_sa);
+				LOG(DEBUG) << "packets_out send success " << " size = " << bufs[0].size() << " dest = " << io::Ip::addr2str(*out_spec[n].dest_sa) << ":" << io::Ip::addr_get_port(*out_spec[n].dest_sa);
 			}
 			catch (io::Exception& e)
 			{

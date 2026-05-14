@@ -38,6 +38,7 @@ set(LSQUIC_TESTS OFF CACHE BOOL "Compile library unit tests" FORCE)
 set(protobuf_BUILD_SHARED_LIBS ON CACHE BOOL "Build Shared Libraries" FORCE)
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "Build tests" FORCE)
 set(build_static_lib ON CACHE BOOL "Build easyloggingpp as a static library" FORCE)
+set(LSQUIC_SHARED_LIB ON CACHE BOOL "Build lsquic as a shared library" FORCE)
 
 add_subdirectory(third_party/lsquic)
 add_subdirectory(third_party/protobuf)

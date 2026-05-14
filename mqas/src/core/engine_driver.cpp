@@ -2,10 +2,8 @@
 #include "mqas/comm/string.h"
 #include <easylogging++.h>
 #include "mqas/log.h"
-#include <mqas/comm/macro.h>
 #include <mqas/io/udp.h>
 #include <mqas/io/exception.h>
-#include <mqas/io/ip.h>
 
 namespace mqas::core {
 
@@ -23,7 +21,7 @@ namespace mqas::core {
 		if(!_initialized)
 			return false;
 
-		MQAS_DBG("register_engine " << e << " flags = " << (int)e->get_engine_flags());
+		MQAS_DBG("register_engine " << origin_e << " flags = " << (int)e->get_engine_flags());
 
 		auto v = _engine_map.find(origin_e);
 		if(v != _engine_map.end())
@@ -157,7 +155,7 @@ namespace mqas::core {
 
 	void engine_driver::init_lsquic() noexcept(false)
 	{
-		_lsquic_logger_if = { lsquic_log_func, };
+		_lsquic_logger_if = { .log_buf = lsquic_log_func };
 
 		lsquic_logger_init(&_lsquic_logger_if, this, LLTS_NONE);
 		lsquic_set_log_level(_engine_config->log_level.c_str());

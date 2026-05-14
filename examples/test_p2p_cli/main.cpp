@@ -532,6 +532,9 @@ void tui::on_helper_connect_to(const std::shared_ptr<mqas::tools::proto::p2p::No
 
 void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg,std::shared_ptr<io::UdpSocket> sock)
 {
+#ifndef NDEBUG
+	LOG(DEBUG) << "on_helper_result: " << msg->DebugString();
+#endif
 	helper_result = msg;
 	try_connect_list.clear();
 	helper_stream = nullptr;
@@ -609,18 +612,36 @@ void tui::quit_p2p()
 
 void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_server)
 {
+#ifndef NDEBUG
+	LOG(DEBUG) << "[on_new_p2p_stream] new p2p stream"
+		<< " role=" << (is_server ? "server" : "client")
+		<< " stream=" << stream.get();
+#endif
 	auto self = this;
 	std::function<void(std::shared_ptr<P2PChatStream>)> func = [self](std::shared_ptr<P2PChatStream> ptr){
+#ifndef NDEBUG
+		LOG(DEBUG) << "[on_new_p2p_stream] P2PChatStream ready, ptr=" << ptr.get();
+#endif
 		self->p2p_stream = ptr;
 		ptr->on_received_message.connect(sigc::mem_fun(*self,&tui::on_recive_p2p_msg));
 		ptr->on_connected.connect(sigc::mem_fun(*self,&tui::on_p2p_connected));
 	};
 	if (is_server)
 	{
+#ifndef NDEBUG
+		LOG(DEBUG) << "[on_new_p2p_stream] server: waiting for stream type change to P2PChatStream";
+#endif
 		stream->on_change_stream_signal.connect([func](std::shared_ptr<core::IStreamVariant> p) {
+#ifndef NDEBUG
+			LOG(DEBUG) << "[on_new_p2p_stream] server: on_change_stream_signal fired, p=" << p.get();
+#endif
 			auto ptr = std::dynamic_pointer_cast<P2PChatStream>(p);
 			if(ptr)
 				func(ptr);
+#ifndef NDEBUG
+			else
+				LOG(DEBUG) << "[on_new_p2p_stream] server: dynamic_pointer_cast to P2PChatStream failed";
+#endif
 		});
 	}
 	else {
@@ -628,10 +649,21 @@ void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_serve
 		LOG(INFO) << "req_change p2p chat";
 		if (stream->req_change<P2PChatStream, ReqDirectChatPair>(m))
 		{
+#ifndef NDEBUG
+			LOG(DEBUG) << "[on_new_p2p_stream] client: req_change succeeded";
+#endif
 			auto ptr = stream->get_holds_stream<P2PChatStream>();
 			if(ptr)
 				func(ptr);
+#ifndef NDEBUG
+			else
+				LOG(DEBUG) << "[on_new_p2p_stream] client: get_holds_stream<P2PChatStream>() returned null";
+#endif
 		}
+#ifndef NDEBUG
+		else
+			LOG(DEBUG) << "[on_new_p2p_stream] client: req_change failed";
+#endif
 	}
 }
 
@@ -644,10 +676,25 @@ void tui::on_recive_p2p_msg(const std::string& name, const std::string& msg)
 
 void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,bool is_server)
 {
+#ifndef NDEBUG
+	LOG(DEBUG) << "[on_new_p2p_connect] p2p connection established"
+		<< " role=" << (is_server ? "server" : "client")
+		<< " conn=" << conn.get();
+#endif
 	if (is_server)
+	{
+#ifndef NDEBUG
+		LOG(DEBUG) << "[on_new_p2p_connect] server: waiting for incoming stream";
+#endif
 		conn->on_new_stream_signal.connect(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1, is_server));
+	}
 	else
+	{
+#ifndef NDEBUG
+		LOG(DEBUG) << "[on_new_p2p_connect] client: making new stream";
+#endif
 		conn->make_stream(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1,is_server));
+	}
 }
 
 void tui::on_p2p_peer_quit(std::shared_ptr<core::IStreamVariant> stream)
@@ -709,8 +756,15 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 		sock->get_peer_addr(p2p_addr);
 	}
 
-#if !NDEBUG
-	LOG(DEBUG)  <<  " p2p white list addr = "  << io::Ip::addr2str(p2p_addr) << ":" << io::Ip::addr_get_port(p2p_addr);
+#ifndef NDEBUG
+	LOG(DEBUG) << "[launch_p2p]"
+		<< " peer_id=" << msg->peer_id()
+		<< " is_server=" << msg->is_server()
+		<< " use_relay=" << msg->use_relay()
+		<< " peer_addr=" << msg->peer_addr().ip() << ":" << msg->peer_addr().port()
+		<< " relay_addr=" << msg->relay_addr().ip() << ":" << msg->relay_addr().port()
+		<< " white_list_addr=" << io::Ip::addr2str(p2p_addr) << ":" << io::Ip::addr_get_port(p2p_addr)
+		<< " reason=" << msg->reason();
 #endif
 
 	std::function<void(std::shared_ptr<core::Connect<P2PStreamType>>)> func = std::bind(&tui::on_new_p2p_connect, this, std::placeholders::_1, msg->is_server());
