@@ -119,8 +119,10 @@ void mqas::core::engine_base<E,ED,SC>::init_engine_core()
 
 	if (has_engine_setting())
 	{
+		::lsquic_engine_init_settings(&conf_->lsquic_settings, static_cast<unsigned>(engine_flags_));
 		engine_driver::settings_from_toml(conf_->lsquic_settings, conf_origin_->at("lsquic_settings"),
 			contain<uint32_t>(engine_flags_, EngineFlags::Server));
+
 		lsquic_engine_api_.ea_settings = &conf_->lsquic_settings;
 	}
 

@@ -399,12 +399,12 @@ namespace mqas::core {
 #define CK_READ_SETTING_Str(k,def) if (v.contains(#k)) s.k = toml::find<std::string>(v, #k).c_str(); else s.k = #def
 	void engine_driver::settings_from_toml(::lsquic_engine_settings& s, const toml::value& v,bool is_server)
 	{
-CK_READ_SETTING(es_versions, unsigned,55);
+CK_READ_SETTING(es_versions, unsigned, LSQUIC_DF_VERSIONS);
 CK_READ_SETTING(es_sfcw, unsigned,is_server ? LSQUIC_DF_SFCW_SERVER : LSQUIC_DF_SFCW_CLIENT);
 CK_READ_SETTING(es_cfcw, unsigned,is_server ? LSQUIC_DF_CFCW_SERVER : LSQUIC_DF_CFCW_CLIENT);
 CK_READ_SETTING(es_max_cfcw, unsigned, is_server ? LSQUIC_DF_INIT_MAX_DATA_SERVER : LSQUIC_DF_INIT_MAX_DATA_CLIENT);
 CK_READ_SETTING(es_max_sfcw, unsigned,is_server ? LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_SERVER : LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_CLIENT);
-CK_READ_SETTING(es_max_streams_in, unsigned,is_server ? LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_SERVER : LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_CLIENT);
+CK_READ_SETTING(es_max_streams_in, unsigned, LSQUIC_DF_MAX_STREAMS_IN);
 CK_READ_SETTING(es_handshake_to, unsigned long, LSQUIC_DF_HANDSHAKE_TO); // Handshake timeout in milliseconds
 CK_READ_SETTING(es_idle_conn_to, unsigned long, LSQUIC_DF_IDLE_CONN_TO); // Idle connection timeout in milliseconds
 CK_READ_SETTING(es_silent_close, int, LSQUIC_DF_SILENT_CLOSE); // Default silent close behavior (0 = false)
@@ -428,10 +428,10 @@ CK_READ_SETTING(es_pace_packets, int, LSQUIC_DF_PACE_PACKETS); // Pace packets (
 CK_READ_SETTING(es_clock_granularity, unsigned, LSQUIC_DF_CLOCK_GRANULARITY); // Granularity of clock
 CK_READ_SETTING(es_cc_algo, unsigned, LSQUIC_DF_CC_ALGO); // Default congestion control algorithm (2 could refer to CUBIC)
 CK_READ_SETTING(es_cc_rtt_thresh, unsigned, LSQUIC_DF_CC_RTT_THRESH); // RTT threshold for congestion control (200 ms)
-CK_READ_SETTING(es_noprogress_timeout, unsigned, false ? LSQUIC_DF_NOPROGRESS_TIMEOUT_SERVER : LSQUIC_DF_NOPROGRESS_TIMEOUT_CLIENT); // No progress timeout in milliseconds
+CK_READ_SETTING(es_noprogress_timeout, unsigned, is_server ? LSQUIC_DF_NOPROGRESS_TIMEOUT_SERVER : LSQUIC_DF_NOPROGRESS_TIMEOUT_CLIENT); // No progress timeout in milliseconds
 CK_READ_SETTING(es_init_max_data, unsigned, is_server ? LSQUIC_DF_INIT_MAX_DATA_SERVER:LSQUIC_DF_INIT_MAX_DATA_CLIENT); // Initial max data (1 MB)
 CK_READ_SETTING(es_init_max_stream_data_bidi_remote, unsigned, is_server ? LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_SERVER : LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_REMOTE_CLIENT); // Max stream data for bidi remote
-CK_READ_SETTING(es_init_max_stream_data_bidi_local, unsigned, LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_LOCAL_CLIENT); // Max stream data for bidi local
+CK_READ_SETTING(es_init_max_stream_data_bidi_local, unsigned, is_server ? LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_LOCAL_SERVER : LSQUIC_DF_INIT_MAX_STREAM_DATA_BIDI_LOCAL_CLIENT); // Max stream data for bidi local
 CK_READ_SETTING(es_init_max_stream_data_uni, unsigned, is_server ? LSQUIC_DF_INIT_MAX_STREAM_DATA_UNI_SERVER : LSQUIC_DF_INIT_MAX_STREAM_DATA_UNI_CLIENT); // Max stream data for uni streams
 CK_READ_SETTING(es_init_max_streams_bidi, unsigned, LSQUIC_DF_INIT_MAX_STREAMS_BIDI); // Max bidirectional streams
 CK_READ_SETTING(es_init_max_streams_uni, unsigned, is_server ? LSQUIC_DF_INIT_MAX_STREAMS_UNI_SERVER : LSQUIC_DF_INIT_MAX_STREAMS_UNI_CLIENT ); // Max unidirectional streams
@@ -440,7 +440,7 @@ CK_READ_SETTING(es_ping_period, unsigned, LSQUIC_DF_PING_PERIOD); // Ping period
 CK_READ_SETTING(es_scid_len, unsigned, LSQUIC_DF_SCID_LEN); // SCID length (default 32 bytes)
 CK_READ_SETTING(es_scid_iss_rate, unsigned, LSQUIC_DF_SCID_ISS_RATE); // SCID issue rate
 CK_READ_SETTING(es_qpack_dec_max_size, unsigned, LSQUIC_DF_QPACK_DEC_MAX_SIZE); // QPACK decoder max size
-CK_READ_SETTING(es_qpack_dec_max_blocked, unsigned, LSQUIC_DF_QPACK_DEC_MAX_SIZE); // Max blocked for QPACK decoder
+CK_READ_SETTING(es_qpack_dec_max_blocked, unsigned, LSQUIC_DF_QPACK_DEC_MAX_BLOCKED); // Max blocked for QPACK decoder
 CK_READ_SETTING(es_qpack_enc_max_size, unsigned,LSQUIC_DF_QPACK_ENC_MAX_SIZE ); // QPACK encoder max size
 CK_READ_SETTING(es_qpack_enc_max_blocked, unsigned, LSQUIC_DF_QPACK_ENC_MAX_BLOCKED); // Max blocked for QPACK encoder
 CK_READ_SETTING(es_ecn, int, LSQUIC_DF_ECN); // ECN support (1 = true)

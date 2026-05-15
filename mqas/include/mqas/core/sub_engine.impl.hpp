@@ -71,6 +71,7 @@ namespace mqas::core {
 
 		if (has_engine_setting())
 		{
+			::lsquic_engine_init_settings(&_conf->lsquic_settings, static_cast<unsigned>(_engine_flags));
 			engine_driver::settings_from_toml(_conf->lsquic_settings, _conf_origin->at("lsquic_settings"),
 				contain<uint32_t>(_engine_flags, EngineFlags::Server));
 			_lsquic_engine_api.ea_settings = &_conf->lsquic_settings;
@@ -286,7 +287,7 @@ namespace mqas::core {
 			}
 			try {
 				sock->try_send(bufs, *out_spec[n].dest_sa);
-				LOG(DEBUG) << "packets_out send success " << " size = " << bufs[0].size() << " dest = " << io::Ip::addr2str(*out_spec[n].dest_sa) << ":" << io::Ip::addr_get_port(*out_spec[n].dest_sa);
+				//LOG(DEBUG) << "packets_out send success " << " size = " << bufs[0].size() << " dest = " << io::Ip::addr2str(*out_spec[n].dest_sa) << ":" << io::Ip::addr_get_port(*out_spec[n].dest_sa);
 			}
 			catch (io::Exception& e)
 			{
