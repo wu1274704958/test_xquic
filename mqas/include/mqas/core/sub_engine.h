@@ -15,7 +15,8 @@ namespace mqas::core {
 		requires IsVaildSocket<SC>;
 	}
 	class sub_engine : public engine_base_interface {
-		friend ED; 
+		friend ED;
+	    using EngineType = E;
 	public:
 		~sub_engine();
 		sub_engine(io::Context&);
