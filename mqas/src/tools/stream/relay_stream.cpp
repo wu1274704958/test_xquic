@@ -58,14 +58,14 @@ namespace mqas::tools{
         return core::StreamVariantErrcode::failed;
     }
 
-    void RelayStream::set_peer_addr(mqas::tools::proto::relay::Address* addr)
+    void RelayStream::set_peer_addr(mqas::tools::proto::common::Address* addr)
     {
         auto peer = _other_peer.lock();
         addr->set_ip(io::Ip::addr2str(peer->_addr));
         addr->set_port(io::Ip::addr_get_port(peer->_addr));
     }
 
-    void RelayStream::set_self_addr(mqas::tools::proto::relay::Address* addr)
+    void RelayStream::set_self_addr(mqas::tools::proto::common::Address* addr)
     {
         addr->set_ip(io::Ip::addr2str(_addr));
         addr->set_port(io::Ip::addr_get_port(_addr));

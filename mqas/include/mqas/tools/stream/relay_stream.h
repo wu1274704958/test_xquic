@@ -24,8 +24,8 @@ class MQAS_EXTERN RelayStream : public core::ProtoBufStream<RelayStream,
     void reg_on_recv_datagram();
     void on_recv_datagram(const uint8_t* buf,size_t size);
     std::optional<uint16_t> try_load_datagram_min_size() const;
-    void set_peer_addr(mqas::tools::proto::relay::Address* addr);
-    void set_self_addr(mqas::tools::proto::relay::Address* addr);
+    void set_peer_addr(mqas::tools::proto::common::Address* addr);
+    void set_self_addr(mqas::tools::proto::common::Address* addr);
 
     private:
     uint32_t _id = 0;

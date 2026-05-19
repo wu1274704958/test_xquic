@@ -1,18 +1,10 @@
 syntax = "proto3";
 
 package mqas.tools.proto.relay;
-
-message Address {
-  string ip = 1;
-  uint32 port = 2;
-}
-
-message UUID {
-  bytes data = 1;
-}
+import "common.proto";
 
 message ReqRelay{
-  UUID token = 1;
+  common.UUID token = 1;
   optional uint32 option = 2;
 }
 
@@ -26,8 +18,8 @@ message RespondRelay{
   };
   Code code = 1;
   uint32 id = 2;
-  optional Address peer_addr = 3;
-  optional Address self_addr = 4;
+  optional common.Address peer_addr = 3;
+  optional common.Address self_addr = 4;
 }
 
 message ReqReady{}

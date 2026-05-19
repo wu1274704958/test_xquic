@@ -624,7 +624,7 @@ void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_serve
 #endif
 		self->p2p_stream = ptr;
 		ptr->on_received_message.connect(sigc::mem_fun(*self,&tui::on_recive_p2p_msg));
-		ptr->on_connected.connect(sigc::mem_fun(*self,&tui::on_p2p_connected));
+		ptr->on_connected_signal.connect(sigc::mem_fun(*self,&tui::on_p2p_connected));
 	};
 	if (is_server)
 	{
@@ -645,9 +645,12 @@ void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_serve
 		});
 	}
 	else {
-		test::ReqDirectChat m;
-		LOG(INFO) << "req_change p2p chat";
-		if (stream->req_change<P2PChatStream, ReqDirectChatPair>(m))
+		tools::proto::p2p_client::RequestDirectConnect req;
+		auto token = req.mutable_token();
+		token->set_data(helper_result->verify_token().data());
+		LOG(INFO) << "submit token size:" << helper_result->verify_token().data().size()
+			<< " value:" << (helper_result->verify_token().data().size() > 0 ? mqas::comm::uuid::to_high_64(mqas::comm::uuid::to_uuid(helper_result->verify_token().data()).value()) : 0);
+		if (stream->req_change<P2PChatStream, tools::p2p_direct::ReqDirectConnectPair>(req))
 		{
 #ifndef NDEBUG
 			LOG(DEBUG) << "[on_new_p2p_stream] client: req_change succeeded";
@@ -685,8 +688,15 @@ void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,
 	{
 #ifndef NDEBUG
 		LOG(DEBUG) << "[on_new_p2p_connect] server: waiting for incoming stream";
+
+		LOG(DEBUG) << "deposited NotifyConnectResult token size:" << helper_result->verify_token().data().size()
+			<< " value:" << (helper_result->verify_token().data().size() > 0 ? mqas::comm::uuid::to_high_64(mqas::comm::uuid::to_uuid(helper_result->verify_token().data()).value()) : 0);
 #endif
+		comm::locator::inst()->deposit_cxt<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(conn,helper_result);
 		conn->on_new_stream_signal.connect(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1, is_server));
+		conn->on_close_signal.connect([](std::shared_ptr<core::Connect<P2PStreamType>> c) {
+			comm::locator::inst()->clear_by_context(c);
+		});
 	}
 	else
 	{

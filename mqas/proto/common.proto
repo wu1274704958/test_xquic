@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package mqas.tools.proto.common;
+
+message Address {
+  string ip = 1;
+  uint32 port = 2;
+}
+
+message UUID {
+  bytes data = 1;
+}

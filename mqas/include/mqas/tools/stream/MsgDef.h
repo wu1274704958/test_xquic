@@ -8,6 +8,7 @@
 #include <mqas/tools/proto/send_file.pb.h>
 #include <mqas/tools/proto/p2p.pb.h>
 #include <mqas/tools/proto/relay.pb.h>
+#include <mqas/tools/proto/p2p_client.pb.h>
 
 namespace mqas::tools {
     using ReqSendFileMsgPair = core::PBMsgPair<1, proto::ReqSendFile>;
@@ -38,6 +39,13 @@ namespace mqas::tools::relay{
     using RespondRelayPair = core::PBMsgPair<2, proto::relay::RespondRelay>;
     using ReqReadyPair = core::PBMsgPair<3, proto::relay::ReqReady>;
     using RespondReadyPair = core::PBMsgPair<4,proto::relay::RespondReady>;
+}
+
+namespace mqas::tools::p2p_direct {
+    using ReqDirectConnectPair    = core::PBMsgPair<1, proto::p2p_client::RequestDirectConnect>;
+    using RespondDirectConnectPair = core::PBMsgPair<2, proto::p2p_client::RespondDirectConnect>;
+    using ReqDirectQuitPair       = core::PBMsgPair<3, proto::p2p_client::RequestDirectQuit>;
+    using RespondDirectQuitPair   = core::PBMsgPair<4, proto::p2p_client::RespondDirectQuit>;
 }
 
 #endif //MQAS_TOOL_STREAM_MSG_DEF_H

@@ -218,6 +218,11 @@ namespace mqas::tools::controller {
 		msg.set_peer_id(tools::p2p::other(_cxt->pid, id));
 		msg.set_ret(mqas::tools::proto::p2p::RetCode::ok);
 		msg.set_is_server(idx == 0);
+		auto verify_token = msg.mutable_verify_token();
+		auto cxt = const_cast<p2p::connect_cxt*>(_cxt);
+		auto& token = cxt->get_verify_token();
+		verify_token->set_data((const char*)&token.data, token.size());
+
 		if (has_relay_config() && always_use_relay())
 			append_relay(id,msg);
 		else{
@@ -295,7 +300,7 @@ namespace mqas::tools::controller {
 
 		auto cxt = const_cast<p2p::connect_cxt*>(_cxt);
 		
-		auto& token = cxt->get_token();
+		auto& token = cxt->get_relay_token();
 
 		msg.set_relay_token((const char*)&token.data,token.size());
 	}

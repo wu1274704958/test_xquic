@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package mqas.tools.proto.p2p_client;
+import "common.proto";
+
+
+enum RetCode{
+    ok = 0;
+    wrong_token = 1;
+    already_connected = 2;
+    token_not_found = 3;
+    unknown_error = 4;
+    not_submit_token = 5;
+    refused_by_peer = 6;
+}
+
+message RequestDirectConnect {
+    common.UUID token = 1;
+	string name = 2;
+}
+
+message RespondDirectConnect {
+    RetCode code = 1;
+	string name = 2;
+}
+
+message RequestDirectQuit {
+    optional string reason = 1;
+}
+
+message RespondDirectQuit {
+    RetCode code = 1;
+}

@@ -307,6 +307,7 @@ namespace mqas::core{
                     if (msg->errcode != StreamVariantErrcode::ok)
                     {
                         LOG(ERROR) << "StreamVariant peer change to " << msg->param1 << " failed error = " << (int)msg->errcode;
+                        on_peer_change_ack(msg->errcode,msg->extra_params);
                         _current_state = variant_stream_state::none;
                         clear_curr_stream();
                     }

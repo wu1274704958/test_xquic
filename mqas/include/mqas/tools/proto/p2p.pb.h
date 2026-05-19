@@ -32,6 +32,7 @@
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/generated_enum_reflection.h"
 #include "google/protobuf/unknown_field_set.h"
+#include "common.pb.h"
 // @@protoc_insertion_point(includes)
 
 // Must be included last.
@@ -3363,6 +3364,7 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
     kAddressFieldNumber = 4,
     kPeerAddrFieldNumber = 6,
     kRelayAddrFieldNumber = 7,
+    kVerifyTokenFieldNumber = 10,
     kRetFieldNumber = 1,
     kPeerIdFieldNumber = 2,
     kIsServerFieldNumber = 5,
@@ -3445,6 +3447,21 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
   ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL _internal_mutable_relay_addr();
 
   public:
+  // optional .mqas.tools.proto.common.UUID verify_token = 10;
+  bool has_verify_token() const;
+  void clear_verify_token() ;
+  const ::mqas::tools::proto::common::UUID& verify_token() const;
+  [[nodiscard]] ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE release_verify_token();
+  ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL mutable_verify_token();
+  void set_allocated_verify_token(::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_verify_token(::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE value);
+  ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE unsafe_arena_release_verify_token();
+
+  private:
+  const ::mqas::tools::proto::common::UUID& _internal_verify_token() const;
+  ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL _internal_mutable_verify_token();
+
+  public:
   // .mqas.tools.proto.p2p.RetCode ret = 1;
   void clear_ret() ;
   ::mqas::tools::proto::p2p::RetCode ret() const;
@@ -3490,8 +3507,8 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<4, 9,
-                                   3, 63,
+  static const ::google::protobuf::internal::TcParseTable<4, 10,
+                                   4, 63,
                                    2>
       _table_;
 
@@ -3517,6 +3534,7 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
     ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE address_;
     ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE peer_addr_;
     ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE relay_addr_;
+    ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE verify_token_;
     int ret_;
     ::uint32_t peer_id_;
     bool is_server_;
@@ -4889,7 +4907,7 @@ inline void NotifyConnectPeerData::set_allocated_connect_data(::mqas::tools::pro
 inline void NotifyConnectResult::clear_ret() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.ret_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000020u;
+  _impl_._has_bits_[0] &= ~0x00000040u;
 }
 inline ::mqas::tools::proto::p2p::RetCode NotifyConnectResult::ret() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.ret)
@@ -4897,7 +4915,7 @@ inline ::mqas::tools::proto::p2p::RetCode NotifyConnectResult::ret() const {
 }
 inline void NotifyConnectResult::set_ret(::mqas::tools::proto::p2p::RetCode value) {
   _internal_set_ret(value);
-  _impl_._has_bits_[0] |= 0x00000020u;
+  _impl_._has_bits_[0] |= 0x00000040u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.ret)
 }
 inline ::mqas::tools::proto::p2p::RetCode NotifyConnectResult::_internal_ret() const {
@@ -4913,7 +4931,7 @@ inline void NotifyConnectResult::_internal_set_ret(::mqas::tools::proto::p2p::Re
 inline void NotifyConnectResult::clear_peer_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.peer_id_ = 0u;
-  _impl_._has_bits_[0] &= ~0x00000040u;
+  _impl_._has_bits_[0] &= ~0x00000080u;
 }
 inline ::uint32_t NotifyConnectResult::peer_id() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.peer_id)
@@ -4921,7 +4939,7 @@ inline ::uint32_t NotifyConnectResult::peer_id() const {
 }
 inline void NotifyConnectResult::set_peer_id(::uint32_t value) {
   _internal_set_peer_id(value);
-  _impl_._has_bits_[0] |= 0x00000040u;
+  _impl_._has_bits_[0] |= 0x00000080u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.peer_id)
 }
 inline ::uint32_t NotifyConnectResult::_internal_peer_id() const {
@@ -4937,7 +4955,7 @@ inline void NotifyConnectResult::_internal_set_peer_id(::uint32_t value) {
 inline void NotifyConnectResult::clear_is_server() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.is_server_ = false;
-  _impl_._has_bits_[0] &= ~0x00000080u;
+  _impl_._has_bits_[0] &= ~0x00000100u;
 }
 inline bool NotifyConnectResult::is_server() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.is_server)
@@ -4945,7 +4963,7 @@ inline bool NotifyConnectResult::is_server() const {
 }
 inline void NotifyConnectResult::set_is_server(bool value) {
   _internal_set_is_server(value);
-  _impl_._has_bits_[0] |= 0x00000080u;
+  _impl_._has_bits_[0] |= 0x00000100u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.is_server)
 }
 inline bool NotifyConnectResult::_internal_is_server() const {
@@ -4955,6 +4973,99 @@ inline bool NotifyConnectResult::_internal_is_server() const {
 inline void NotifyConnectResult::_internal_set_is_server(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.is_server_ = value;
+}
+
+// optional .mqas.tools.proto.common.UUID verify_token = 10;
+inline bool NotifyConnectResult::has_verify_token() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000020u) != 0;
+  PROTOBUF_ASSUME(!value || _impl_.verify_token_ != nullptr);
+  return value;
+}
+inline const ::mqas::tools::proto::common::UUID& NotifyConnectResult::_internal_verify_token() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::mqas::tools::proto::common::UUID* p = _impl_.verify_token_;
+  return p != nullptr ? *p : reinterpret_cast<const ::mqas::tools::proto::common::UUID&>(::mqas::tools::proto::common::_UUID_default_instance_);
+}
+inline const ::mqas::tools::proto::common::UUID& NotifyConnectResult::verify_token() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.verify_token)
+  return _internal_verify_token();
+}
+inline void NotifyConnectResult::unsafe_arena_set_allocated_verify_token(
+    ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.verify_token_);
+  }
+  _impl_.verify_token_ = reinterpret_cast<::mqas::tools::proto::common::UUID*>(value);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000020u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000020u;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.verify_token)
+}
+inline ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE NotifyConnectResult::release_verify_token() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  _impl_._has_bits_[0] &= ~0x00000020u;
+  ::mqas::tools::proto::common::UUID* released = _impl_.verify_token_;
+  _impl_.verify_token_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE NotifyConnectResult::unsafe_arena_release_verify_token() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.verify_token)
+
+  _impl_._has_bits_[0] &= ~0x00000020u;
+  ::mqas::tools::proto::common::UUID* temp = _impl_.verify_token_;
+  _impl_.verify_token_ = nullptr;
+  return temp;
+}
+inline ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL NotifyConnectResult::_internal_mutable_verify_token() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.verify_token_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::mqas::tools::proto::common::UUID>(GetArena());
+    _impl_.verify_token_ = reinterpret_cast<::mqas::tools::proto::common::UUID*>(p);
+  }
+  return _impl_.verify_token_;
+}
+inline ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL NotifyConnectResult::mutable_verify_token()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  _impl_._has_bits_[0] |= 0x00000020u;
+  ::mqas::tools::proto::common::UUID* _msg = _internal_mutable_verify_token();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.verify_token)
+  return _msg;
+}
+inline void NotifyConnectResult::set_allocated_verify_token(::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.verify_token_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    _impl_._has_bits_[0] |= 0x00000020u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000020u;
+  }
+
+  _impl_.verify_token_ = reinterpret_cast<::mqas::tools::proto::common::UUID*>(value);
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.verify_token)
 }
 
 // optional .mqas.tools.proto.p2p.Address peer_addr = 6;
@@ -5322,13 +5433,13 @@ inline void NotifyConnectResult::set_allocated_relay_addr(::mqas::tools::proto::
 
 // optional bool use_relay = 8;
 inline bool NotifyConnectResult::has_use_relay() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000100u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000200u) != 0;
   return value;
 }
 inline void NotifyConnectResult::clear_use_relay() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.use_relay_ = false;
-  _impl_._has_bits_[0] &= ~0x00000100u;
+  _impl_._has_bits_[0] &= ~0x00000200u;
 }
 inline bool NotifyConnectResult::use_relay() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.use_relay)
@@ -5336,7 +5447,7 @@ inline bool NotifyConnectResult::use_relay() const {
 }
 inline void NotifyConnectResult::set_use_relay(bool value) {
   _internal_set_use_relay(value);
-  _impl_._has_bits_[0] |= 0x00000100u;
+  _impl_._has_bits_[0] |= 0x00000200u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.use_relay)
 }
 inline bool NotifyConnectResult::_internal_use_relay() const {

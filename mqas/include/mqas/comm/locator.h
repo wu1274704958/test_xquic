@@ -129,7 +129,12 @@ namespace mqas::comm {
 			{
 				return reinterpret_cast<void*>(const_cast<O*>(&obj));
 			}
-			inline void* get_key(size_t key)
+			template<typename O>
+			void* get_key(const std::shared_ptr<O>& obj)
+			{
+				return reinterpret_cast<void*>(obj.get());
+			}
+			void* get_key(size_t key)
 			{
 				return (void*)key;
 			}

@@ -44,6 +44,7 @@ namespace mqas::tools::controller {
 		bool _is_start : 1;
 		std::optional<std::string> _reason;
 		std::optional<toml::value> _config;
+		std::string _current_verify_code;
 	};
 }
 

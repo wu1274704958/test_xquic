@@ -32,6 +32,7 @@
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/generated_enum_reflection.h"
 #include "google/protobuf/unknown_field_set.h"
+#include "common.pb.h"
 // @@protoc_insertion_point(includes)
 
 // Must be included last.
@@ -61,10 +62,6 @@ namespace proto {
 namespace relay {
 enum RespondRelay_Code : int;
 MQAS_EXTERN extern const uint32_t RespondRelay_Code_internal_data_[];
-class Address;
-struct AddressDefaultTypeInternal;
-MQAS_EXTERN extern AddressDefaultTypeInternal _Address_default_instance_;
-MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull Address_class_data_;
 class ReqReady;
 struct ReqReadyDefaultTypeInternal;
 MQAS_EXTERN extern ReqReadyDefaultTypeInternal _ReqReady_default_instance_;
@@ -81,10 +78,6 @@ class RespondRelay;
 struct RespondRelayDefaultTypeInternal;
 MQAS_EXTERN extern RespondRelayDefaultTypeInternal _RespondRelay_default_instance_;
 MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull RespondRelay_class_data_;
-class UUID;
-struct UUIDDefaultTypeInternal;
-MQAS_EXTERN extern UUIDDefaultTypeInternal _UUID_default_instance_;
-MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull UUID_class_data_;
 }  // namespace relay
 }  // namespace proto
 }  // namespace tools
@@ -146,202 +139,6 @@ inline bool RespondRelay_Code_Parse(
 
 // -------------------------------------------------------------------
 
-class MQAS_EXTERN UUID final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:mqas.tools.proto.relay.UUID) */ {
- public:
-  inline UUID() : UUID(nullptr) {}
-  ~UUID() PROTOBUF_FINAL;
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(UUID* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
-    SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(UUID));
-  }
-#endif
-
-  template <typename = void>
-  explicit PROTOBUF_CONSTEXPR UUID(::google::protobuf::internal::ConstantInitialized);
-
-  inline UUID(const UUID& from) : UUID(nullptr, from) {}
-  inline UUID(UUID&& from) noexcept
-      : UUID(nullptr, std::move(from)) {}
-  inline UUID& operator=(const UUID& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline UUID& operator=(UUID&& from) noexcept {
-    if (this == &from) return *this;
-    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
-      ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
-  }
-  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
-      ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
-  }
-
-  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
-    return GetDescriptor();
-  }
-  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const UUID& default_instance() {
-    return *reinterpret_cast<const UUID*>(
-        &_UUID_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages = 1;
-  friend void swap(UUID& a, UUID& b) { a.Swap(&b); }
-  inline void Swap(UUID* PROTOBUF_NONNULL other) {
-    if (other == this) return;
-    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
-      InternalSwap(other);
-    } else {
-      ::google::protobuf::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(UUID* PROTOBUF_NONNULL other) {
-    if (other == this) return;
-    ABSL_DCHECK(GetArena() == other->GetArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  UUID* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<UUID>(arena);
-  }
-  using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const UUID& from);
-  using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const UUID& from) { UUID::MergeImpl(*this, from); }
-
-  private:
-  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
-                        const ::google::protobuf::MessageLite& from_msg);
-
-  public:
-  bool IsInitialized() const {
-    return true;
-  }
-  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
-  #if defined(PROTOBUF_CUSTOM_VTABLE)
-  private:
-  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
-  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
-
-  public:
-  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
-  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-    return _InternalSerialize(*this, target, stream);
-  }
-  #else   // PROTOBUF_CUSTOM_VTABLE
-  ::size_t ByteSizeLong() const final;
-  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
-  #endif  // PROTOBUF_CUSTOM_VTABLE
-  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  static void SharedDtor(MessageLite& self);
-  void InternalSwap(UUID* PROTOBUF_NONNULL other);
- private:
-  template <typename T>
-  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "mqas.tools.proto.relay.UUID"; }
-
- protected:
-  explicit UUID(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  UUID(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const UUID& from);
-  UUID(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, UUID&& from) noexcept
-      : UUID(arena) {
-    *this = ::std::move(from);
-  }
-  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
-  static void* PROTOBUF_NONNULL PlacementNew_(
-      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  static constexpr auto InternalNewImpl_();
-
- public:
-  static constexpr auto InternalGenerateClassData_();
-
-  ::google::protobuf::Metadata GetMetadata() const;
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-  enum : int {
-    kDataFieldNumber = 1,
-  };
-  // bytes data = 1;
-  void clear_data() ;
-  const std::string& data() const;
-  template <typename Arg_ = const std::string&, typename... Args_>
-  void set_data(Arg_&& arg, Args_... args);
-  std::string* PROTOBUF_NONNULL mutable_data();
-  [[nodiscard]] std::string* PROTOBUF_NULLABLE release_data();
-  void set_allocated_data(std::string* PROTOBUF_NULLABLE value);
-
-  private:
-  const std::string& _internal_data() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_data(const std::string& value);
-  std::string* PROTOBUF_NONNULL _internal_mutable_data();
-
-  public:
-  // @@protoc_insertion_point(class_scope:mqas.tools.proto.relay.UUID)
- private:
-  class _Internal;
-  friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 1,
-                                   0, 0,
-                                   2>
-      _table_;
-
-  friend class ::google::protobuf::MessageLite;
-  friend class ::google::protobuf::Arena;
-  template <typename T>
-  friend class ::google::protobuf::Arena::InternalHelper;
-  using InternalArenaConstructable_ = void;
-  using DestructorSkippable_ = void;
-  struct Impl_ {
-    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
-    inline explicit Impl_(
-        ::google::protobuf::internal::InternalVisibility visibility,
-        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-    inline explicit Impl_(
-        ::google::protobuf::internal::InternalVisibility visibility,
-        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const UUID& from_msg);
-    ::google::protobuf::internal::HasBits<1> _has_bits_;
-    ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::internal::ArenaStringPtr data_;
-    PROTOBUF_TSAN_DECLARE_MEMBER
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_relay_2eproto;
-};
-
-MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull UUID_class_data_;
-// -------------------------------------------------------------------
-
 class MQAS_EXTERN RespondReady final : public ::google::protobuf::internal::ZeroFieldsBase
 /* @@protoc_insertion_point(class_definition:mqas.tools.proto.relay.RespondReady) */ {
  public:
@@ -396,7 +193,7 @@ class MQAS_EXTERN RespondReady final : public ::google::protobuf::internal::Zero
     return *reinterpret_cast<const RespondReady*>(
         &_RespondReady_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 3;
   friend void swap(RespondReady& a, RespondReady& b) { a.Swap(&b); }
   inline void Swap(RespondReady* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -542,7 +339,7 @@ class MQAS_EXTERN ReqReady final : public ::google::protobuf::internal::ZeroFiel
     return *reinterpret_cast<const ReqReady*>(
         &_ReqReady_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 2;
   friend void swap(ReqReady& a, ReqReady& b) { a.Swap(&b); }
   inline void Swap(ReqReady* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -634,214 +431,6 @@ class MQAS_EXTERN ReqReady final : public ::google::protobuf::internal::ZeroFiel
 MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull ReqReady_class_data_;
 // -------------------------------------------------------------------
 
-class MQAS_EXTERN Address final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:mqas.tools.proto.relay.Address) */ {
- public:
-  inline Address() : Address(nullptr) {}
-  ~Address() PROTOBUF_FINAL;
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(Address* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
-    SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(Address));
-  }
-#endif
-
-  template <typename = void>
-  explicit PROTOBUF_CONSTEXPR Address(::google::protobuf::internal::ConstantInitialized);
-
-  inline Address(const Address& from) : Address(nullptr, from) {}
-  inline Address(Address&& from) noexcept
-      : Address(nullptr, std::move(from)) {}
-  inline Address& operator=(const Address& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline Address& operator=(Address&& from) noexcept {
-    if (this == &from) return *this;
-    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
-      ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
-  }
-  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
-      ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
-  }
-
-  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
-    return GetDescriptor();
-  }
-  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const Address& default_instance() {
-    return *reinterpret_cast<const Address*>(
-        &_Address_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages = 0;
-  friend void swap(Address& a, Address& b) { a.Swap(&b); }
-  inline void Swap(Address* PROTOBUF_NONNULL other) {
-    if (other == this) return;
-    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
-      InternalSwap(other);
-    } else {
-      ::google::protobuf::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(Address* PROTOBUF_NONNULL other) {
-    if (other == this) return;
-    ABSL_DCHECK(GetArena() == other->GetArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  Address* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<Address>(arena);
-  }
-  using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const Address& from);
-  using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const Address& from) { Address::MergeImpl(*this, from); }
-
-  private:
-  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
-                        const ::google::protobuf::MessageLite& from_msg);
-
-  public:
-  bool IsInitialized() const {
-    return true;
-  }
-  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
-  #if defined(PROTOBUF_CUSTOM_VTABLE)
-  private:
-  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
-  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
-
-  public:
-  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
-  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-    return _InternalSerialize(*this, target, stream);
-  }
-  #else   // PROTOBUF_CUSTOM_VTABLE
-  ::size_t ByteSizeLong() const final;
-  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
-  #endif  // PROTOBUF_CUSTOM_VTABLE
-  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  static void SharedDtor(MessageLite& self);
-  void InternalSwap(Address* PROTOBUF_NONNULL other);
- private:
-  template <typename T>
-  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "mqas.tools.proto.relay.Address"; }
-
- protected:
-  explicit Address(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  Address(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Address& from);
-  Address(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, Address&& from) noexcept
-      : Address(arena) {
-    *this = ::std::move(from);
-  }
-  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
-  static void* PROTOBUF_NONNULL PlacementNew_(
-      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  static constexpr auto InternalNewImpl_();
-
- public:
-  static constexpr auto InternalGenerateClassData_();
-
-  ::google::protobuf::Metadata GetMetadata() const;
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-  enum : int {
-    kIpFieldNumber = 1,
-    kPortFieldNumber = 2,
-  };
-  // string ip = 1;
-  void clear_ip() ;
-  const std::string& ip() const;
-  template <typename Arg_ = const std::string&, typename... Args_>
-  void set_ip(Arg_&& arg, Args_... args);
-  std::string* PROTOBUF_NONNULL mutable_ip();
-  [[nodiscard]] std::string* PROTOBUF_NULLABLE release_ip();
-  void set_allocated_ip(std::string* PROTOBUF_NULLABLE value);
-
-  private:
-  const std::string& _internal_ip() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_ip(const std::string& value);
-  std::string* PROTOBUF_NONNULL _internal_mutable_ip();
-
-  public:
-  // uint32 port = 2;
-  void clear_port() ;
-  ::uint32_t port() const;
-  void set_port(::uint32_t value);
-
-  private:
-  ::uint32_t _internal_port() const;
-  void _internal_set_port(::uint32_t value);
-
-  public:
-  // @@protoc_insertion_point(class_scope:mqas.tools.proto.relay.Address)
- private:
-  class _Internal;
-  friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
-                                   0, 41,
-                                   2>
-      _table_;
-
-  friend class ::google::protobuf::MessageLite;
-  friend class ::google::protobuf::Arena;
-  template <typename T>
-  friend class ::google::protobuf::Arena::InternalHelper;
-  using InternalArenaConstructable_ = void;
-  using DestructorSkippable_ = void;
-  struct Impl_ {
-    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
-    inline explicit Impl_(
-        ::google::protobuf::internal::InternalVisibility visibility,
-        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-    inline explicit Impl_(
-        ::google::protobuf::internal::InternalVisibility visibility,
-        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const Address& from_msg);
-    ::google::protobuf::internal::HasBits<1> _has_bits_;
-    ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::internal::ArenaStringPtr ip_;
-    ::uint32_t port_;
-    PROTOBUF_TSAN_DECLARE_MEMBER
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_relay_2eproto;
-};
-
-MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull Address_class_data_;
-// -------------------------------------------------------------------
-
 class MQAS_EXTERN RespondRelay final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:mqas.tools.proto.relay.RespondRelay) */ {
  public:
@@ -897,7 +486,7 @@ class MQAS_EXTERN RespondRelay final : public ::google::protobuf::Message
     return *reinterpret_cast<const RespondRelay*>(
         &_RespondRelay_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
+  static constexpr int kIndexInFileMessages = 1;
   friend void swap(RespondRelay& a, RespondRelay& b) { a.Swap(&b); }
   inline void Swap(RespondRelay* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1013,34 +602,34 @@ class MQAS_EXTERN RespondRelay final : public ::google::protobuf::Message
     kCodeFieldNumber = 1,
     kIdFieldNumber = 2,
   };
-  // optional .mqas.tools.proto.relay.Address peer_addr = 3;
+  // optional .mqas.tools.proto.common.Address peer_addr = 3;
   bool has_peer_addr() const;
   void clear_peer_addr() ;
-  const ::mqas::tools::proto::relay::Address& peer_addr() const;
-  [[nodiscard]] ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE release_peer_addr();
-  ::mqas::tools::proto::relay::Address* PROTOBUF_NONNULL mutable_peer_addr();
-  void set_allocated_peer_addr(::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_peer_addr(::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE value);
-  ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE unsafe_arena_release_peer_addr();
+  const ::mqas::tools::proto::common::Address& peer_addr() const;
+  [[nodiscard]] ::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE release_peer_addr();
+  ::mqas::tools::proto::common::Address* PROTOBUF_NONNULL mutable_peer_addr();
+  void set_allocated_peer_addr(::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_peer_addr(::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE value);
+  ::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE unsafe_arena_release_peer_addr();
 
   private:
-  const ::mqas::tools::proto::relay::Address& _internal_peer_addr() const;
-  ::mqas::tools::proto::relay::Address* PROTOBUF_NONNULL _internal_mutable_peer_addr();
+  const ::mqas::tools::proto::common::Address& _internal_peer_addr() const;
+  ::mqas::tools::proto::common::Address* PROTOBUF_NONNULL _internal_mutable_peer_addr();
 
   public:
-  // optional .mqas.tools.proto.relay.Address self_addr = 4;
+  // optional .mqas.tools.proto.common.Address self_addr = 4;
   bool has_self_addr() const;
   void clear_self_addr() ;
-  const ::mqas::tools::proto::relay::Address& self_addr() const;
-  [[nodiscard]] ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE release_self_addr();
-  ::mqas::tools::proto::relay::Address* PROTOBUF_NONNULL mutable_self_addr();
-  void set_allocated_self_addr(::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_self_addr(::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE value);
-  ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE unsafe_arena_release_self_addr();
+  const ::mqas::tools::proto::common::Address& self_addr() const;
+  [[nodiscard]] ::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE release_self_addr();
+  ::mqas::tools::proto::common::Address* PROTOBUF_NONNULL mutable_self_addr();
+  void set_allocated_self_addr(::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_self_addr(::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE value);
+  ::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE unsafe_arena_release_self_addr();
 
   private:
-  const ::mqas::tools::proto::relay::Address& _internal_self_addr() const;
-  ::mqas::tools::proto::relay::Address* PROTOBUF_NONNULL _internal_mutable_self_addr();
+  const ::mqas::tools::proto::common::Address& _internal_self_addr() const;
+  ::mqas::tools::proto::common::Address* PROTOBUF_NONNULL _internal_mutable_self_addr();
 
   public:
   // .mqas.tools.proto.relay.RespondRelay.Code code = 1;
@@ -1089,8 +678,8 @@ class MQAS_EXTERN RespondRelay final : public ::google::protobuf::Message
         const RespondRelay& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE peer_addr_;
-    ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE self_addr_;
+    ::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE peer_addr_;
+    ::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE self_addr_;
     int code_;
     ::uint32_t id_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -1157,7 +746,7 @@ class MQAS_EXTERN ReqRelay final : public ::google::protobuf::Message
     return *reinterpret_cast<const ReqRelay*>(
         &_ReqRelay_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 2;
+  static constexpr int kIndexInFileMessages = 0;
   friend void swap(ReqRelay& a, ReqRelay& b) { a.Swap(&b); }
   inline void Swap(ReqRelay* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1248,19 +837,19 @@ class MQAS_EXTERN ReqRelay final : public ::google::protobuf::Message
     kTokenFieldNumber = 1,
     kOptionFieldNumber = 2,
   };
-  // .mqas.tools.proto.relay.UUID token = 1;
+  // .mqas.tools.proto.common.UUID token = 1;
   bool has_token() const;
   void clear_token() ;
-  const ::mqas::tools::proto::relay::UUID& token() const;
-  [[nodiscard]] ::mqas::tools::proto::relay::UUID* PROTOBUF_NULLABLE release_token();
-  ::mqas::tools::proto::relay::UUID* PROTOBUF_NONNULL mutable_token();
-  void set_allocated_token(::mqas::tools::proto::relay::UUID* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_token(::mqas::tools::proto::relay::UUID* PROTOBUF_NULLABLE value);
-  ::mqas::tools::proto::relay::UUID* PROTOBUF_NULLABLE unsafe_arena_release_token();
+  const ::mqas::tools::proto::common::UUID& token() const;
+  [[nodiscard]] ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE release_token();
+  ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL mutable_token();
+  void set_allocated_token(::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_token(::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE value);
+  ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE unsafe_arena_release_token();
 
   private:
-  const ::mqas::tools::proto::relay::UUID& _internal_token() const;
-  ::mqas::tools::proto::relay::UUID* PROTOBUF_NONNULL _internal_mutable_token();
+  const ::mqas::tools::proto::common::UUID& _internal_token() const;
+  ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL _internal_mutable_token();
 
   public:
   // optional uint32 option = 2;
@@ -1300,7 +889,7 @@ class MQAS_EXTERN ReqRelay final : public ::google::protobuf::Message
         const ReqRelay& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::mqas::tools::proto::relay::UUID* PROTOBUF_NULLABLE token_;
+    ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE token_;
     ::uint32_t option_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -1324,197 +913,30 @@ MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull ReqRelay_cl
 #endif  // __GNUC__
 // -------------------------------------------------------------------
 
-// Address
-
-// string ip = 1;
-inline void Address::clear_ip() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.ip_.ClearToEmpty();
-  _impl_._has_bits_[0] &= ~0x00000001u;
-}
-inline const std::string& Address::ip() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:mqas.tools.proto.relay.Address.ip)
-  return _internal_ip();
-}
-template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void Address::set_ip(Arg_&& arg, Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000001u;
-  _impl_.ip_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:mqas.tools.proto.relay.Address.ip)
-}
-inline std::string* PROTOBUF_NONNULL Address::mutable_ip()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  std::string* _s = _internal_mutable_ip();
-  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.relay.Address.ip)
-  return _s;
-}
-inline const std::string& Address::_internal_ip() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.ip_.Get();
-}
-inline void Address::_internal_set_ip(const std::string& value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000001u;
-  _impl_.ip_.Set(value, GetArena());
-}
-inline std::string* PROTOBUF_NONNULL Address::_internal_mutable_ip() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000001u;
-  return _impl_.ip_.Mutable( GetArena());
-}
-inline std::string* PROTOBUF_NULLABLE Address::release_ip() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:mqas.tools.proto.relay.Address.ip)
-  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
-    return nullptr;
-  }
-  _impl_._has_bits_[0] &= ~0x00000001u;
-  auto* released = _impl_.ip_.Release();
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.ip_.Set("", GetArena());
-  }
-  return released;
-}
-inline void Address::set_allocated_ip(std::string* PROTOBUF_NULLABLE value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000001u;
-  } else {
-    _impl_._has_bits_[0] &= ~0x00000001u;
-  }
-  _impl_.ip_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.ip_.IsDefault()) {
-    _impl_.ip_.Set("", GetArena());
-  }
-  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.relay.Address.ip)
-}
-
-// uint32 port = 2;
-inline void Address::clear_port() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.port_ = 0u;
-  _impl_._has_bits_[0] &= ~0x00000002u;
-}
-inline ::uint32_t Address::port() const {
-  // @@protoc_insertion_point(field_get:mqas.tools.proto.relay.Address.port)
-  return _internal_port();
-}
-inline void Address::set_port(::uint32_t value) {
-  _internal_set_port(value);
-  _impl_._has_bits_[0] |= 0x00000002u;
-  // @@protoc_insertion_point(field_set:mqas.tools.proto.relay.Address.port)
-}
-inline ::uint32_t Address::_internal_port() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.port_;
-}
-inline void Address::_internal_set_port(::uint32_t value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.port_ = value;
-}
-
-// -------------------------------------------------------------------
-
-// UUID
-
-// bytes data = 1;
-inline void UUID::clear_data() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.data_.ClearToEmpty();
-  _impl_._has_bits_[0] &= ~0x00000001u;
-}
-inline const std::string& UUID::data() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:mqas.tools.proto.relay.UUID.data)
-  return _internal_data();
-}
-template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void UUID::set_data(Arg_&& arg, Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000001u;
-  _impl_.data_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:mqas.tools.proto.relay.UUID.data)
-}
-inline std::string* PROTOBUF_NONNULL UUID::mutable_data()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  std::string* _s = _internal_mutable_data();
-  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.relay.UUID.data)
-  return _s;
-}
-inline const std::string& UUID::_internal_data() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.data_.Get();
-}
-inline void UUID::_internal_set_data(const std::string& value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000001u;
-  _impl_.data_.Set(value, GetArena());
-}
-inline std::string* PROTOBUF_NONNULL UUID::_internal_mutable_data() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000001u;
-  return _impl_.data_.Mutable( GetArena());
-}
-inline std::string* PROTOBUF_NULLABLE UUID::release_data() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:mqas.tools.proto.relay.UUID.data)
-  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
-    return nullptr;
-  }
-  _impl_._has_bits_[0] &= ~0x00000001u;
-  auto* released = _impl_.data_.Release();
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.data_.Set("", GetArena());
-  }
-  return released;
-}
-inline void UUID::set_allocated_data(std::string* PROTOBUF_NULLABLE value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000001u;
-  } else {
-    _impl_._has_bits_[0] &= ~0x00000001u;
-  }
-  _impl_.data_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.data_.IsDefault()) {
-    _impl_.data_.Set("", GetArena());
-  }
-  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.relay.UUID.data)
-}
-
-// -------------------------------------------------------------------
-
 // ReqRelay
 
-// .mqas.tools.proto.relay.UUID token = 1;
+// .mqas.tools.proto.common.UUID token = 1;
 inline bool ReqRelay::has_token() const {
   bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.token_ != nullptr);
   return value;
 }
-inline void ReqRelay::clear_token() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (_impl_.token_ != nullptr) _impl_.token_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000001u;
-}
-inline const ::mqas::tools::proto::relay::UUID& ReqRelay::_internal_token() const {
+inline const ::mqas::tools::proto::common::UUID& ReqRelay::_internal_token() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::mqas::tools::proto::relay::UUID* p = _impl_.token_;
-  return p != nullptr ? *p : reinterpret_cast<const ::mqas::tools::proto::relay::UUID&>(::mqas::tools::proto::relay::_UUID_default_instance_);
+  const ::mqas::tools::proto::common::UUID* p = _impl_.token_;
+  return p != nullptr ? *p : reinterpret_cast<const ::mqas::tools::proto::common::UUID&>(::mqas::tools::proto::common::_UUID_default_instance_);
 }
-inline const ::mqas::tools::proto::relay::UUID& ReqRelay::token() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::mqas::tools::proto::common::UUID& ReqRelay::token() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.relay.ReqRelay.token)
   return _internal_token();
 }
 inline void ReqRelay::unsafe_arena_set_allocated_token(
-    ::mqas::tools::proto::relay::UUID* PROTOBUF_NULLABLE value) {
+    ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.token_);
   }
-  _impl_.token_ = reinterpret_cast<::mqas::tools::proto::relay::UUID*>(value);
+  _impl_.token_ = reinterpret_cast<::mqas::tools::proto::common::UUID*>(value);
   if (value != nullptr) {
     _impl_._has_bits_[0] |= 0x00000001u;
   } else {
@@ -1522,11 +944,11 @@ inline void ReqRelay::unsafe_arena_set_allocated_token(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.relay.ReqRelay.token)
 }
-inline ::mqas::tools::proto::relay::UUID* PROTOBUF_NULLABLE ReqRelay::release_token() {
+inline ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE ReqRelay::release_token() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   _impl_._has_bits_[0] &= ~0x00000001u;
-  ::mqas::tools::proto::relay::UUID* released = _impl_.token_;
+  ::mqas::tools::proto::common::UUID* released = _impl_.token_;
   _impl_.token_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -1541,31 +963,31 @@ inline ::mqas::tools::proto::relay::UUID* PROTOBUF_NULLABLE ReqRelay::release_to
   }
   return released;
 }
-inline ::mqas::tools::proto::relay::UUID* PROTOBUF_NULLABLE ReqRelay::unsafe_arena_release_token() {
+inline ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE ReqRelay::unsafe_arena_release_token() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:mqas.tools.proto.relay.ReqRelay.token)
 
   _impl_._has_bits_[0] &= ~0x00000001u;
-  ::mqas::tools::proto::relay::UUID* temp = _impl_.token_;
+  ::mqas::tools::proto::common::UUID* temp = _impl_.token_;
   _impl_.token_ = nullptr;
   return temp;
 }
-inline ::mqas::tools::proto::relay::UUID* PROTOBUF_NONNULL ReqRelay::_internal_mutable_token() {
+inline ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL ReqRelay::_internal_mutable_token() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.token_ == nullptr) {
-    auto* p = ::google::protobuf::Message::DefaultConstruct<::mqas::tools::proto::relay::UUID>(GetArena());
-    _impl_.token_ = reinterpret_cast<::mqas::tools::proto::relay::UUID*>(p);
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::mqas::tools::proto::common::UUID>(GetArena());
+    _impl_.token_ = reinterpret_cast<::mqas::tools::proto::common::UUID*>(p);
   }
   return _impl_.token_;
 }
-inline ::mqas::tools::proto::relay::UUID* PROTOBUF_NONNULL ReqRelay::mutable_token()
+inline ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL ReqRelay::mutable_token()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   _impl_._has_bits_[0] |= 0x00000001u;
-  ::mqas::tools::proto::relay::UUID* _msg = _internal_mutable_token();
+  ::mqas::tools::proto::common::UUID* _msg = _internal_mutable_token();
   // @@protoc_insertion_point(field_mutable:mqas.tools.proto.relay.ReqRelay.token)
   return _msg;
 }
-inline void ReqRelay::set_allocated_token(::mqas::tools::proto::relay::UUID* PROTOBUF_NULLABLE value) {
+inline void ReqRelay::set_allocated_token(::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -1573,7 +995,7 @@ inline void ReqRelay::set_allocated_token(::mqas::tools::proto::relay::UUID* PRO
   }
 
   if (value != nullptr) {
-    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
@@ -1582,7 +1004,7 @@ inline void ReqRelay::set_allocated_token(::mqas::tools::proto::relay::UUID* PRO
     _impl_._has_bits_[0] &= ~0x00000001u;
   }
 
-  _impl_.token_ = reinterpret_cast<::mqas::tools::proto::relay::UUID*>(value);
+  _impl_.token_ = reinterpret_cast<::mqas::tools::proto::common::UUID*>(value);
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.relay.ReqRelay.token)
 }
 
@@ -1666,33 +1088,28 @@ inline void RespondRelay::_internal_set_id(::uint32_t value) {
   _impl_.id_ = value;
 }
 
-// optional .mqas.tools.proto.relay.Address peer_addr = 3;
+// optional .mqas.tools.proto.common.Address peer_addr = 3;
 inline bool RespondRelay::has_peer_addr() const {
   bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.peer_addr_ != nullptr);
   return value;
 }
-inline void RespondRelay::clear_peer_addr() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (_impl_.peer_addr_ != nullptr) _impl_.peer_addr_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000001u;
-}
-inline const ::mqas::tools::proto::relay::Address& RespondRelay::_internal_peer_addr() const {
+inline const ::mqas::tools::proto::common::Address& RespondRelay::_internal_peer_addr() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::mqas::tools::proto::relay::Address* p = _impl_.peer_addr_;
-  return p != nullptr ? *p : reinterpret_cast<const ::mqas::tools::proto::relay::Address&>(::mqas::tools::proto::relay::_Address_default_instance_);
+  const ::mqas::tools::proto::common::Address* p = _impl_.peer_addr_;
+  return p != nullptr ? *p : reinterpret_cast<const ::mqas::tools::proto::common::Address&>(::mqas::tools::proto::common::_Address_default_instance_);
 }
-inline const ::mqas::tools::proto::relay::Address& RespondRelay::peer_addr() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::mqas::tools::proto::common::Address& RespondRelay::peer_addr() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.relay.RespondRelay.peer_addr)
   return _internal_peer_addr();
 }
 inline void RespondRelay::unsafe_arena_set_allocated_peer_addr(
-    ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE value) {
+    ::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.peer_addr_);
   }
-  _impl_.peer_addr_ = reinterpret_cast<::mqas::tools::proto::relay::Address*>(value);
+  _impl_.peer_addr_ = reinterpret_cast<::mqas::tools::proto::common::Address*>(value);
   if (value != nullptr) {
     _impl_._has_bits_[0] |= 0x00000001u;
   } else {
@@ -1700,11 +1117,11 @@ inline void RespondRelay::unsafe_arena_set_allocated_peer_addr(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.relay.RespondRelay.peer_addr)
 }
-inline ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE RespondRelay::release_peer_addr() {
+inline ::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE RespondRelay::release_peer_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   _impl_._has_bits_[0] &= ~0x00000001u;
-  ::mqas::tools::proto::relay::Address* released = _impl_.peer_addr_;
+  ::mqas::tools::proto::common::Address* released = _impl_.peer_addr_;
   _impl_.peer_addr_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -1719,31 +1136,31 @@ inline ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE RespondRelay::rel
   }
   return released;
 }
-inline ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE RespondRelay::unsafe_arena_release_peer_addr() {
+inline ::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE RespondRelay::unsafe_arena_release_peer_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:mqas.tools.proto.relay.RespondRelay.peer_addr)
 
   _impl_._has_bits_[0] &= ~0x00000001u;
-  ::mqas::tools::proto::relay::Address* temp = _impl_.peer_addr_;
+  ::mqas::tools::proto::common::Address* temp = _impl_.peer_addr_;
   _impl_.peer_addr_ = nullptr;
   return temp;
 }
-inline ::mqas::tools::proto::relay::Address* PROTOBUF_NONNULL RespondRelay::_internal_mutable_peer_addr() {
+inline ::mqas::tools::proto::common::Address* PROTOBUF_NONNULL RespondRelay::_internal_mutable_peer_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.peer_addr_ == nullptr) {
-    auto* p = ::google::protobuf::Message::DefaultConstruct<::mqas::tools::proto::relay::Address>(GetArena());
-    _impl_.peer_addr_ = reinterpret_cast<::mqas::tools::proto::relay::Address*>(p);
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::mqas::tools::proto::common::Address>(GetArena());
+    _impl_.peer_addr_ = reinterpret_cast<::mqas::tools::proto::common::Address*>(p);
   }
   return _impl_.peer_addr_;
 }
-inline ::mqas::tools::proto::relay::Address* PROTOBUF_NONNULL RespondRelay::mutable_peer_addr()
+inline ::mqas::tools::proto::common::Address* PROTOBUF_NONNULL RespondRelay::mutable_peer_addr()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   _impl_._has_bits_[0] |= 0x00000001u;
-  ::mqas::tools::proto::relay::Address* _msg = _internal_mutable_peer_addr();
+  ::mqas::tools::proto::common::Address* _msg = _internal_mutable_peer_addr();
   // @@protoc_insertion_point(field_mutable:mqas.tools.proto.relay.RespondRelay.peer_addr)
   return _msg;
 }
-inline void RespondRelay::set_allocated_peer_addr(::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE value) {
+inline void RespondRelay::set_allocated_peer_addr(::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -1751,7 +1168,7 @@ inline void RespondRelay::set_allocated_peer_addr(::mqas::tools::proto::relay::A
   }
 
   if (value != nullptr) {
-    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
@@ -1760,37 +1177,32 @@ inline void RespondRelay::set_allocated_peer_addr(::mqas::tools::proto::relay::A
     _impl_._has_bits_[0] &= ~0x00000001u;
   }
 
-  _impl_.peer_addr_ = reinterpret_cast<::mqas::tools::proto::relay::Address*>(value);
+  _impl_.peer_addr_ = reinterpret_cast<::mqas::tools::proto::common::Address*>(value);
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.relay.RespondRelay.peer_addr)
 }
 
-// optional .mqas.tools.proto.relay.Address self_addr = 4;
+// optional .mqas.tools.proto.common.Address self_addr = 4;
 inline bool RespondRelay::has_self_addr() const {
   bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.self_addr_ != nullptr);
   return value;
 }
-inline void RespondRelay::clear_self_addr() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (_impl_.self_addr_ != nullptr) _impl_.self_addr_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000002u;
-}
-inline const ::mqas::tools::proto::relay::Address& RespondRelay::_internal_self_addr() const {
+inline const ::mqas::tools::proto::common::Address& RespondRelay::_internal_self_addr() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::mqas::tools::proto::relay::Address* p = _impl_.self_addr_;
-  return p != nullptr ? *p : reinterpret_cast<const ::mqas::tools::proto::relay::Address&>(::mqas::tools::proto::relay::_Address_default_instance_);
+  const ::mqas::tools::proto::common::Address* p = _impl_.self_addr_;
+  return p != nullptr ? *p : reinterpret_cast<const ::mqas::tools::proto::common::Address&>(::mqas::tools::proto::common::_Address_default_instance_);
 }
-inline const ::mqas::tools::proto::relay::Address& RespondRelay::self_addr() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::mqas::tools::proto::common::Address& RespondRelay::self_addr() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.relay.RespondRelay.self_addr)
   return _internal_self_addr();
 }
 inline void RespondRelay::unsafe_arena_set_allocated_self_addr(
-    ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE value) {
+    ::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.self_addr_);
   }
-  _impl_.self_addr_ = reinterpret_cast<::mqas::tools::proto::relay::Address*>(value);
+  _impl_.self_addr_ = reinterpret_cast<::mqas::tools::proto::common::Address*>(value);
   if (value != nullptr) {
     _impl_._has_bits_[0] |= 0x00000002u;
   } else {
@@ -1798,11 +1210,11 @@ inline void RespondRelay::unsafe_arena_set_allocated_self_addr(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.relay.RespondRelay.self_addr)
 }
-inline ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE RespondRelay::release_self_addr() {
+inline ::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE RespondRelay::release_self_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   _impl_._has_bits_[0] &= ~0x00000002u;
-  ::mqas::tools::proto::relay::Address* released = _impl_.self_addr_;
+  ::mqas::tools::proto::common::Address* released = _impl_.self_addr_;
   _impl_.self_addr_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -1817,31 +1229,31 @@ inline ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE RespondRelay::rel
   }
   return released;
 }
-inline ::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE RespondRelay::unsafe_arena_release_self_addr() {
+inline ::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE RespondRelay::unsafe_arena_release_self_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:mqas.tools.proto.relay.RespondRelay.self_addr)
 
   _impl_._has_bits_[0] &= ~0x00000002u;
-  ::mqas::tools::proto::relay::Address* temp = _impl_.self_addr_;
+  ::mqas::tools::proto::common::Address* temp = _impl_.self_addr_;
   _impl_.self_addr_ = nullptr;
   return temp;
 }
-inline ::mqas::tools::proto::relay::Address* PROTOBUF_NONNULL RespondRelay::_internal_mutable_self_addr() {
+inline ::mqas::tools::proto::common::Address* PROTOBUF_NONNULL RespondRelay::_internal_mutable_self_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.self_addr_ == nullptr) {
-    auto* p = ::google::protobuf::Message::DefaultConstruct<::mqas::tools::proto::relay::Address>(GetArena());
-    _impl_.self_addr_ = reinterpret_cast<::mqas::tools::proto::relay::Address*>(p);
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::mqas::tools::proto::common::Address>(GetArena());
+    _impl_.self_addr_ = reinterpret_cast<::mqas::tools::proto::common::Address*>(p);
   }
   return _impl_.self_addr_;
 }
-inline ::mqas::tools::proto::relay::Address* PROTOBUF_NONNULL RespondRelay::mutable_self_addr()
+inline ::mqas::tools::proto::common::Address* PROTOBUF_NONNULL RespondRelay::mutable_self_addr()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   _impl_._has_bits_[0] |= 0x00000002u;
-  ::mqas::tools::proto::relay::Address* _msg = _internal_mutable_self_addr();
+  ::mqas::tools::proto::common::Address* _msg = _internal_mutable_self_addr();
   // @@protoc_insertion_point(field_mutable:mqas.tools.proto.relay.RespondRelay.self_addr)
   return _msg;
 }
-inline void RespondRelay::set_allocated_self_addr(::mqas::tools::proto::relay::Address* PROTOBUF_NULLABLE value) {
+inline void RespondRelay::set_allocated_self_addr(::mqas::tools::proto::common::Address* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -1849,7 +1261,7 @@ inline void RespondRelay::set_allocated_self_addr(::mqas::tools::proto::relay::A
   }
 
   if (value != nullptr) {
-    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
@@ -1858,7 +1270,7 @@ inline void RespondRelay::set_allocated_self_addr(::mqas::tools::proto::relay::A
     _impl_._has_bits_[0] &= ~0x00000002u;
   }
 
-  _impl_.self_addr_ = reinterpret_cast<::mqas::tools::proto::relay::Address*>(value);
+  _impl_.self_addr_ = reinterpret_cast<::mqas::tools::proto::common::Address*>(value);
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.relay.RespondRelay.self_addr)
 }
 

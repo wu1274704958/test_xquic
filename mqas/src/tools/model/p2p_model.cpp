@@ -342,15 +342,22 @@ namespace mqas::tools::p2p {
 		return tag[idx] >= 0;
 	}
 
-	const boost::uuids::uuid& connect_cxt::get_token()
+	const boost::uuids::uuid& connect_cxt::get_relay_token()
 	{
-		if(token)
-			return token.value();
+		if(relay_token)
+			return relay_token.value();
 		boost::uuids::random_generator generator;
-		token = generator();
-		return token.value();
+		relay_token = generator();
+		return relay_token.value();
 	}
-
+        const boost::uuids::uuid &connect_cxt::get_verify_token()
+	{
+		if(verify_token)
+			return verify_token.value();
+		boost::uuids::random_generator generator;
+		verify_token = generator();
+		return verify_token.value();
+	}
 
 #ifndef NDEBUG  
 	void p2p_model::test_step_cxt()

@@ -2,14 +2,6 @@ syntax = "proto3";
 
 package test;
 
-message ReqDirectChat {
-	string name = 1;
-}
-
-message RespondDirectChat {
-	string name = 1;
-}
-
 message ChatMessage {
 	string msg = 1;
 }

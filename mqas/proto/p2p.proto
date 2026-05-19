@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package mqas.tools.proto.p2p;
+import "common.proto";
 
 //data
 message PeerData {
@@ -86,6 +87,7 @@ message NotifyConnectResult{
     RetCode ret = 1;
     uint32 peer_id = 2;
     bool is_server = 5;
+    optional common.UUID verify_token = 10;
     optional Address peer_addr = 6;
     optional string reason = 3;
     optional Address address = 4;

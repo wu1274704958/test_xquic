@@ -101,13 +101,15 @@ namespace mqas::tools::p2p {
 		std::array<std::weak_ptr<mqas::core::IStreamVariant>, 2> stream;
 		std::array<std::unordered_map<int16_t,std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>>,2> submit_code_map;
 		private:
-		std::optional<boost::uuids::uuid> token;
+		std::optional<boost::uuids::uuid> relay_token;
+		std::optional<boost::uuids::uuid> verify_token;
 		//func
 		public:
 		connect_cxt() : port_list({0,0}) {}
 		inline operator bool() const { return tag[0] >= 0 && tag[1] >= 0; }
 		bool is_receive(uint32_t id) const;
-		const boost::uuids::uuid& get_token();
+		const boost::uuids::uuid& get_relay_token();
+		const boost::uuids::uuid& get_verify_token();
 	};
 
 	/*template<typename T, typename = std::void_t<>>
