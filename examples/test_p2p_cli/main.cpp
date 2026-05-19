@@ -694,7 +694,7 @@ void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,
 #endif
 		comm::locator::inst()->deposit_cxt<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(conn,helper_result);
 		conn->on_new_stream_signal.connect(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1, is_server));
-		conn->on_close_signal.connect([](std::shared_ptr<core::Connect<P2PStreamType>> c) {
+		conn->on_close_signal.connect([](core::IConnect& c) {
 			comm::locator::inst()->clear_by_context(c);
 		});
 	}

@@ -32,7 +32,6 @@ namespace mqas::core
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
     void Connect<S>::on_close()
     {
-        on_close_signal.emit(this->shared_from_this());
         IConnect::on_close();
     }
 
