@@ -1,4 +1,5 @@
 #include <numeric>
+#include <cassert>
 
 namespace mqas::tools{
 
