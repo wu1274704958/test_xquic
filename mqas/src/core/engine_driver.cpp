@@ -482,12 +482,14 @@ CK_READ_SETTING(es_check_tp_sanity, int, LSQUIC_DF_CHECK_TP_SANITY); // Default:
 	                                            const std::string& config_file_path,
 	                                            std::shared_ptr<toml::value>& conf)
 	{
+	    auto& engine_config = conf->at("engine_config");
+
 
 		// field not present → nothing to do
-		if (!conf->contains(field_name))
+		if (!engine_config.contains(field_name))
 			return;
 
-		const auto value = toml::find<std::string>(*conf, field_name);
+		const auto value = toml::find<std::string>(engine_config, field_name);
 		if (value.empty())
 			return;
 
@@ -509,7 +511,7 @@ CK_READ_SETTING(es_check_tp_sanity, int, LSQUIC_DF_CHECK_TP_SANITY); // Default:
 		LOG(INFO) << "[engine_driver] preprocess_config_path: field='" << field_name
 		          << "'  '" << value << "'  ->  '" << resolved.string() << "'";
 
-		conf->at(field_name) = toml::value(resolved.string());
+		engine_config.at(field_name) = toml::value(resolved.string());
 	}
 
 }

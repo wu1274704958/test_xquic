@@ -10,6 +10,7 @@
 #include <cstring>
 #include <bit>
 #include <assert.h>
+#include <span>
 
 namespace mqas::comm {
     template<typename T>
