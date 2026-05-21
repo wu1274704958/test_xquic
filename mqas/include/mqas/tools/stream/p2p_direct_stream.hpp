@@ -20,6 +20,18 @@ mqas::core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_local_change_msg_
     }
     if (!msg->has_token())
         return mqas::core::StreamVariantErrcode::failed;
+
+    auto connect = this->connect.lock();
+    if (!connect)
+        return mqas::core::StreamVariantErrcode::failed;
+    auto self_id = comm::locator::inst()->get_ref<uint32_t>(connect);
+
+    if (!self_id)
+        return mqas::core::StreamVariantErrcode::failed;
+
+    _self_id = self_id;
+
+    const auto result = comm::locator::inst()->get<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(connect);
     mqas::core::ProtoBufMsg::write_msg<ReqDirectConnectPair>(ret_buf, *msg);
     return mqas::core::StreamVariantErrcode::ok;
 }
@@ -38,21 +50,21 @@ template<typename S,typename... MSG>
 void P2PDirectStream<S,MSG...>::on_connected(const std::string& peer_name)
 {
     _connected = true;
-    on_connected_signal.emit(peer_name);
+    on_connected_signal.emit(peer_name,_peer_id);
 }
 
 template<typename S,typename... MSG>
 void P2PDirectStream<S,MSG...>::on_disconnected(const std::string& reason)
 {
     _connected = false;
-    on_disconnected_signal.emit(reason);
+    on_disconnected_signal.emit(reason,_peer_id);
 }
 
 template<typename S,typename... MSG>
 void P2PDirectStream<S,MSG...>::on_connect_failed(proto::p2p_client::RetCode code)
 {
     _connected = false;
-    on_connect_failed_signal.emit(code);
+    on_connect_failed_signal.emit(code,_peer_id);
 }
 
 template<typename S,typename... MSG>
@@ -90,20 +102,31 @@ core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_change_msg_s(
     if (this->connect.expired())
         RESP_CODE(proto::p2p_client::unknown_error)
 
-    const auto result = comm::locator::inst()->get<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(this->connect.lock());
-    if (!result || !result.value().get()->has_verify_token())
-        RESP_CODE(proto::p2p_client::token_not_found)
+    const auto engine = this->connect_cxt_->engine_cxt_->engine.lock();
+    auto ignore_verify_token = toml::find<bool>(*engine->get_config(), "p2p", "ignore_verify_token");
 
-    const auto self_token = mqas::comm::uuid::to_uuid(result.value().get()->verify_token().data());
-    const auto token = mqas::comm::uuid::to_uuid(req->token().data());
-
-    LOG(INFO) << "peer submit token size:" << req->token().data().size() << " value:" << (token ? mqas::comm::uuid::to_high_64(*token) : 0);
-
-    if (token != self_token)
+    if (!ignore_verify_token)
     {
-        LOG(DEBUG) << "token mismatch, self token size:" << result.value().get()->verify_token().data().size()
-                   << " value:" << (self_token ? mqas::comm::uuid::to_high_64(*self_token) : 0);
-        RESP_CODE(proto::p2p_client::wrong_token)
+        auto connect = this->connect.lock();
+        auto self_id = comm::locator::inst()->get_ref<uint32_t>(connect);
+        if (!self_id)
+            RESP_CODE(proto::p2p_client::id_not_found)
+        _self_id = self_id.value();
+        const auto result = comm::locator::inst()->get<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(connect);
+        if (!result || !result.value().get()->has_verify_token())
+            RESP_CODE(proto::p2p_client::token_not_found)
+
+        const auto self_token = mqas::comm::uuid::to_uuid(result.value().get()->verify_token().data());
+        const auto token = mqas::comm::uuid::to_uuid(req->token().data());
+
+        LOG(INFO) << "peer submit token size:" << req->token().data().size() << " value:" << (token ? mqas::comm::uuid::to_high_64(*token) : 0);
+
+        if (token != self_token)
+        {
+            LOG(DEBUG) << "token mismatch, self token size:" << result.value().get()->verify_token().data().size()
+                       << " value:" << (self_token ? mqas::comm::uuid::to_high_64(*self_token) : 0);
+            RESP_CODE(proto::p2p_client::wrong_token)
+        }
     }
 
     bool accepted = true;
@@ -113,8 +136,14 @@ core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_change_msg_s(
     if (!accepted)
         RESP_CODE(proto::p2p_client::refused_by_peer)
 
+    if (_self_id != req->peer_id())
+    {
+        LOG(WARNING) << "Peer id mismatch, self id:" << _self_id << " peer submit id:" << req->peer_id();
+    }
+    _peer_id = req->peer_id();
     resp.set_code(proto::p2p_client::ok);
     resp.set_name(get_name());
+    resp.set_peer_id(_self_id);
     core::ProtoBufMsg::write_msg<RespondDirectConnectPair>(ret_buf, resp);
     _peer_name = req->name();
 
@@ -134,6 +163,7 @@ void P2PDirectStream<S,MSG...>::on_peer_change_ack_msg_s(core::StreamVariantErrc
 
     if (code == core::StreamVariantErrcode::ok)
     {
+        _peer_id = msg->peer_id();
         _peer_name = msg->name();
         on_connected(_peer_name);
     }

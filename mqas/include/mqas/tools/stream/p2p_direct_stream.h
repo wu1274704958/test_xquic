@@ -22,11 +22,11 @@ public:
     /** server 端：对端发来连接请求，返回是否接受。 */
     sigc::signal<bool(const std::shared_ptr<proto::p2p_client::RequestDirectConnect>&)> on_connect_request_signal;
 
-    sigc::signal<void(const std::string&)> on_connected_signal;
+    sigc::signal<void(const std::string&,uint32_t)> on_connected_signal;
 
-    sigc::signal<void(const std::string&)> on_disconnected_signal;
+    sigc::signal<void(const std::string&,uint32_t)> on_disconnected_signal;
 
-    sigc::signal<void(proto::p2p_client::RetCode)> on_connect_failed_signal;
+    sigc::signal<void(proto::p2p_client::RetCode,uint32_t)> on_connect_failed_signal;
 
     /**
      * 发起断开请求（双端均可调用）。
@@ -61,6 +61,8 @@ protected:
 protected:
     std::string _name;
     std::string _peer_name;
+    uint32_t _peer_id = 0;
+    uint32_t _self_id = 0;
     bool _connected:1 = false;
 };
 

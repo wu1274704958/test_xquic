@@ -4,6 +4,7 @@
 #include "mqas/log.h"
 #include <mqas/io/udp.h>
 #include <mqas/io/exception.h>
+#include <filesystem>
 
 namespace mqas::core {
 
@@ -476,4 +477,39 @@ CK_READ_SETTING(es_check_tp_sanity, int, LSQUIC_DF_CHECK_TP_SANITY); // Default:
 	}
 #undef CK_READ_SETTING
 #undef CK_READ_SETTING_Str
+
+	void engine_driver::preprocess_config_path(const std::string& field_name,
+	                                            const std::string& config_file_path,
+	                                            std::shared_ptr<toml::value>& conf)
+	{
+
+		// field not present → nothing to do
+		if (!conf->contains(field_name))
+			return;
+
+		const auto value = toml::find<std::string>(*conf, field_name);
+		if (value.empty())
+			return;
+
+		const std::filesystem::path p(value);
+
+		// absolute path → always valid as-is
+		if (p.is_absolute())
+			return;
+
+		// relative path that already resolves from the CWD → keep it
+		if (std::filesystem::exists(p))
+			return;
+
+		// relative path not found from CWD → prepend the config file's directory
+		const std::filesystem::path config_dir =
+			std::filesystem::path(config_file_path).parent_path();
+		const std::filesystem::path resolved = config_dir / p;
+
+		LOG(INFO) << "[engine_driver] preprocess_config_path: field='" << field_name
+		          << "'  '" << value << "'  ->  '" << resolved.string() << "'";
+
+		conf->at(field_name) = toml::value(resolved.string());
+	}
+
 }

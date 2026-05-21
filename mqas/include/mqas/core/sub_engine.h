@@ -39,7 +39,7 @@ namespace mqas::core {
 		void init_timer();
 		void init_context();
 
-		void init_config(const char* conf_file);
+		void init_config(const char* conf_file, core::EngineFlags engine_flags);
 		bool has_engine_setting() const;
 		void close_timer();
 		///// lsquic event

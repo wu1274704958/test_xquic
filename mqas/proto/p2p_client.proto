@@ -12,16 +12,19 @@ enum RetCode{
     unknown_error = 4;
     not_submit_token = 5;
     refused_by_peer = 6;
+    id_not_found = 7;
 }
 
 message RequestDirectConnect {
     common.UUID token = 1;
 	string name = 2;
+    uint32 peer_id = 3;
 }
 
 message RespondDirectConnect {
     RetCode code = 1;
 	string name = 2;
+	uint32 peer_id = 3;
 }
 
 message RequestDirectQuit {

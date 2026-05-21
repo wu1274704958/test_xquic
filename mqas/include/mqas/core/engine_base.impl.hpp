@@ -121,12 +121,12 @@ void mqas::core::engine_base<E,ED,SC>::init_engine_core()
 	{
 		::lsquic_engine_init_settings(&conf_->lsquic_settings, static_cast<unsigned>(engine_flags_));
 		engine_driver::settings_from_toml(conf_->lsquic_settings, conf_origin_->at("lsquic_settings"),
-			contain<uint32_t>(engine_flags_, EngineFlags::Server));
+			comm::contain<uint32_t>(engine_flags_, EngineFlags::Server));
 
 		lsquic_engine_api_.ea_settings = &conf_->lsquic_settings;
 	}
 
-	if (contain<uint32_t>(engine_flags_, EngineFlags::Server))
+	if (comm::contain<uint32_t>(engine_flags_, EngineFlags::Server))
 	{
 		lsquic_engine_api_.ea_get_ssl_ctx = on_get_ssl_ctx;
 		ssl_ctx_ = ED::instance()->get_ssl_or_generate(conf_->ssl_cert_path, conf_->ssl_key_path,conf_->alpn);

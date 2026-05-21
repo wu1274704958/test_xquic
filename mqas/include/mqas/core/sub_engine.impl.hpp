@@ -1,5 +1,9 @@
 #pragma once
 #include <string_view>
+#include <mqas/comm/macro.h>
+#include <easylogging++.h>
+#include <mqas/io/ip.h>
+#include <mqas/io/exception.h>
 
 namespace mqas::core {
 
@@ -35,7 +39,7 @@ namespace mqas::core {
 		
 		_engine_extern = std::make_shared<E>();
 
-		init_config(conf_file);
+		init_config(conf_file, engine_flags);
 		_engine_flags = engine_flags;
 
 		init_socket(std::move(socket));
@@ -49,9 +53,17 @@ namespace mqas::core {
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E,ED,SC>::init_config(const char* conf_file)
+	void sub_engine<E,ED,SC>::init_config(const char* conf_file, core::EngineFlags engine_flags)
 	{
 		_conf_origin = std::make_shared<toml::value>(toml::parse(conf_file));
+
+		// ssl_cert_path / ssl_key_path are only meaningful for Server mode
+		if (comm::contain<uint32_t>(engine_flags, EngineFlags::Server))
+		{
+			ED::instance()->preprocess_config_path("ssl_cert_path", conf_file, _conf_origin);
+			ED::instance()->preprocess_config_path("ssl_key_path",  conf_file, _conf_origin);
+		}
+
 		_conf = std::make_shared<engine_config>(toml::find<engine_config>(*_conf_origin, "engine_config"));
 	}
 
@@ -73,11 +85,11 @@ namespace mqas::core {
 		{
 			::lsquic_engine_init_settings(&_conf->lsquic_settings, static_cast<unsigned>(_engine_flags));
 			engine_driver::settings_from_toml(_conf->lsquic_settings, _conf_origin->at("lsquic_settings"),
-				contain<uint32_t>(_engine_flags, EngineFlags::Server));
+				comm::contain<uint32_t>(_engine_flags, EngineFlags::Server));
 			_lsquic_engine_api.ea_settings = &_conf->lsquic_settings;
 		}
 
-		if (contain<uint32_t>(_engine_flags, EngineFlags::Server))
+		if (comm::contain<uint32_t>(_engine_flags, EngineFlags::Server))
 		{ 
 			_lsquic_engine_api.ea_get_ssl_ctx = on_get_ssl_ctx;
 			_ssl_ctx = ED::instance()->get_ssl_or_generate(_conf->ssl_cert_path,_conf->ssl_key_path,_conf->alpn);
