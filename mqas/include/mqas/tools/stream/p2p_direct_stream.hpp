@@ -24,12 +24,12 @@ mqas::core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_local_change_msg_
     auto connect = this->connect.lock();
     if (!connect)
         return mqas::core::StreamVariantErrcode::failed;
-    auto self_id = comm::locator::inst()->get_ref<uint32_t>(connect);
+    auto self_id = comm::locator::inst()->get<LocalPeerId>(connect);
 
     if (!self_id)
         return mqas::core::StreamVariantErrcode::failed;
 
-    _self_id = self_id;
+    _self_id = self_id.value();
 
     const auto result = comm::locator::inst()->get<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(connect);
     mqas::core::ProtoBufMsg::write_msg<ReqDirectConnectPair>(ret_buf, *msg);
@@ -103,15 +103,16 @@ core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_change_msg_s(
         RESP_CODE(proto::p2p_client::unknown_error)
 
     const auto engine = this->connect_cxt_->engine_cxt_->engine.lock();
-    auto ignore_verify_token = toml::find<bool>(*engine->get_config(), "p2p", "ignore_verify_token");
+    auto ignore_verify_token = toml::find_or<bool>(*engine->get_config(), "p2p", "ignore_verify_token", false);
+
+    auto connect = this->connect.lock();
+    auto self_id = comm::locator::inst()->get<LocalPeerId>(connect);
+    if (!self_id)
+        RESP_CODE(proto::p2p_client::id_not_found)
+    _self_id = self_id.value();
 
     if (!ignore_verify_token)
     {
-        auto connect = this->connect.lock();
-        auto self_id = comm::locator::inst()->get_ref<uint32_t>(connect);
-        if (!self_id)
-            RESP_CODE(proto::p2p_client::id_not_found)
-        _self_id = self_id.value();
         const auto result = comm::locator::inst()->get<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(connect);
         if (!result || !result.value().get()->has_verify_token())
             RESP_CODE(proto::p2p_client::token_not_found)

@@ -60,7 +60,8 @@ inline constexpr RespondDirectConnect::Impl_::Impl_(
         name_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
-        code_{static_cast< ::mqas::tools::proto::p2p_client::RetCode >(0)} {}
+        code_{static_cast< ::mqas::tools::proto::p2p_client::RetCode >(0)},
+        peer_id_{0u} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR RespondDirectConnect::RespondDirectConnect(::_pbi::ConstantInitialized)
@@ -115,7 +116,8 @@ inline constexpr RequestDirectConnect::Impl_::Impl_(
         name_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
-        token_{nullptr} {}
+        token_{nullptr},
+        peer_id_{0u} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR RequestDirectConnect::RequestDirectConnect(::_pbi::ConstantInitialized)
@@ -157,8 +159,10 @@ const ::uint32_t
         ~0u,  // no sizeof(Split)
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p_client::RequestDirectConnect, _impl_.token_),
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p_client::RequestDirectConnect, _impl_.name_),
+        PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p_client::RequestDirectConnect, _impl_.peer_id_),
         1,
         0,
+        2,
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p_client::RespondDirectConnect, _impl_._has_bits_),
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p_client::RespondDirectConnect, _internal_metadata_),
         ~0u,  // no _extensions_
@@ -169,8 +173,10 @@ const ::uint32_t
         ~0u,  // no sizeof(Split)
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p_client::RespondDirectConnect, _impl_.code_),
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p_client::RespondDirectConnect, _impl_.name_),
+        PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p_client::RespondDirectConnect, _impl_.peer_id_),
         1,
         0,
+        2,
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p_client::RequestDirectQuit, _impl_._has_bits_),
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p_client::RequestDirectQuit, _internal_metadata_),
         ~0u,  // no _extensions_
@@ -195,10 +201,10 @@ const ::uint32_t
 
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-        {0, 10, -1, sizeof(::mqas::tools::proto::p2p_client::RequestDirectConnect)},
-        {12, 22, -1, sizeof(::mqas::tools::proto::p2p_client::RespondDirectConnect)},
-        {24, 33, -1, sizeof(::mqas::tools::proto::p2p_client::RequestDirectQuit)},
-        {34, 43, -1, sizeof(::mqas::tools::proto::p2p_client::RespondDirectQuit)},
+        {0, 11, -1, sizeof(::mqas::tools::proto::p2p_client::RequestDirectConnect)},
+        {14, 25, -1, sizeof(::mqas::tools::proto::p2p_client::RespondDirectConnect)},
+        {28, 37, -1, sizeof(::mqas::tools::proto::p2p_client::RequestDirectQuit)},
+        {38, 47, -1, sizeof(::mqas::tools::proto::p2p_client::RespondDirectQuit)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::mqas::tools::proto::p2p_client::_RequestDirectConnect_default_instance_._instance,
@@ -209,18 +215,20 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
 const char descriptor_table_protodef_p2p_5fclient_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\020p2p_client.proto\022\033mqas.tools.proto.p2p"
-    "_client\032\014common.proto\"R\n\024RequestDirectCo"
+    "_client\032\014common.proto\"c\n\024RequestDirectCo"
     "nnect\022,\n\005token\030\001 \001(\0132\035.mqas.tools.proto."
-    "common.UUID\022\014\n\004name\030\002 \001(\t\"X\n\024RespondDire"
-    "ctConnect\0222\n\004code\030\001 \001(\0162$.mqas.tools.pro"
-    "to.p2p_client.RetCode\022\014\n\004name\030\002 \001(\t\"3\n\021R"
-    "equestDirectQuit\022\023\n\006reason\030\001 \001(\tH\000\210\001\001B\t\n"
-    "\007_reason\"G\n\021RespondDirectQuit\0222\n\004code\030\001 "
-    "\001(\0162$.mqas.tools.proto.p2p_client.RetCod"
-    "e*\214\001\n\007RetCode\022\006\n\002ok\020\000\022\017\n\013wrong_token\020\001\022\025"
-    "\n\021already_connected\020\002\022\023\n\017token_not_found"
-    "\020\003\022\021\n\runknown_error\020\004\022\024\n\020not_submit_toke"
-    "n\020\005\022\023\n\017refused_by_peer\020\006b\006proto3"
+    "common.UUID\022\014\n\004name\030\002 \001(\t\022\017\n\007peer_id\030\003 \001"
+    "(\r\"i\n\024RespondDirectConnect\0222\n\004code\030\001 \001(\016"
+    "2$.mqas.tools.proto.p2p_client.RetCode\022\014"
+    "\n\004name\030\002 \001(\t\022\017\n\007peer_id\030\003 \001(\r\"3\n\021Request"
+    "DirectQuit\022\023\n\006reason\030\001 \001(\tH\000\210\001\001B\t\n\007_reas"
+    "on\"G\n\021RespondDirectQuit\0222\n\004code\030\001 \001(\0162$."
+    "mqas.tools.proto.p2p_client.RetCode*\236\001\n\007"
+    "RetCode\022\006\n\002ok\020\000\022\017\n\013wrong_token\020\001\022\025\n\021alre"
+    "ady_connected\020\002\022\023\n\017token_not_found\020\003\022\021\n\r"
+    "unknown_error\020\004\022\024\n\020not_submit_token\020\005\022\023\n"
+    "\017refused_by_peer\020\006\022\020\n\014id_not_found\020\007b\006pr"
+    "oto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_p2p_5fclient_2eproto_deps[1] = {
@@ -230,7 +238,7 @@ static ::absl::once_flag descriptor_table_p2p_5fclient_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_p2p_5fclient_2eproto = {
     false,
     false,
-    512,
+    564,
     descriptor_table_protodef_p2p_5fclient_2eproto,
     "p2p_client.proto",
     &descriptor_table_p2p_5fclient_2eproto_once,
@@ -252,7 +260,7 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL RetCode_descriptor() 
   return file_level_enum_descriptors_p2p_5fclient_2eproto[0];
 }
 PROTOBUF_CONSTINIT const uint32_t RetCode_internal_data_[] = {
-    458752u, 0u, };
+    524288u, 0u, };
 // ===================================================================
 
 class RequestDirectConnect::_Internal {
@@ -302,6 +310,7 @@ RequestDirectConnect::RequestDirectConnect(
   _impl_.token_ = ((cached_has_bits & 0x00000002u) != 0)
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.token_)
                 : nullptr;
+  _impl_.peer_id_ = from._impl_.peer_id_;
 
   // @@protoc_insertion_point(copy_constructor:mqas.tools.proto.p2p_client.RequestDirectConnect)
 }
@@ -313,7 +322,12 @@ PROTOBUF_NDEBUG_INLINE RequestDirectConnect::Impl_::Impl_(
 
 inline void RequestDirectConnect::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.token_ = {};
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, token_),
+           0,
+           offsetof(Impl_, peer_id_) -
+               offsetof(Impl_, token_) +
+               sizeof(Impl_::peer_id_));
 }
 RequestDirectConnect::~RequestDirectConnect() {
   // @@protoc_insertion_point(destructor:mqas.tools.proto.p2p_client.RequestDirectConnect)
@@ -370,16 +384,16 @@ const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL RequestDirectCon
   return RequestDirectConnect_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 1, 61, 2>
+const ::_pbi::TcParseTable<2, 3, 1, 61, 2>
 RequestDirectConnect::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(RequestDirectConnect, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    3, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
+    4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
+    3,  // num_field_entries
     1,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     RequestDirectConnect_class_data_.base(),
@@ -389,12 +403,16 @@ RequestDirectConnect::_table_ = {
     ::_pbi::TcParser::GetTable<::mqas::tools::proto::p2p_client::RequestDirectConnect>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // string name = 2;
-    {::_pbi::TcParser::FastUS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(RequestDirectConnect, _impl_.name_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // .mqas.tools.proto.common.UUID token = 1;
     {::_pbi::TcParser::FastMtS1,
      {10, 1, 0, PROTOBUF_FIELD_OFFSET(RequestDirectConnect, _impl_.token_)}},
+    // string name = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 0, 0, PROTOBUF_FIELD_OFFSET(RequestDirectConnect, _impl_.name_)}},
+    // uint32 peer_id = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(RequestDirectConnect, _impl_.peer_id_), 2>(),
+     {24, 2, 0, PROTOBUF_FIELD_OFFSET(RequestDirectConnect, _impl_.peer_id_)}},
   }}, {{
     65535, 65535
   }}, {{
@@ -404,6 +422,9 @@ RequestDirectConnect::_table_ = {
     // string name = 2;
     {PROTOBUF_FIELD_OFFSET(RequestDirectConnect, _impl_.name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // uint32 peer_id = 3;
+    {PROTOBUF_FIELD_OFFSET(RequestDirectConnect, _impl_.peer_id_), _Internal::kHasBitsOffset + 2, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::mqas::tools::proto::common::UUID>()},
@@ -431,6 +452,7 @@ PROTOBUF_NOINLINE void RequestDirectConnect::Clear() {
       _impl_.token_->Clear();
     }
   }
+  _impl_.peer_id_ = 0u;
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -468,6 +490,15 @@ PROTOBUF_NOINLINE void RequestDirectConnect::Clear() {
     }
   }
 
+  // uint32 peer_id = 3;
+  if ((cached_has_bits & 0x00000004u) != 0) {
+    if (this_._internal_peer_id() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          3, this_._internal_peer_id(), target);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -493,7 +524,7 @@ PROTOBUF_NOINLINE void RequestDirectConnect::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x00000003u) != 0) {
+  if ((cached_has_bits & 0x00000007u) != 0) {
     // string name = 2;
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!this_._internal_name().empty()) {
@@ -505,6 +536,13 @@ PROTOBUF_NOINLINE void RequestDirectConnect::Clear() {
     if ((cached_has_bits & 0x00000002u) != 0) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.token_);
+    }
+    // uint32 peer_id = 3;
+    if ((cached_has_bits & 0x00000004u) != 0) {
+      if (this_._internal_peer_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_peer_id());
+      }
     }
   }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
@@ -521,7 +559,7 @@ void RequestDirectConnect::MergeImpl(::google::protobuf::MessageLite& to_msg, co
   (void) cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x00000003u) != 0) {
+  if ((cached_has_bits & 0x00000007u) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!from._internal_name().empty()) {
         _this->_internal_set_name(from._internal_name());
@@ -537,6 +575,11 @@ void RequestDirectConnect::MergeImpl(::google::protobuf::MessageLite& to_msg, co
         _this->_impl_.token_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.token_);
       } else {
         _this->_impl_.token_->MergeFrom(*from._impl_.token_);
+      }
+    }
+    if ((cached_has_bits & 0x00000004u) != 0) {
+      if (from._internal_peer_id() != 0) {
+        _this->_impl_.peer_id_ = from._impl_.peer_id_;
       }
     }
   }
@@ -559,7 +602,12 @@ void RequestDirectConnect::InternalSwap(RequestDirectConnect* PROTOBUF_RESTRICT 
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
-  swap(_impl_.token_, other->_impl_.token_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(RequestDirectConnect, _impl_.peer_id_)
+      + sizeof(RequestDirectConnect::_impl_.peer_id_)
+      - PROTOBUF_FIELD_OFFSET(RequestDirectConnect, _impl_.token_)>(
+          reinterpret_cast<char*>(&_impl_.token_),
+          reinterpret_cast<char*>(&other->_impl_.token_));
 }
 
 ::google::protobuf::Metadata RequestDirectConnect::GetMetadata() const {
@@ -605,7 +653,13 @@ RespondDirectConnect::RespondDirectConnect(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
-  _impl_.code_ = from._impl_.code_;
+  ::memcpy(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, code_),
+           reinterpret_cast<const char *>(&from._impl_) +
+               offsetof(Impl_, code_),
+           offsetof(Impl_, peer_id_) -
+               offsetof(Impl_, code_) +
+               sizeof(Impl_::peer_id_));
 
   // @@protoc_insertion_point(copy_constructor:mqas.tools.proto.p2p_client.RespondDirectConnect)
 }
@@ -617,7 +671,12 @@ PROTOBUF_NDEBUG_INLINE RespondDirectConnect::Impl_::Impl_(
 
 inline void RespondDirectConnect::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.code_ = {};
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, code_),
+           0,
+           offsetof(Impl_, peer_id_) -
+               offsetof(Impl_, code_) +
+               sizeof(Impl_::peer_id_));
 }
 RespondDirectConnect::~RespondDirectConnect() {
   // @@protoc_insertion_point(destructor:mqas.tools.proto.p2p_client.RespondDirectConnect)
@@ -673,16 +732,16 @@ const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL RespondDirectCon
   return RespondDirectConnect_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 61, 2>
+const ::_pbi::TcParseTable<2, 3, 0, 61, 2>
 RespondDirectConnect::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(RespondDirectConnect, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    3, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
+    4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
+    3,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     RespondDirectConnect_class_data_.base(),
@@ -692,12 +751,16 @@ RespondDirectConnect::_table_ = {
     ::_pbi::TcParser::GetTable<::mqas::tools::proto::p2p_client::RespondDirectConnect>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // string name = 2;
-    {::_pbi::TcParser::FastUS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(RespondDirectConnect, _impl_.name_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // .mqas.tools.proto.p2p_client.RetCode code = 1;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(RespondDirectConnect, _impl_.code_), 1>(),
      {8, 1, 0, PROTOBUF_FIELD_OFFSET(RespondDirectConnect, _impl_.code_)}},
+    // string name = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 0, 0, PROTOBUF_FIELD_OFFSET(RespondDirectConnect, _impl_.name_)}},
+    // uint32 peer_id = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(RespondDirectConnect, _impl_.peer_id_), 2>(),
+     {24, 2, 0, PROTOBUF_FIELD_OFFSET(RespondDirectConnect, _impl_.peer_id_)}},
   }}, {{
     65535, 65535
   }}, {{
@@ -707,6 +770,9 @@ RespondDirectConnect::_table_ = {
     // string name = 2;
     {PROTOBUF_FIELD_OFFSET(RespondDirectConnect, _impl_.name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // uint32 peer_id = 3;
+    {PROTOBUF_FIELD_OFFSET(RespondDirectConnect, _impl_.peer_id_), _Internal::kHasBitsOffset + 2, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
   }},
   // no aux_entries
   {{
@@ -726,7 +792,11 @@ PROTOBUF_NOINLINE void RespondDirectConnect::Clear() {
   if ((cached_has_bits & 0x00000001u) != 0) {
     _impl_.name_.ClearNonDefaultToEmpty();
   }
-  _impl_.code_ = 0;
+  if ((cached_has_bits & 0x00000006u) != 0) {
+    ::memset(&_impl_.code_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.peer_id_) -
+        reinterpret_cast<char*>(&_impl_.code_)) + sizeof(_impl_.peer_id_));
+  }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -765,6 +835,15 @@ PROTOBUF_NOINLINE void RespondDirectConnect::Clear() {
     }
   }
 
+  // uint32 peer_id = 3;
+  if ((this_._impl_._has_bits_[0] & 0x00000004u) != 0) {
+    if (this_._internal_peer_id() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          3, this_._internal_peer_id(), target);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -790,7 +869,7 @@ PROTOBUF_NOINLINE void RespondDirectConnect::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x00000003u) != 0) {
+  if ((cached_has_bits & 0x00000007u) != 0) {
     // string name = 2;
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!this_._internal_name().empty()) {
@@ -803,6 +882,13 @@ PROTOBUF_NOINLINE void RespondDirectConnect::Clear() {
       if (this_._internal_code() != 0) {
         total_size += 1 +
                       ::_pbi::WireFormatLite::EnumSize(this_._internal_code());
+      }
+    }
+    // uint32 peer_id = 3;
+    if ((cached_has_bits & 0x00000004u) != 0) {
+      if (this_._internal_peer_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_peer_id());
       }
     }
   }
@@ -819,7 +905,7 @@ void RespondDirectConnect::MergeImpl(::google::protobuf::MessageLite& to_msg, co
   (void) cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x00000003u) != 0) {
+  if ((cached_has_bits & 0x00000007u) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!from._internal_name().empty()) {
         _this->_internal_set_name(from._internal_name());
@@ -832,6 +918,11 @@ void RespondDirectConnect::MergeImpl(::google::protobuf::MessageLite& to_msg, co
     if ((cached_has_bits & 0x00000002u) != 0) {
       if (from._internal_code() != 0) {
         _this->_impl_.code_ = from._impl_.code_;
+      }
+    }
+    if ((cached_has_bits & 0x00000004u) != 0) {
+      if (from._internal_peer_id() != 0) {
+        _this->_impl_.peer_id_ = from._impl_.peer_id_;
       }
     }
   }
@@ -854,7 +945,12 @@ void RespondDirectConnect::InternalSwap(RespondDirectConnect* PROTOBUF_RESTRICT 
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
-  swap(_impl_.code_, other->_impl_.code_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(RespondDirectConnect, _impl_.peer_id_)
+      + sizeof(RespondDirectConnect::_impl_.peer_id_)
+      - PROTOBUF_FIELD_OFFSET(RespondDirectConnect, _impl_.code_)>(
+          reinterpret_cast<char*>(&_impl_.code_),
+          reinterpret_cast<char*>(&other->_impl_.code_));
 }
 
 ::google::protobuf::Metadata RespondDirectConnect::GetMetadata() const {

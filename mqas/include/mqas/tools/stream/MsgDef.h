@@ -10,6 +10,9 @@
 #include <mqas/tools/proto/relay.pb.h>
 #include <mqas/tools/proto/p2p_client.pb.h>
 
+using LocalPeerId = uint32_t;
+using PeerId = uint32_t;
+
 namespace mqas::tools {
     using ReqSendFileMsgPair = core::PBMsgPair<1, proto::ReqSendFile>;
     using SendFileEndMsgPair = core::PBMsgPair<2, proto::SendFileEnd>;

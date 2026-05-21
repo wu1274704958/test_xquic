@@ -120,7 +120,7 @@ protected:
 	void on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_server);
 	void on_recive_p2p_msg(const std::string&,const std::string&);
 	void on_p2p_peer_quit(std::shared_ptr<core::IStreamVariant> stream);
-	void on_p2p_connected(const std::string&);
+	void on_p2p_connected(const std::string&,PeerId);
 	void clean_up_p2p(bool active = true);
 	ui_state pop_state();
 	ui_state current_state() const;
@@ -157,6 +157,7 @@ protected:
 	std::shared_ptr<RelayEngineType> relay_engine;
 	std::shared_ptr<mqas::tools::RelayStreamClient> relay_stream;
 	bool use_relay = false;
+	LocalPeerId _local_peer_id = 0;
 };
 
 int main(int argc, const char** argv)
@@ -273,6 +274,9 @@ void tui::init_stream(std::shared_ptr<LobbyStream> stream)
 	stream->on_peer_list_signal.connect(sigc::mem_fun(*this, &tui::on_get_peer_list));
 	stream->on_request_connect_signal.connect(sigc::mem_fun(*this, &tui::on_peer_want_connect));
 	stream->on_connect_response_signal.connect(sigc::mem_fun(*this, &tui::on_get_respond));
+	stream->on_register_signal.connect([this](const std::shared_ptr<mqas::tools::proto::p2p::RespondRegistePeer>& msg) {
+		_local_peer_id = msg->id();
+	});
 }
 
 void tui::on_get_peer_list(std::shared_ptr<mqas::tools::proto::p2p::RespondPeerList> list)
@@ -648,6 +652,7 @@ void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_serve
 		tools::proto::p2p_client::RequestDirectConnect req;
 		auto token = req.mutable_token();
 		token->set_data(helper_result->verify_token().data());
+		req.set_peer_id(helper_result->peer_id());
 		LOG(INFO) << "submit token size:" << helper_result->verify_token().data().size()
 			<< " value:" << (helper_result->verify_token().data().size() > 0 ? mqas::comm::uuid::to_high_64(mqas::comm::uuid::to_uuid(helper_result->verify_token().data()).value()) : 0);
 		if (stream->req_change<P2PChatStream, tools::p2p_direct::ReqDirectConnectPair>(req))
@@ -684,6 +689,7 @@ void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,
 		<< " role=" << (is_server ? "server" : "client")
 		<< " conn=" << conn.get();
 #endif
+	comm::locator::inst()->deposit_cxt<LocalPeerId>(conn,_local_peer_id);
 	if (is_server)
 	{
 #ifndef NDEBUG
@@ -715,7 +721,7 @@ void tui::on_p2p_peer_quit(std::shared_ptr<core::IStreamVariant> stream)
 		pop_state();
 }
 
-void tui::on_p2p_connected(const std::string& name)
+void tui::on_p2p_connected(const std::string& name,PeerId peer_id)
 {
 	if (p2p_server_wait_timer)
 		p2p_server_wait_timer->stop();

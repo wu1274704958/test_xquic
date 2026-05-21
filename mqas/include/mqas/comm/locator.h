@@ -59,6 +59,18 @@ namespace mqas::comm {
 				else
 					return *p;
 			}
+			template<typename T, typename O>
+			std::optional<std::reference_wrapper<T>> get_ref(const O& obj)
+			{
+				auto pool = get_pool(get_key(obj));
+				if(!pool)
+					return {};
+				std::reference_wrapper<T>* p = try_get_from_pool<std::reference_wrapper<T>>(map);
+				if (p == nullptr)
+					return {};
+				else
+					return *p;
+			}
 			template<typename T,typename O, typename ... Args>
 			bool deposit_cxt(const O& obj,Args&& ...args)
 			{

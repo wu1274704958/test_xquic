@@ -101,6 +101,7 @@ enum RetCode : int {
   unknown_error = 4,
   not_submit_token = 5,
   refused_by_peer = 6,
+  id_not_found = 7,
   RetCode_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::min(),
   RetCode_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -111,11 +112,11 @@ MQAS_EXTERN extern const uint32_t RetCode_internal_data_[];
 inline constexpr RetCode RetCode_MIN =
     static_cast<RetCode>(0);
 inline constexpr RetCode RetCode_MAX =
-    static_cast<RetCode>(6);
+    static_cast<RetCode>(7);
 inline bool RetCode_IsValid(int value) {
-  return 0 <= value && value <= 6;
+  return 0 <= value && value <= 7;
 }
-inline constexpr int RetCode_ARRAYSIZE = 6 + 1;
+inline constexpr int RetCode_ARRAYSIZE = 7 + 1;
 MQAS_EXTERN const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL RetCode_descriptor();
 template <typename T>
 const std::string& RetCode_Name(T value) {
@@ -126,7 +127,7 @@ const std::string& RetCode_Name(T value) {
 }
 template <>
 inline const std::string& RetCode_Name(RetCode value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<RetCode_descriptor, 0, 6>(
+  return ::google::protobuf::internal::NameOfDenseEnum<RetCode_descriptor, 0, 7>(
       static_cast<int>(value));
 }
 inline bool RetCode_Parse(
@@ -476,6 +477,7 @@ class MQAS_EXTERN RespondDirectConnect final : public ::google::protobuf::Messag
   enum : int {
     kNameFieldNumber = 2,
     kCodeFieldNumber = 1,
+    kPeerIdFieldNumber = 3,
   };
   // string name = 2;
   void clear_name() ;
@@ -502,11 +504,21 @@ class MQAS_EXTERN RespondDirectConnect final : public ::google::protobuf::Messag
   void _internal_set_code(::mqas::tools::proto::p2p_client::RetCode value);
 
   public:
+  // uint32 peer_id = 3;
+  void clear_peer_id() ;
+  ::uint32_t peer_id() const;
+  void set_peer_id(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_peer_id() const;
+  void _internal_set_peer_id(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p_client.RespondDirectConnect)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
                                    0, 61,
                                    2>
       _table_;
@@ -530,6 +542,7 @@ class MQAS_EXTERN RespondDirectConnect final : public ::google::protobuf::Messag
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr name_;
     int code_;
+    ::uint32_t peer_id_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -881,6 +894,7 @@ class MQAS_EXTERN RequestDirectConnect final : public ::google::protobuf::Messag
   enum : int {
     kNameFieldNumber = 2,
     kTokenFieldNumber = 1,
+    kPeerIdFieldNumber = 3,
   };
   // string name = 2;
   void clear_name() ;
@@ -912,11 +926,21 @@ class MQAS_EXTERN RequestDirectConnect final : public ::google::protobuf::Messag
   ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL _internal_mutable_token();
 
   public:
+  // uint32 peer_id = 3;
+  void clear_peer_id() ;
+  ::uint32_t peer_id() const;
+  void set_peer_id(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_peer_id() const;
+  void _internal_set_peer_id(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p_client.RequestDirectConnect)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
                                    1, 61,
                                    2>
       _table_;
@@ -940,6 +964,7 @@ class MQAS_EXTERN RequestDirectConnect final : public ::google::protobuf::Messag
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr name_;
     ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE token_;
+    ::uint32_t peer_id_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -1122,6 +1147,30 @@ inline void RequestDirectConnect::set_allocated_name(std::string* PROTOBUF_NULLA
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p_client.RequestDirectConnect.name)
 }
 
+// uint32 peer_id = 3;
+inline void RequestDirectConnect::clear_peer_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.peer_id_ = 0u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::uint32_t RequestDirectConnect::peer_id() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p_client.RequestDirectConnect.peer_id)
+  return _internal_peer_id();
+}
+inline void RequestDirectConnect::set_peer_id(::uint32_t value) {
+  _internal_set_peer_id(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p_client.RequestDirectConnect.peer_id)
+}
+inline ::uint32_t RequestDirectConnect::_internal_peer_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.peer_id_;
+}
+inline void RequestDirectConnect::_internal_set_peer_id(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.peer_id_ = value;
+}
+
 // -------------------------------------------------------------------
 
 // RespondDirectConnect
@@ -1213,6 +1262,30 @@ inline void RespondDirectConnect::set_allocated_name(std::string* PROTOBUF_NULLA
     _impl_.name_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p_client.RespondDirectConnect.name)
+}
+
+// uint32 peer_id = 3;
+inline void RespondDirectConnect::clear_peer_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.peer_id_ = 0u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::uint32_t RespondDirectConnect::peer_id() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p_client.RespondDirectConnect.peer_id)
+  return _internal_peer_id();
+}
+inline void RespondDirectConnect::set_peer_id(::uint32_t value) {
+  _internal_set_peer_id(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p_client.RespondDirectConnect.peer_id)
+}
+inline ::uint32_t RespondDirectConnect::_internal_peer_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.peer_id_;
+}
+inline void RespondDirectConnect::_internal_set_peer_id(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.peer_id_ = value;
 }
 
 // -------------------------------------------------------------------
