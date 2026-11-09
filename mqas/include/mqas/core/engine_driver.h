@@ -80,7 +80,7 @@ namespace mqas::core
 		protected:
 		void init_logger() const;
 		::SSL_CTX* init_ssl(const std::string& cert_file, const std::string& key_file, const std::string& alpn);
-		std::string ssl_pair_key(const std::string&, const std::string& key_file);
+		std::string ssl_pair_key(const std::string&, const std::string& key_file, const std::string& alpn);
 		void close_ssl_ctx();
 		void init_lsquic() noexcept(false);
 
@@ -100,7 +100,12 @@ namespace mqas::core
 			::lsquic_stream_if _lsquic_stream_if = {};
 			
 			std::unordered_map<::lsquic_engine*,engine_base_interface*> _engine_map;
-			std::unordered_map<std::string, ::SSL_CTX*> _ssl_ctx_map;
+			struct ssl_ctx_entry {
+				::SSL_CTX* ctx = nullptr;
+				std::string alpn;
+				size_t references = 0;
+			};
+			std::unordered_map<std::string, ssl_ctx_entry> _ssl_ctx_map;
 
 		protected:
 			//lsquic callback function

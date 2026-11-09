@@ -109,24 +109,27 @@ namespace mqas::core {
 		return ssl_ctx;
 	}
 
-	std::string engine_driver::ssl_pair_key(const std::string& cert_file, const std::string& key_file)
+	std::string engine_driver::ssl_pair_key(const std::string& cert_file, const std::string& key_file, const std::string& alpn)
 	{
-		std::string res(cert_file);
-		res += '_';
-		res += key_file;
-		return res;
+		return std::to_string(cert_file.size()) + ':' + cert_file +
+			std::to_string(key_file.size()) + ':' + key_file + alpn;
 	}
 
 	::SSL_CTX* engine_driver::get_ssl_or_generate(const std::string& cert_file, const std::string& key_file,const std::string& alpn)
 	{
-		const auto key = ssl_pair_key(cert_file,key_file);
-		if(_ssl_ctx_map.contains(key))
-			return _ssl_ctx_map[key];
-		auto res = init_ssl(cert_file,key_file,alpn);
-		if(res == nullptr)
-			return res;
-		_ssl_ctx_map.insert({ std::move(key),res});
-		return res;
+		const auto key = ssl_pair_key(cert_file, key_file, alpn);
+		auto [it, inserted] = _ssl_ctx_map.try_emplace(key);
+		auto& entry = it->second;
+		if (inserted) {
+			entry.alpn = alpn;
+			entry.ctx = init_ssl(cert_file, key_file, entry.alpn);
+			if (!entry.ctx) {
+				_ssl_ctx_map.erase(it);
+				return nullptr;
+			}
+		}
+		++entry.references;
+		return entry.ctx;
 	}
 
 	::SSL_CTX* engine_driver::destroy_ssl_ctx(::SSL_CTX* ctx)
@@ -135,10 +138,12 @@ namespace mqas::core {
 			return nullptr;
 		for (auto it = _ssl_ctx_map.begin(); it != _ssl_ctx_map.end(); ++it)
 		{
-			if (it->second == ctx)
+			if (it->second.ctx == ctx)
 			{
-				SSL_CTX_free(it->second);
-				_ssl_ctx_map.erase(it);
+				if (--it->second.references == 0) {
+					SSL_CTX_free(it->second.ctx);
+					_ssl_ctx_map.erase(it);
+				}
 				return nullptr;
 			}
 		}
@@ -149,7 +154,7 @@ namespace mqas::core {
 	{
 		for (auto it = _ssl_ctx_map.begin();it != _ssl_ctx_map.end();++it)
 		{
-			SSL_CTX_free(it->second);
+			SSL_CTX_free(it->second.ctx);
 		}
 		_ssl_ctx_map.clear();
 	}
