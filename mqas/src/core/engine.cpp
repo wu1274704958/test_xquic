@@ -153,7 +153,15 @@ namespace mqas::core{
     }
 
     unsigned int IConnect::cancel_pending_streams(unsigned int n) const {
-        return lsquic_conn_cancel_pending_streams(conn_,n);
+        // A delayed stream is still counted by lsquic while its callback runs.
+        // Never cancel that in-flight request from within the callback.
+        if (stream_creation_callback_depth_ && pending_stream_cancel_limit_)
+            n = pending_stream_cancel_limit_(n);
+        const auto before = lsquic_conn_n_pending_streams(conn_);
+        const auto remaining = lsquic_conn_cancel_pending_streams(conn_,n);
+        if (remaining < before && on_pending_streams_cancelled_)
+            on_pending_streams_cancelled_(before - remaining);
+        return remaining;
     }
 
     unsigned int IConnect::avail_streams() const {

@@ -27,11 +27,39 @@ namespace mqas::core
         this->_connect_cxt.engine_cxt_ = engine_cxt_;
         this->_connect_cxt.has_stream = std::bind_front(&Connect<S>::has_stream, this);
         this->_connect_cxt.write_stream = std::bind_front(&Connect<S>::write_stream, this);
+        this->pending_stream_cancel_limit_ = std::bind_front(&Connect<S>::pending_stream_cancel_limit, this);
+        this->on_pending_streams_cancelled_ = std::bind_front(&Connect<S>::on_pending_streams_cancelled, this);
+    }
+
+    MQAS_CONNECT_IMPL_TEMPLATE_DECL
+    unsigned int Connect<S>::pending_stream_cancel_limit(unsigned int count) const
+    {
+        return static_cast<unsigned int>(std::min<size_t>(count, _stream_requests.size()));
+    }
+
+    MQAS_CONNECT_IMPL_TEMPLATE_DECL
+    void Connect<S>::on_pending_streams_cancelled(unsigned int count)
+    {
+        decltype(_stream_requests) cancelled;
+        while (count-- > 0 && !_stream_requests.empty()) {
+            cancelled.push_front(std::move(_stream_requests.back()));
+            _stream_requests.pop_back();
+        }
+        // Remove the whole batch before callbacks, which may enqueue requests.
+        for (auto& request : cancelled) {
+            if (request.callback) request.callback(request.id, {});
+        }
     }
 
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
     void Connect<S>::on_close()
     {
+        _stream_requests_closed = true;
+        auto pending = std::move(_stream_requests);
+        _stream_requests.clear();
+        for (auto& request : pending) {
+            if (request.callback) request.callback(request.id, {});
+        }
         IConnect::on_close();
     }
 
@@ -43,7 +71,26 @@ namespace mqas::core
         const auto key = reinterpret_cast<size_t>(lsquic_stream);
         _stream_map.emplace(key, std::make_shared<S>());
         _stream_map[key]->on_init(lsquic_stream, &_connect_cxt, this->weak_from_this());
-        on_new_stream_signal.emit(_stream_map[key]);
+        auto stream = _stream_map[key];
+        const auto id = ::lsquic_stream_id(lsquic_stream);
+        const bool server = (static_cast<unsigned>(engine_cxt_->engine_flags) &
+            static_cast<unsigned>(EngineFlags::Server)) != 0;
+        const bool local_bidi = (id & 2u) == 0 && ((id & 1u) != 0) == server;
+        if (local_bidi) {
+            struct CallbackGuard {
+                unsigned int& depth;
+                explicit CallbackGuard(unsigned int& d) : depth(d) { ++depth; }
+                ~CallbackGuard() { --depth; }
+            } guard(this->stream_creation_callback_depth_);
+            if (!_stream_requests.empty()) {
+                auto request = std::move(_stream_requests.front());
+                _stream_requests.pop_front();
+                if (request.callback) request.callback(request.id, stream);
+            }
+            on_new_stream_signal.emit(stream);
+        } else {
+            on_new_stream_signal.emit(stream);
+        }
     }
 
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
@@ -100,13 +147,14 @@ namespace mqas::core
     }
 
     MQAS_CONNECT_IMPL_TEMPLATE_DECL
-    sigc::connection Connect<S>::make_stream(std::function<void(std::shared_ptr<S>)> on_ready)
+    typename Connect<S>::StreamRequestId Connect<S>::make_stream(
+        std::function<void(StreamRequestId, std::shared_ptr<S>)> on_ready)
     {
-		sigc::connection on_new_stream_signal_connection;
-        if (on_ready)
-            on_new_stream_signal_connection = on_new_stream_signal.connect(on_ready);
+        if (!on_ready || _stream_requests_closed || is_closed() || _next_stream_request == 0) return 0;
+        const auto rid = _next_stream_request++;
+        _stream_requests.push_back({rid, std::move(on_ready)});
         IConnect::make_stream();
-		return on_new_stream_signal_connection;
+        return rid;
     }
 
     MQAS_CONNECT_IMPL_TEMPLATE_DECL

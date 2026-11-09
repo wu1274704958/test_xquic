@@ -45,8 +45,9 @@ int main(int argc,const char** argv)
 	if(!io::Ip::str2addr_ipv4(relay_ip.c_str(), relay_port, relay_addr))
 		throw new std::exception("Not found relay address!");
 
-    conn->make_stream([&io_cxt,&relay_ip,relay_port,relay_active,&relay_addr](std::weak_ptr<StreamTy> stream){
+    conn->make_stream([&io_cxt,&relay_ip,relay_port,relay_active,&relay_addr](uint64_t, std::weak_ptr<StreamTy> stream){
         auto s_ = stream.lock();
+        if (!s_) return;
         tools::proto::relay::ReqRelay req;
 		boost::uuids::uuid token;
 		std::memset(&token,0,sizeof(boost::uuids::uuid));

@@ -59,7 +59,7 @@ int main(int argc,const char** argv)
         auto conn = c.lock();
         auto t = io_cxt.make_handle<io::Timer>();
         std::weak_ptr<core::StreamVariant<core::StreamVariantPair<1,Stream>>> stream_out;
-        conn->make_stream([&io_cxt,&stream_out](std::weak_ptr<core::StreamVariant<core::StreamVariantPair<1,Stream>>> stream){
+        conn->make_stream([&io_cxt,&stream_out](uint64_t, std::weak_ptr<core::StreamVariant<core::StreamVariantPair<1,Stream>>> stream){
             stream_out = stream;
         });
         t->start([&stream_out](io::Timer* t){

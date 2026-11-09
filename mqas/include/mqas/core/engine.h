@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 #include <queue>
+#include <functional>
 
 namespace mqas::core {
 
@@ -46,7 +47,6 @@ namespace mqas::core {
         [[nodiscard]] unsigned int avail_streams() const;
         [[nodiscard]] LSQUIC_CONN_STATUS status(char* buf = nullptr,size_t buf_len = 0) const;
 		[[nodiscard]] bool is_closed() const;
-        void make_stream();
 
 		//interface
 		void set_cxt(void*);
@@ -59,6 +59,11 @@ namespace mqas::core {
         bool has_stream(::lsquic_stream_t*) const;
 		[[nodiscard]] std::shared_ptr<engine_cxt> get_engine_cxt() const;
 	protected:
+		void make_stream();
+		// Connect<S> synchronizes its request queue when the base API cancels streams.
+		std::function<void(unsigned int)> on_pending_streams_cancelled_;
+		std::function<unsigned int(unsigned int)> pending_stream_cancel_limit_;
+		unsigned int stream_creation_callback_depth_ = 0;
 		::lsquic_conn_t* conn_ = nullptr;
 		void* cxt_ = nullptr;
 		std::shared_ptr<engine_cxt> engine_cxt_;

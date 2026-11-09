@@ -52,8 +52,9 @@ int main(int argc,const char** argv)
         auto c = e.get_engine()->connect(addr,N_LSQVER);
         auto conn = c.lock();
         uv_tty_t tty;
-        conn->make_stream([&io_cxt,&tty](std::weak_ptr<core::StreamVariant<core::StreamVariantPair<1,Stream>>> stream){
+        conn->make_stream([&io_cxt,&tty](uint64_t, std::weak_ptr<core::StreamVariant<core::StreamVariantPair<1,Stream>>> stream){
             auto s_ = stream.lock();
+            if (!s_) return;
             std::string_view sv("req self");
             s_->req_change<Stream>(std::span<uint8_t>((uint8_t*)sv.data(),sv.size()));
         });

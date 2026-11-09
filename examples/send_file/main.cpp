@@ -33,7 +33,7 @@ int main(int argc,const char** argv)
         auto c = e.get_engine()->connect(addr,N_LSQVER);
         auto conn = c.lock();
         auto t = io_cxt.make_handle<io::Timer>();
-        conn->make_stream([file_path,buf_size,overlay](std::weak_ptr<Stream> stream){
+        conn->make_stream([file_path,buf_size,overlay](uint64_t, std::weak_ptr<Stream> stream){
             auto s = stream.lock();
             if(s)
             {

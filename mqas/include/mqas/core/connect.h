@@ -12,6 +12,8 @@
 #include <mqas/core/engine.h>
 #include <mqas/io/timer.h>
 #include <sigc++/sigc++.h>
+#include <deque>
+#include <algorithm>
 
 namespace mqas::core{
 
@@ -102,13 +104,28 @@ namespace mqas::core{
         void on_stream_reset(lsquic_stream_t* s, int how);
         bool has_stream(lsquic_stream_t*) const;
         bool write_stream(::lsquic_stream_t*,const std::span<uint8_t>&);
-        sigc::connection make_stream(std::function<void(std::shared_ptr<S>)> on_ready);
+        // Requests are completed in submission order for locally initiated
+        // bidirectional streams. The callback may run before this method returns.
+        // cancel_pending_streams removes the newest pending requests first;
+        // cancelled requests complete once with a null stream.
+        // Creation and cancellation must run on the connection's I/O thread.
+        using StreamRequestId = uint64_t;
+        StreamRequestId make_stream(std::function<void(StreamRequestId, std::shared_ptr<S>)> on_ready);
         void close();
         std::shared_ptr<S> get_stream(::lsquic_stream_t*) const;
         [[nodiscard]] std::unordered_map<size_t ,std::shared_ptr<S>>::const_iterator enumerate_stream() const { return _stream_map.begin(); }
         [[nodiscard]] std::unordered_map<size_t ,std::shared_ptr<S>>::const_iterator enumerate_stream_end() const { return _stream_map.end(); }
     protected:
         std::unordered_map<size_t ,std::shared_ptr<S>> _stream_map;
+        unsigned int pending_stream_cancel_limit(unsigned int count) const;
+        void on_pending_streams_cancelled(unsigned int count);
+        struct StreamRequest {
+            StreamRequestId id;
+            std::function<void(StreamRequestId, std::shared_ptr<S>)> callback;
+        };
+        std::deque<StreamRequest> _stream_requests;
+        StreamRequestId _next_stream_request = 1;
+        bool _stream_requests_closed = false;
         connect_cxt _connect_cxt = {};
     };
 

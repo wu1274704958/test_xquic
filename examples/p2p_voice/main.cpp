@@ -189,9 +189,10 @@ int main(int argc, const char** argv)
 		auto conn = c.lock();
 		auto t = io_cxt.make_handle<io::Timer>();
 		std::weak_ptr<StreamType> stream_out;
-		conn->make_stream([&e,&io_cxt, &stream_out,&ui](std::weak_ptr<StreamType> stream) {
+		conn->make_stream([&e,&io_cxt, &stream_out,&ui](uint64_t, std::weak_ptr<StreamType> stream) {
 			stream_out = stream;
 			auto s = stream.lock();
+			if (!s) return;
 	    mqas::tools::proto::p2p::ReqRegistePeer msg;
 			s->req_change<LobbyStream, mqas::tools::p2p::ReqRegistePeerPair>(msg);
 			auto lobby_stream = s->get_holds_stream<LobbyStream>();
@@ -650,7 +651,9 @@ void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,
 	if (is_server)
 		conn->on_new_stream_signal.connect(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1, is_server));
 	else
-		conn->make_stream(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1, is_server));
+		conn->make_stream([this, is_server](uint64_t, std::shared_ptr<P2PStreamType> stream) {
+			if (stream) on_new_p2p_stream(std::move(stream), is_server);
+		});
 }
 
 void tui::on_p2p_peer_quit(std::shared_ptr<core::IStreamVariant> stream)
@@ -786,7 +789,8 @@ bool tui::launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConn
 	tui* ui = this;	
 	std::function<void(std::shared_ptr<core::Connect<RelayStreamType>>)> on_connect = [&msg, callback, ui](std::shared_ptr<core::Connect<RelayStreamType>> conn)
 	{
-		conn->make_stream([&msg, callback, ui](std::shared_ptr<RelayStreamType> stream) {
+		conn->make_stream([&msg, callback, ui](uint64_t, std::shared_ptr<RelayStreamType> stream) {
+			if (!stream) { callback(false); return; }
 			tools::proto::relay::ReqRelay req;
 			auto token = req.mutable_token();
 			token->set_data(msg->relay_token());
