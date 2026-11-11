@@ -26,7 +26,8 @@ namespace mqas::comm {
 		static auto launch_sub_engine(io::Context& io_cxt, const char* conf_file, mqas::core::EngineFlags engine_flags,
 			std::shared_ptr<SC> socket = nullptr, std::function<void(std::shared_ptr<C<S>>)> on_connected = {},
 			const sockaddr* addr = nullptr, std::function<void(const std::exception&)> on_exception = {},
-			std::function<void(SE<E<C<S>>,ED,SC>&)> on_engine_init = {})
+			std::function<void(SE<E<C<S>>,ED,SC>&)> on_engine_init = {},
+			std::shared_ptr<const core::TlsConfiguration> tls_configuration = {})
 			-> std::shared_ptr<SE<E<C<S>>,ED,SC>>;
 	};
 }

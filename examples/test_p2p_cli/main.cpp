@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <mqas/core/sub_engine.h>
 #include <mqas/tools/stream/relay_stream_client.h>
+#include "../p2p_example_auth.h"
 
 using namespace mqas;
 
@@ -276,14 +277,14 @@ void tui::init_stream(std::shared_ptr<LobbyStream> stream)
 	stream->on_request_connect_signal.connect(sigc::mem_fun(*this, &tui::on_peer_want_connect));
 	stream->on_connect_response_signal.connect(sigc::mem_fun(*this, &tui::on_get_respond));
 	stream->on_register_signal.connect([this](const std::shared_ptr<mqas::tools::proto::p2p::RespondRegistePeer>& msg) {
-		_local_peer_id = msg->id();
+		_local_peer_id = msg->ret() == mqas::tools::proto::p2p::RetCode::ok ? msg->id() : 0;
 	});
 }
 
 void tui::on_get_peer_list(std::shared_ptr<mqas::tools::proto::p2p::RespondPeerList> list)
 {
-	append_state(ui_state::select_peer);
-	peer_list = list;
+	peer_list = std::move(list);
+	if (current_state() == ui_state::main) append_state(ui_state::select_peer);
 }
 
 void tui::on_peer_want_connect(const mqas::tools::proto::p2p::PeerData& peer)
@@ -328,7 +329,7 @@ void tui::draw()
 			wprintw(win, "%u ----- %s",it.id(),it.name().c_str());
 		}
 		wmove(win, ++y, 1);
-		wprintw(win, "Input peer id to request connect! current = %u,input Enter end",input_peer_id);
+		wprintw(win, "Press r to refresh; enter peer id and Enter: %u",input_peer_id);
 	}
 		break;
 	case ui_state::select_peer_not_find:
@@ -420,6 +421,7 @@ void tui::handle_input()
 		break;
 	case ui_state::select_peer:
 	{
+		if (c == 'r' && stream) stream->req_peer_list();
 		if (c >= '0' && c <= '9')
 			input_peer_id = (input_peer_id * 10) + (c - '0');
 		if (c == KEY_Backspace) //backspace
@@ -538,17 +540,25 @@ void tui::on_helper_connect_to(const std::shared_ptr<mqas::tools::proto::p2p::No
 void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg,std::shared_ptr<io::UdpSocket> sock)
 {
 #ifndef NDEBUG
-	LOG(DEBUG) << "on_helper_result: " << msg->DebugString();
+	LOG(DEBUG) << "on_helper_result: ret=" << msg->ret() << " peer_id=" << msg->peer_id();
 #endif
 	helper_result = msg;
 	try_connect_list.clear();
 	helper_stream = nullptr;
+
+	if (msg->ret() != mqas::tools::proto::p2p::RetCode::ok) {
+		p2p_example::clear_secret(*msg);
+		if (current_state() == ui_state::helper_main) pop_state();
+		append_state(ui_state::helper_result_failed);
+		return;
+	}
 
 	if(msg->use_relay())
 	{
 		launch_relay(helper_result,[this,sock](bool success){
 			if(!success)
 			{
+				p2p_example::clear_secret(*helper_result);
 				clean_relay();
 				if (current_state() == ui_state::helper_main)
 					pop_state();
@@ -563,19 +573,9 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 		return;
 	}
 
-	if (msg->ret() != mqas::tools::proto::p2p::RetCode::ok)
-	{
-		if (current_state() == ui_state::helper_main)
-			pop_state();
-		append_state(ui_state::helper_result_failed);
-	}
-	else {
-		if (current_state() == ui_state::helper_main)
-			pop_state();
-		append_state(ui_state::p2p_main);
-		
-		launch_p2p(msg,sock);
-	}
+	if (current_state() == ui_state::helper_main) pop_state();
+	append_state(ui_state::p2p_main);
+	launch_p2p(msg, sock);
 }
 
 
@@ -651,11 +651,7 @@ void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_serve
 	}
 	else {
 		tools::proto::p2p_client::RequestDirectConnect req;
-		auto token = req.mutable_token();
-		token->set_data(helper_result->verify_token().data());
 		req.set_peer_id(helper_result->peer_id());
-		LOG(INFO) << "submit token size:" << helper_result->verify_token().data().size()
-			<< " value:" << (helper_result->verify_token().data().size() > 0 ? mqas::comm::uuid::to_high_64(mqas::comm::uuid::to_uuid(helper_result->verify_token().data()).value()) : 0);
 		if (stream->req_change<P2PChatStream, tools::p2p_direct::ReqDirectConnectPair>(req))
 		{
 #ifndef NDEBUG
@@ -685,25 +681,41 @@ void tui::on_recive_p2p_msg(const std::string& name, const std::string& msg)
 
 void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,bool is_server)
 {
+	if (!conn || !helper_result) {
+		lazy_task.push_back([this] { quit_p2p(); });
+		return;
+	}
+	const auto security = conn->security_info();
+	if (security.handshake == core::HandshakeState::Pending) {
+		std::weak_ptr<core::Connect<P2PStreamType>> weak = conn;
+		conn->on_hsk_done_signal.connect([this, weak, is_server](core::IConnect&, lsquic_hsk_status) {
+			if (auto connected = weak.lock()) on_new_p2p_connect(std::move(connected), is_server);
+		});
+		return;
+	}
+	if (!p2p_example::authenticated(*conn, *helper_result)) {
+		LOG(ERROR) << "P2P authentication failed or session expired";
+		lazy_task.push_back([this] { quit_p2p(); });
+		return;
+	}
+
 #ifndef NDEBUG
 	LOG(DEBUG) << "[on_new_p2p_connect] p2p connection established"
 		<< " role=" << (is_server ? "server" : "client")
 		<< " conn=" << conn.get();
 #endif
 	comm::locator::inst()->deposit_cxt<LocalPeerId>(conn,_local_peer_id);
+	conn->on_close_signal.connect([](core::IConnect& c) {
+		comm::locator::inst()->clear_by_context(c);
+	});
 	if (is_server)
 	{
 #ifndef NDEBUG
 		LOG(DEBUG) << "[on_new_p2p_connect] server: waiting for incoming stream";
 
-		LOG(DEBUG) << "deposited NotifyConnectResult token size:" << helper_result->verify_token().data().size()
-			<< " value:" << (helper_result->verify_token().data().size() > 0 ? mqas::comm::uuid::to_high_64(mqas::comm::uuid::to_uuid(helper_result->verify_token().data()).value()) : 0);
 #endif
 		comm::locator::inst()->deposit_cxt<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(conn,helper_result);
 		conn->on_new_stream_signal.connect(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1, is_server));
-		conn->on_close_signal.connect([](core::IConnect& c) {
-			comm::locator::inst()->clear_by_context(c);
-		});
 	}
 	else
 	{
@@ -796,21 +808,37 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 		e.get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(p2p_addr));
 	};
 	auto p2p_conf = toml::find<std::string>(*config,"p2p","conf");
+	std::shared_ptr<const core::TlsConfiguration> tls;
+	try {
+		tls = p2p_example::make_tls(*msg, _local_peer_id, p2p_conf.c_str());
+	} catch (const std::exception& e) {
+		LOG(ERROR) << "P2P TLS configuration failed: " << e.what();
+	}
+	if (!tls) {
+		LOG(ERROR) << "Invalid or expired P2P session credential";
+		lazy_task.push_back([this] { on_p2p_peer_quit(nullptr); });
+		return;
+	}
 	if (msg->is_server())
 	{ 
 		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), p2p_conf.c_str(),
-			core::EngineFlags::Server, sock, func, nullptr,exception_func, on_init_func);
-		if(!p2p_server_wait_timer)
-			p2p_server_wait_timer = io_cxt.value().get().make_shared<io::Timer>();
-		p2p_server_wait_timer->start([this](io::Timer* t){  
-			t->stop();
-			quit_p2p();
-		},10 * 1000,0);
+			core::EngineFlags::Server, sock, func, nullptr,exception_func, on_init_func, tls);
+
 	}else
 	{
 		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), p2p_conf.c_str(),
-			core::EngineFlags::None, sock, func, &p2p_addr,exception_func, on_init_func);
+			core::EngineFlags::None, sock, func, &p2p_addr,exception_func, on_init_func, tls);
 	}
+	if (!p2p_engine || !std::static_pointer_cast<EngineTy>(p2p_engine)->get_engine()) {
+		lazy_task.push_back([this] { on_p2p_peer_quit(nullptr); });
+		return;
+	}
+	if (!p2p_server_wait_timer)
+		p2p_server_wait_timer = io_cxt.value().get().make_shared<io::Timer>();
+	p2p_server_wait_timer->start([this](io::Timer* t) {
+		t->stop();
+		quit_p2p();
+	}, 10000, 0);
 	std::static_pointer_cast<EngineTy>(p2p_engine)->get_engine()->on_connect_closed_signal.connect([this](std::shared_ptr<core::Connect<P2PStreamType>>) {
 		lazy_task.push_back([this]() {
 			quit_p2p();
@@ -844,9 +872,10 @@ bool tui::launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConn
 		return false;
 	}
 	tui* ui = this;	
-	std::function<void(std::shared_ptr<core::Connect<RelayStreamType>>)> on_connect = [&msg,callback,ui](std::shared_ptr<core::Connect<RelayStreamType>> conn)
+	std::function<void(std::shared_ptr<core::Connect<RelayStreamType>>)> on_connect = [msg,callback,ui](std::shared_ptr<core::Connect<RelayStreamType>> conn)
 	{
-		conn->make_stream([&msg,callback,ui](uint64_t, std::shared_ptr<RelayStreamType> stream){
+		if (!conn) { callback(false); return; }
+		conn->make_stream([msg,callback,ui](uint64_t, std::shared_ptr<RelayStreamType> stream){
 			if (!stream) { callback(false); return; }
 			tools::proto::relay::ReqRelay req;
 			auto token = req.mutable_token();
@@ -868,6 +897,7 @@ bool tui::launch_relay(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConn
 	relay_engine = comm::engine_util::launch_sub_engine<RelayStreamType>(io_cxt.value().get(), relay_conf.c_str(),
 			core::EngineFlags::None, sock, on_connect, &relay_addr,exception_func);
 
+	if (!relay_engine || !relay_engine->get_engine()) return false;
 	relay_engine->get_engine()->whitelist_addr.push_back(relay_addr);
 	relay_engine->get_engine()->whitelist_port.push_back(io::Ip::addr_get_port(relay_addr));
 	return true;

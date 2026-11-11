@@ -2,6 +2,8 @@
 #include "mqas/comm/locator.h"
 #include <format>
 #include <boost/uuid/uuid.hpp>
+#include <chrono>
+#include <openssl/crypto.h>
 
 namespace mqas::tools::controller {
 	p2p_helper_controller::p2p_helper_controller(uint32_t a, uint32_t b,io::Context* io_cxt,std::optional<toml::value> config) : _is_start(false), _cxt(nullptr),
@@ -60,6 +62,14 @@ namespace mqas::tools::controller {
 	{
 		if (!ready())
 			return;
+		const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()).count();
+		if (now < 0 || !const_cast<p2p::connect_cxt*>(_cxt)->prepare_tls_credential(static_cast<uint64_t>(now)))
+		{
+			notify_failed(_peer_list[0]->id, std::string("Unable to create session credential"));
+			notify_failed(_peer_list[1]->id, std::string("Unable to create session credential"));
+			return;
+		}
 		notify_success(_peer_list[0]->id);
 		notify_success(_peer_list[1]->id);
 	}
@@ -218,11 +228,12 @@ namespace mqas::tools::controller {
 		msg.set_peer_id(tools::p2p::other(_cxt->pid, id));
 		msg.set_ret(mqas::tools::proto::p2p::RetCode::ok);
 		msg.set_is_server(idx == 0);
-		auto verify_token = msg.mutable_verify_token();
-		auto cxt = const_cast<p2p::connect_cxt*>(_cxt);
-		auto& token = cxt->get_verify_token();
-		verify_token->set_data((const char*)&token.data, token.size());
-
+		const auto* credential = _cxt->get_tls_credential();
+		if (!credential) return;
+		msg.set_psk_identity(credential->identity().data(), credential->identity().size());
+		msg.set_psk_secret(credential->secret().data(), credential->secret().size());
+		msg.set_psk_issued_at_ms(credential->issued_at_ms());
+		msg.set_psk_expires_at_ms(credential->expires_at_ms());
 		if (has_relay_config() && always_use_relay())
 			append_relay(id,msg);
 		else{
@@ -232,6 +243,8 @@ namespace mqas::tools::controller {
 			set_peer_address(oth_id, peer_addr);
 		}
 		_notify_connect_result[idx](msg);
+		auto* secret = msg.mutable_psk_secret();
+		if (!secret->empty()) OPENSSL_cleanse(secret->data(), secret->size());
 	}
 	void p2p_helper_controller::notify_failed(uint32_t id, const std::optional<std::string>& reason) const
 	{

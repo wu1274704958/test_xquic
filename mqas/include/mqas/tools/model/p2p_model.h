@@ -9,6 +9,8 @@
 #include <uv.h>
 #include <optional>
 #include <boost/uuid/uuid.hpp>
+#include <mqas/tools/model/session_credential.h>
+#include <memory>
 
 namespace mqas::core {
 	class MQAS_EXTERN IStreamVariant;
@@ -102,14 +104,15 @@ namespace mqas::tools::p2p {
 		std::array<std::unordered_map<int16_t,std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>>,2> submit_code_map;
 		private:
 		std::optional<boost::uuids::uuid> relay_token;
-		std::optional<boost::uuids::uuid> verify_token;
+		std::shared_ptr<session_credential> tls_credential;
 		//func
 		public:
 		connect_cxt() : port_list({0,0}) {}
 		inline operator bool() const { return tag[0] >= 0 && tag[1] >= 0; }
 		bool is_receive(uint32_t id) const;
 		const boost::uuids::uuid& get_relay_token();
-		const boost::uuids::uuid& get_verify_token();
+		bool prepare_tls_credential(uint64_t now_ms);
+		const session_credential* get_tls_credential() const noexcept { return tls_credential.get(); }
 	};
 
 	/*template<typename T, typename = std::void_t<>>

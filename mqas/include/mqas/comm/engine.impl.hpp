@@ -1,4 +1,5 @@
 #include "mqas/log.h"
+#include <stdexcept>
 
 namespace mqas::comm {
 
@@ -18,15 +19,19 @@ namespace mqas::comm {
 	auto engine_util::launch_sub_engine(io::Context& io_cxt, const char* conf_file, mqas::core::EngineFlags engine_flags,
 		std::shared_ptr<SC> socket, std::function<void(std::shared_ptr<C<S>>)> on_connected,
 		const sockaddr* addr, std::function<void(const std::exception&)> on_exception,
-		std::function<void(SE<E<C<S>>,ED,SC>&)> on_engine_init)
+		std::function<void(SE<E<C<S>>,ED,SC>&)> on_engine_init,
+		std::shared_ptr<const core::TlsConfiguration> tls_configuration)
 		-> std::shared_ptr<SE<E<C<S>>, ED,SC>>
 	{
 		auto engine = std::make_shared<SE<E<C<S>>, ED, SC>>(io_cxt);
 		try {
-			if (socket)
-				engine->init(conf_file, engine_flags, socket);
-			else
-				engine->init(conf_file, engine_flags);
+			if constexpr (requires { engine->init(conf_file, engine_flags, socket, tls_configuration); }) {
+				engine->init(conf_file, engine_flags, socket, std::move(tls_configuration));
+			} else {
+				if (tls_configuration) throw std::runtime_error("Engine does not support a TLS configuration");
+				if (socket) engine->init(conf_file, engine_flags, socket);
+				else engine->init(conf_file, engine_flags);
+			}
 			if (on_engine_init)
 				on_engine_init(*engine);
 			engine->start_recv();

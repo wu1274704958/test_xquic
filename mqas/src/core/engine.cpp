@@ -11,6 +11,8 @@ namespace mqas::core{
 	}
 	void IConnect::on_close() {
 	    is_closed_ = true;
+	    unsigned pending = static_cast<unsigned>(HandshakeState::Pending);
+	    security_state_.compare_exchange_strong(pending, static_cast<unsigned>(HandshakeState::Failed), std::memory_order_acq_rel);
 	    on_close_signal.emit(*this);
         lsquic_conn_set_ctx(conn_, nullptr);
     }
@@ -61,6 +63,13 @@ namespace mqas::core{
     }
 	void IConnect::on_hsk_done(enum lsquic_hsk_status s)
 	{
+		const bool succeeded = s == LSQ_HSK_OK ||
+			(s == LSQ_HSK_RESUMED_OK && authentication_policy_ == PeerAuthentication::None);
+		const auto state = succeeded ? HandshakeState::Succeeded : HandshakeState::Failed;
+		const auto authentication = succeeded ? authentication_policy_ : PeerAuthentication::None;
+		unsigned pending = static_cast<unsigned>(HandshakeState::Pending);
+		const auto result = static_cast<unsigned>(state) | (static_cast<unsigned>(authentication) << 8);
+		if (!security_state_.compare_exchange_strong(pending, result, std::memory_order_acq_rel)) return;
 		hsk_status_ = s;
 	    on_hsk_done_signal.emit(*this,s);
 	}

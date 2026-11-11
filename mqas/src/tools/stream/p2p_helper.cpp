@@ -63,6 +63,7 @@ namespace mqas::tools::p2p {
 
     core::StreamVariantErrcode P2PHelperStream::on_change_msg_s(const std::shared_ptr<proto::p2p::ReqConnectPeer>& msg, std::vector<uint8_t>& ret)
     {
+		if (msg->auth_version() != 1) return core::StreamVariantErrcode::failed;
         const auto res = on_peer_connect(msg->peer_id(),msg->ip_list());
         proto::p2p::RespondConnectPeer ret_msg;
         ret_msg.set_peer_id(msg->peer_id());
@@ -75,6 +76,7 @@ namespace mqas::tools::p2p {
     core::StreamVariantErrcode P2PHelperStream::on_change_msg_s(const std::shared_ptr<proto::p2p::ReqRespondPeerReqConnect>& msg,
         std::vector<uint8_t>& ret)
     {
+		if (msg->auth_version() != 1) return core::StreamVariantErrcode::failed;
 		auto model = comm::locator::inst()->get<p2p_model>();
 		if (!model)return core::StreamVariantErrcode::failed;
 

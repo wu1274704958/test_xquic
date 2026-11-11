@@ -17,7 +17,3 @@ ssl_cert_path="cert-def.pem"
 ssl_key_path="key-def.pem"
 [p2p]
 name="client_a"
-[lsquic_settings]
-es_base_plpmtu = 1200
-es_max_plpmtu = 1452
-es_dplpmtud = 0

@@ -1,4 +1,6 @@
 [engine_config]
+# Fingerprint of the bundled test_p2p_ser certificate; replace for another server.
+server_cert_sha256="7ca282f762eaaa3b7582e858b3c74fbec7ee421bc3448f7a6fb084e27e49a1ef"
 bind_ip="0.0.0.0"
 port=8089
 log_level="info"

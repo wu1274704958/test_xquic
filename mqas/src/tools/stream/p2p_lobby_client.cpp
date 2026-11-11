@@ -51,8 +51,12 @@ namespace mqas::tools::p2p {
 
 	bool P2PLobbyClientStream::req_connect(uint32_t peer_id)
 	{
+		auto conn = connect.lock();
+		if (!conn || conn->security_info().handshake != core::HandshakeState::Succeeded ||
+			conn->security_info().authentication != core::PeerAuthentication::CertificatePin) return false;
 		proto::p2p::ReqConnectPeer msg;
 		msg.set_peer_id(peer_id);
+		msg.set_auth_version(1);
 		send<ReqConnectPeerPair>(msg);
 		return true;
 	}
@@ -76,6 +80,7 @@ namespace mqas::tools::p2p {
 		{ 
 			proto::p2p::ReqConnectPeer req_msg;
 			req_msg.set_peer_id(msg->peer_id());
+			req_msg.set_auth_version(1);
 			proto::p2p::ClientIpList* ip_list = req_msg.mutable_ip_list();
 			if (!get_ip_list(*ip_list))
 			{
@@ -111,11 +116,15 @@ namespace mqas::tools::p2p {
 
 	void P2PLobbyClientStream::req_respond(uint32_t id, bool agree)
 	{
+		auto conn = connect.lock();
+		if (agree && (!conn || conn->security_info().handshake != core::HandshakeState::Succeeded ||
+			conn->security_info().authentication != core::PeerAuthentication::CertificatePin)) agree = false;
 		if (waiting_respond.find(id) == waiting_respond.end())
 			return;
 
 		proto::p2p::ReqRespondPeerReqConnect ret;
 		ret.set_peer_id(id);
+		ret.set_auth_version(1);
 		auto ip_list = ret.mutable_ip_list();
 		if (agree)
 		{

@@ -115,7 +115,7 @@ void mqas::core::IEngine::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status s
 void mqas::core::IEngine::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
 {
 #if !NDEBUG
-	LOG(INFO) << "on_new_token " << reinterpret_cast<size_t>(c) << " token = " << token;
+	LOG(INFO) << "on_new_token " << reinterpret_cast<size_t>(c) << " size = " << token_size;
 #endif
 }
 void mqas::core::IEngine::on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how)

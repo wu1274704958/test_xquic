@@ -3,6 +3,7 @@
 #include <mqas/comm/locator.h>
 #include <mqas/comm/uuid.h>
 #include <mqas/core/protobuf_msg.h>
+#include <openssl/crypto.h>
 
 namespace mqas::tools::p2p_direct {
 
@@ -18,11 +19,12 @@ mqas::core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_local_change_msg_
             return mqas::core::StreamVariantErrcode::failed;
         msg->set_name(std::move(name));
     }
-    if (!msg->has_token())
-        return mqas::core::StreamVariantErrcode::failed;
-
     auto connect = this->connect.lock();
     if (!connect)
+        return mqas::core::StreamVariantErrcode::failed;
+    const auto security = connect->security_info();
+    if (security.handshake != core::HandshakeState::Succeeded ||
+        security.authentication != core::PeerAuthentication::ExternalPsk)
         return mqas::core::StreamVariantErrcode::failed;
     auto self_id = comm::locator::inst()->get<LocalPeerId>(connect);
 
@@ -30,6 +32,8 @@ mqas::core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_local_change_msg_
         return mqas::core::StreamVariantErrcode::failed;
 
     _self_id = self_id.value();
+    msg->set_peer_id(_self_id);
+    msg->clear_token();
 
     const auto result = comm::locator::inst()->get<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(connect);
     mqas::core::ProtoBufMsg::write_msg<ReqDirectConnectPair>(ret_buf, *msg);
@@ -96,39 +100,21 @@ core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_change_msg_s(
         return core::StreamVariantErrcode::failed;                                          \
     }
 
-    if (!req->has_token())
-        RESP_CODE(proto::p2p_client::not_submit_token)
-
-    if (this->connect.expired())
-        RESP_CODE(proto::p2p_client::unknown_error)
-
-    const auto engine = this->connect_cxt_->engine_cxt_->engine.lock();
-    auto ignore_verify_token = toml::find_or<bool>(*engine->get_config(), "p2p", "ignore_verify_token", false);
-
     auto connect = this->connect.lock();
+    if (!connect)
+        RESP_CODE(proto::p2p_client::unknown_error)
+    const auto security = connect->security_info();
+    if (security.handshake != core::HandshakeState::Succeeded ||
+        security.authentication != core::PeerAuthentication::ExternalPsk || req->has_token())
+        RESP_CODE(proto::p2p_client::wrong_token)
     auto self_id = comm::locator::inst()->get<LocalPeerId>(connect);
     if (!self_id)
         RESP_CODE(proto::p2p_client::id_not_found)
     _self_id = self_id.value();
 
-    if (!ignore_verify_token)
-    {
-        const auto result = comm::locator::inst()->get<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(connect);
-        if (!result || !result.value().get()->has_verify_token())
-            RESP_CODE(proto::p2p_client::token_not_found)
-
-        const auto self_token = mqas::comm::uuid::to_uuid(result.value().get()->verify_token().data());
-        const auto token = mqas::comm::uuid::to_uuid(req->token().data());
-
-        LOG(INFO) << "peer submit token size:" << req->token().data().size() << " value:" << (token ? mqas::comm::uuid::to_high_64(*token) : 0);
-
-        if (token != self_token)
-        {
-            LOG(DEBUG) << "token mismatch, self token size:" << result.value().get()->verify_token().data().size()
-                       << " value:" << (self_token ? mqas::comm::uuid::to_high_64(*self_token) : 0);
-            RESP_CODE(proto::p2p_client::wrong_token)
-        }
-    }
+    const auto result = comm::locator::inst()->get<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(connect);
+    if (!result || !result.value().get() || result.value().get()->peer_id() != req->peer_id())
+        RESP_CODE(proto::p2p_client::id_not_found)
 
     bool accepted = true;
     if (!on_connect_request_signal.empty())
@@ -137,10 +123,6 @@ core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_change_msg_s(
     if (!accepted)
         RESP_CODE(proto::p2p_client::refused_by_peer)
 
-    if (_self_id != req->peer_id())
-    {
-        LOG(WARNING) << "Peer id mismatch, self id:" << _self_id << " peer submit id:" << req->peer_id();
-    }
     _peer_id = req->peer_id();
     resp.set_code(proto::p2p_client::ok);
     resp.set_name(get_name());

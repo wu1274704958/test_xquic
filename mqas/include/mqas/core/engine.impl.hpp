@@ -21,13 +21,15 @@ ENGINE_TEMPLATE_DECL
 std::weak_ptr<C> mqas::core::engine<C>::connect(const ::sockaddr & addr, ::lsquic_version ver, const char* hostname, unsigned short base_plpmtu,
 	const unsigned char* sess_resume, size_t sess_resume_len, const unsigned char* token, size_t token_sz)
 {
-	auto conn = ::lsquic_engine_connect(context->engine_core, ver, &context->local_addr, &addr, nullptr, (lsquic_conn_ctx_t*)this, hostname, base_plpmtu, sess_resume, sess_resume_len, token, token_sz);
+	if (!context || !context->engine_core) return {};
+	auto conn = ::lsquic_engine_connect(context->engine_core, ver, &context->local_addr, &addr, connect_peer_context_, (lsquic_conn_ctx_t*)this, hostname, base_plpmtu, sess_resume, sess_resume_len, token, token_sz);
 #if !NDEBUG
 	LOG(INFO) << "connect conn = " << reinterpret_cast<size_t>(conn);
 #endif
+	if(conn == nullptr) { context->process_conns(); return {}; }
+	auto result = add(conn);
 	context->process_conns();
-	if(conn == nullptr) return {};
-	return add(conn);
+	return result;
 }
 
 ENGINE_TEMPLATE_DECL
@@ -36,13 +38,15 @@ bool mqas::core::engine<C>::contain(::lsquic_conn_t* conn) const
 	return conn_map_.contains(reinterpret_cast<size_t>(conn));
 }
 ENGINE_TEMPLATE_DECL
-std::weak_ptr<C> mqas::core::engine<C>::add(::lsquic_conn_t* conn)
+std::weak_ptr<C> mqas::core::engine<C>::add(::lsquic_conn_t* conn, bool server_handshake_complete)
 {
 	if(!contain(conn))
 	{
 		conn_map_.emplace(reinterpret_cast<size_t>(conn),std::make_shared<C>());
 		auto c = conn_map_[reinterpret_cast<size_t>(conn)];
 		c->init(conn,context);
+		mqas::core::detail::ConnectionSecurityAccess::init(*c, authentication_policy_);
+		if (server_handshake_complete) mqas::core::detail::ConnectionSecurityAccess::handshake_done(*c, LSQ_HSK_OK);
 		on_new_connect_signal.emit(c);
 		return c;
 	}
@@ -51,7 +55,7 @@ std::weak_ptr<C> mqas::core::engine<C>::add(::lsquic_conn_t* conn)
 ENGINE_TEMPLATE_DECL
 void mqas::core::engine<C>::on_new_conn([[maybe_unused]] void* stream_if_ctx, lsquic_conn_t* lsquic_conn)
 {
-	add(lsquic_conn);
+	add(lsquic_conn, (static_cast<unsigned>(context->engine_flags) & static_cast<unsigned>(EngineFlags::Server)) != 0);
 }
 ENGINE_TEMPLATE_DECL
 void mqas::core::engine<C>::on_conn_closed(lsquic_conn_t* lsquic_conn)
@@ -136,7 +140,7 @@ void mqas::core::engine<C>::on_hsk_done(lsquic_conn_t* c, enum lsquic_hsk_status
 	const auto key = reinterpret_cast<size_t>(c);
 	if (conn_map_.contains(key))
 	{
-		conn_map_[key]->on_hsk_done(s);
+		mqas::core::detail::ConnectionSecurityAccess::handshake_done(*conn_map_[key], s);
 	}
 }
 ENGINE_TEMPLATE_DECL

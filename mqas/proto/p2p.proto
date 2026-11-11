@@ -65,12 +65,14 @@ message ConnectPeerData{
 message ReqConnectPeer{
     uint32 peer_id = 1;
     optional ClientIpList ip_list = 2;
+    uint32 auth_version = 3;
 }
 
 message ReqRespondPeerReqConnect{
     uint32 peer_id = 1;
     bool agree = 2;
     optional ClientIpList ip_list = 3;
+    uint32 auth_version = 4;
 }
 
 message RespondConnectPeer{
@@ -94,6 +96,10 @@ message NotifyConnectResult{
     optional Address relay_addr = 7;
     optional bool use_relay = 8;
     optional bytes relay_token = 9;
+    bytes psk_identity = 11;
+    bytes psk_secret = 12;
+    uint64 psk_issued_at_ms = 13;
+    uint64 psk_expires_at_ms = 14;
 }
 
 message NotifyPeerWantConnect{

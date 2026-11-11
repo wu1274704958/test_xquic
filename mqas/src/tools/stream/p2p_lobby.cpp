@@ -93,6 +93,13 @@ namespace mqas::tools::p2p {
 
 	void P2PLobbyStream::on_read_msg_s(const std::shared_ptr<proto::p2p::ReqConnectPeer>& msg)
 	{
+		if (msg->auth_version() != 1) {
+			proto::p2p::RespondConnectPeer response;
+			response.set_peer_id(msg->peer_id());
+			response.set_ret(proto::p2p::RetCode::failed);
+			send<RespondConnectPeerPair>(response);
+			return;
+		}
 		auto model = comm::locator::inst()->get<p2p_model>();
 		if (!model)return;
 		auto self = model.value().get()[id];

@@ -2738,6 +2738,7 @@ class MQAS_EXTERN ReqRespondPeerReqConnect final : public ::google::protobuf::Me
     kIpListFieldNumber = 3,
     kPeerIdFieldNumber = 1,
     kAgreeFieldNumber = 2,
+    kAuthVersionFieldNumber = 4,
   };
   // optional .mqas.tools.proto.p2p.ClientIpList ip_list = 3;
   bool has_ip_list() const;
@@ -2774,11 +2775,21 @@ class MQAS_EXTERN ReqRespondPeerReqConnect final : public ::google::protobuf::Me
   void _internal_set_agree(bool value);
 
   public:
+  // uint32 auth_version = 4;
+  void clear_auth_version() ;
+  ::uint32_t auth_version() const;
+  void set_auth_version(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_auth_version() const;
+  void _internal_set_auth_version(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.ReqRespondPeerReqConnect)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
                                    1, 0,
                                    2>
       _table_;
@@ -2803,6 +2814,7 @@ class MQAS_EXTERN ReqRespondPeerReqConnect final : public ::google::protobuf::Me
     ::mqas::tools::proto::p2p::ClientIpList* PROTOBUF_NULLABLE ip_list_;
     ::uint32_t peer_id_;
     bool agree_;
+    ::uint32_t auth_version_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -2957,6 +2969,7 @@ class MQAS_EXTERN ReqConnectPeer final : public ::google::protobuf::Message
   enum : int {
     kIpListFieldNumber = 2,
     kPeerIdFieldNumber = 1,
+    kAuthVersionFieldNumber = 3,
   };
   // optional .mqas.tools.proto.p2p.ClientIpList ip_list = 2;
   bool has_ip_list() const;
@@ -2983,11 +2996,21 @@ class MQAS_EXTERN ReqConnectPeer final : public ::google::protobuf::Message
   void _internal_set_peer_id(::uint32_t value);
 
   public:
+  // uint32 auth_version = 3;
+  void clear_auth_version() ;
+  ::uint32_t auth_version() const;
+  void set_auth_version(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_auth_version() const;
+  void _internal_set_auth_version(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.ReqConnectPeer)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
                                    1, 0,
                                    2>
       _table_;
@@ -3011,6 +3034,7 @@ class MQAS_EXTERN ReqConnectPeer final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::mqas::tools::proto::p2p::ClientIpList* PROTOBUF_NULLABLE ip_list_;
     ::uint32_t peer_id_;
+    ::uint32_t auth_version_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -3361,12 +3385,16 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
   enum : int {
     kReasonFieldNumber = 3,
     kRelayTokenFieldNumber = 9,
+    kPskIdentityFieldNumber = 11,
+    kPskSecretFieldNumber = 12,
     kAddressFieldNumber = 4,
     kPeerAddrFieldNumber = 6,
     kRelayAddrFieldNumber = 7,
     kVerifyTokenFieldNumber = 10,
     kRetFieldNumber = 1,
     kPeerIdFieldNumber = 2,
+    kPskIssuedAtMsFieldNumber = 13,
+    kPskExpiresAtMsFieldNumber = 14,
     kIsServerFieldNumber = 5,
     kUseRelayFieldNumber = 8,
   };
@@ -3400,6 +3428,36 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
   const std::string& _internal_relay_token() const;
   PROTOBUF_ALWAYS_INLINE void _internal_set_relay_token(const std::string& value);
   std::string* PROTOBUF_NONNULL _internal_mutable_relay_token();
+
+  public:
+  // bytes psk_identity = 11;
+  void clear_psk_identity() ;
+  const std::string& psk_identity() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_psk_identity(Arg_&& arg, Args_... args);
+  std::string* PROTOBUF_NONNULL mutable_psk_identity();
+  [[nodiscard]] std::string* PROTOBUF_NULLABLE release_psk_identity();
+  void set_allocated_psk_identity(std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const std::string& _internal_psk_identity() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_psk_identity(const std::string& value);
+  std::string* PROTOBUF_NONNULL _internal_mutable_psk_identity();
+
+  public:
+  // bytes psk_secret = 12;
+  void clear_psk_secret() ;
+  const std::string& psk_secret() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_psk_secret(Arg_&& arg, Args_... args);
+  std::string* PROTOBUF_NONNULL mutable_psk_secret();
+  [[nodiscard]] std::string* PROTOBUF_NULLABLE release_psk_secret();
+  void set_allocated_psk_secret(std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const std::string& _internal_psk_secret() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_psk_secret(const std::string& value);
+  std::string* PROTOBUF_NONNULL _internal_mutable_psk_secret();
 
   public:
   // optional .mqas.tools.proto.p2p.Address address = 4;
@@ -3482,6 +3540,26 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
   void _internal_set_peer_id(::uint32_t value);
 
   public:
+  // uint64 psk_issued_at_ms = 13;
+  void clear_psk_issued_at_ms() ;
+  ::uint64_t psk_issued_at_ms() const;
+  void set_psk_issued_at_ms(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_psk_issued_at_ms() const;
+  void _internal_set_psk_issued_at_ms(::uint64_t value);
+
+  public:
+  // uint64 psk_expires_at_ms = 14;
+  void clear_psk_expires_at_ms() ;
+  ::uint64_t psk_expires_at_ms() const;
+  void set_psk_expires_at_ms(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_psk_expires_at_ms() const;
+  void _internal_set_psk_expires_at_ms(::uint64_t value);
+
+  public:
   // bool is_server = 5;
   void clear_is_server() ;
   bool is_server() const;
@@ -3507,7 +3585,7 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<4, 10,
+  static const ::google::protobuf::internal::TcParseTable<4, 14,
                                    4, 63,
                                    2>
       _table_;
@@ -3531,12 +3609,16 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr reason_;
     ::google::protobuf::internal::ArenaStringPtr relay_token_;
+    ::google::protobuf::internal::ArenaStringPtr psk_identity_;
+    ::google::protobuf::internal::ArenaStringPtr psk_secret_;
     ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE address_;
     ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE peer_addr_;
     ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE relay_addr_;
     ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE verify_token_;
     int ret_;
     ::uint32_t peer_id_;
+    ::uint64_t psk_issued_at_ms_;
+    ::uint64_t psk_expires_at_ms_;
     bool is_server_;
     bool use_relay_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -4571,6 +4653,30 @@ inline void ReqConnectPeer::set_allocated_ip_list(::mqas::tools::proto::p2p::Cli
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.ReqConnectPeer.ip_list)
 }
 
+// uint32 auth_version = 3;
+inline void ReqConnectPeer::clear_auth_version() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.auth_version_ = 0u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::uint32_t ReqConnectPeer::auth_version() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.ReqConnectPeer.auth_version)
+  return _internal_auth_version();
+}
+inline void ReqConnectPeer::set_auth_version(::uint32_t value) {
+  _internal_set_auth_version(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ReqConnectPeer.auth_version)
+}
+inline ::uint32_t ReqConnectPeer::_internal_auth_version() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.auth_version_;
+}
+inline void ReqConnectPeer::_internal_set_auth_version(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.auth_version_ = value;
+}
+
 // -------------------------------------------------------------------
 
 // ReqRespondPeerReqConnect
@@ -4719,6 +4825,30 @@ inline void ReqRespondPeerReqConnect::set_allocated_ip_list(::mqas::tools::proto
 
   _impl_.ip_list_ = reinterpret_cast<::mqas::tools::proto::p2p::ClientIpList*>(value);
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.ReqRespondPeerReqConnect.ip_list)
+}
+
+// uint32 auth_version = 4;
+inline void ReqRespondPeerReqConnect::clear_auth_version() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.auth_version_ = 0u;
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline ::uint32_t ReqRespondPeerReqConnect::auth_version() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.ReqRespondPeerReqConnect.auth_version)
+  return _internal_auth_version();
+}
+inline void ReqRespondPeerReqConnect::set_auth_version(::uint32_t value) {
+  _internal_set_auth_version(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ReqRespondPeerReqConnect.auth_version)
+}
+inline ::uint32_t ReqRespondPeerReqConnect::_internal_auth_version() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.auth_version_;
+}
+inline void ReqRespondPeerReqConnect::_internal_set_auth_version(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.auth_version_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -4907,7 +5037,7 @@ inline void NotifyConnectPeerData::set_allocated_connect_data(::mqas::tools::pro
 inline void NotifyConnectResult::clear_ret() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.ret_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000040u;
+  _impl_._has_bits_[0] &= ~0x00000100u;
 }
 inline ::mqas::tools::proto::p2p::RetCode NotifyConnectResult::ret() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.ret)
@@ -4915,7 +5045,7 @@ inline ::mqas::tools::proto::p2p::RetCode NotifyConnectResult::ret() const {
 }
 inline void NotifyConnectResult::set_ret(::mqas::tools::proto::p2p::RetCode value) {
   _internal_set_ret(value);
-  _impl_._has_bits_[0] |= 0x00000040u;
+  _impl_._has_bits_[0] |= 0x00000100u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.ret)
 }
 inline ::mqas::tools::proto::p2p::RetCode NotifyConnectResult::_internal_ret() const {
@@ -4931,7 +5061,7 @@ inline void NotifyConnectResult::_internal_set_ret(::mqas::tools::proto::p2p::Re
 inline void NotifyConnectResult::clear_peer_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.peer_id_ = 0u;
-  _impl_._has_bits_[0] &= ~0x00000080u;
+  _impl_._has_bits_[0] &= ~0x00000200u;
 }
 inline ::uint32_t NotifyConnectResult::peer_id() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.peer_id)
@@ -4939,7 +5069,7 @@ inline ::uint32_t NotifyConnectResult::peer_id() const {
 }
 inline void NotifyConnectResult::set_peer_id(::uint32_t value) {
   _internal_set_peer_id(value);
-  _impl_._has_bits_[0] |= 0x00000080u;
+  _impl_._has_bits_[0] |= 0x00000200u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.peer_id)
 }
 inline ::uint32_t NotifyConnectResult::_internal_peer_id() const {
@@ -4955,7 +5085,7 @@ inline void NotifyConnectResult::_internal_set_peer_id(::uint32_t value) {
 inline void NotifyConnectResult::clear_is_server() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.is_server_ = false;
-  _impl_._has_bits_[0] &= ~0x00000100u;
+  _impl_._has_bits_[0] &= ~0x00001000u;
 }
 inline bool NotifyConnectResult::is_server() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.is_server)
@@ -4963,7 +5093,7 @@ inline bool NotifyConnectResult::is_server() const {
 }
 inline void NotifyConnectResult::set_is_server(bool value) {
   _internal_set_is_server(value);
-  _impl_._has_bits_[0] |= 0x00000100u;
+  _impl_._has_bits_[0] |= 0x00001000u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.is_server)
 }
 inline bool NotifyConnectResult::_internal_is_server() const {
@@ -4977,7 +5107,7 @@ inline void NotifyConnectResult::_internal_set_is_server(bool value) {
 
 // optional .mqas.tools.proto.common.UUID verify_token = 10;
 inline bool NotifyConnectResult::has_verify_token() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000020u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000080u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.verify_token_ != nullptr);
   return value;
 }
@@ -4998,16 +5128,16 @@ inline void NotifyConnectResult::unsafe_arena_set_allocated_verify_token(
   }
   _impl_.verify_token_ = reinterpret_cast<::mqas::tools::proto::common::UUID*>(value);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000020u;
+    _impl_._has_bits_[0] |= 0x00000080u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000020u;
+    _impl_._has_bits_[0] &= ~0x00000080u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.verify_token)
 }
 inline ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE NotifyConnectResult::release_verify_token() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  _impl_._has_bits_[0] &= ~0x00000020u;
+  _impl_._has_bits_[0] &= ~0x00000080u;
   ::mqas::tools::proto::common::UUID* released = _impl_.verify_token_;
   _impl_.verify_token_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -5027,7 +5157,7 @@ inline ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE NotifyConnectResult
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.verify_token)
 
-  _impl_._has_bits_[0] &= ~0x00000020u;
+  _impl_._has_bits_[0] &= ~0x00000080u;
   ::mqas::tools::proto::common::UUID* temp = _impl_.verify_token_;
   _impl_.verify_token_ = nullptr;
   return temp;
@@ -5042,7 +5172,7 @@ inline ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL NotifyConnectResult:
 }
 inline ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL NotifyConnectResult::mutable_verify_token()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  _impl_._has_bits_[0] |= 0x00000020u;
+  _impl_._has_bits_[0] |= 0x00000080u;
   ::mqas::tools::proto::common::UUID* _msg = _internal_mutable_verify_token();
   // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.verify_token)
   return _msg;
@@ -5059,9 +5189,9 @@ inline void NotifyConnectResult::set_allocated_verify_token(::mqas::tools::proto
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000020u;
+    _impl_._has_bits_[0] |= 0x00000080u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000020u;
+    _impl_._has_bits_[0] &= ~0x00000080u;
   }
 
   _impl_.verify_token_ = reinterpret_cast<::mqas::tools::proto::common::UUID*>(value);
@@ -5070,14 +5200,14 @@ inline void NotifyConnectResult::set_allocated_verify_token(::mqas::tools::proto
 
 // optional .mqas.tools.proto.p2p.Address peer_addr = 6;
 inline bool NotifyConnectResult::has_peer_addr() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000008u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000020u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.peer_addr_ != nullptr);
   return value;
 }
 inline void NotifyConnectResult::clear_peer_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.peer_addr_ != nullptr) _impl_.peer_addr_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000008u;
+  _impl_._has_bits_[0] &= ~0x00000020u;
 }
 inline const ::mqas::tools::proto::p2p::Address& NotifyConnectResult::_internal_peer_addr() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -5096,16 +5226,16 @@ inline void NotifyConnectResult::unsafe_arena_set_allocated_peer_addr(
   }
   _impl_.peer_addr_ = reinterpret_cast<::mqas::tools::proto::p2p::Address*>(value);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000008u;
+    _impl_._has_bits_[0] |= 0x00000020u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000008u;
+    _impl_._has_bits_[0] &= ~0x00000020u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.peer_addr)
 }
 inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE NotifyConnectResult::release_peer_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  _impl_._has_bits_[0] &= ~0x00000008u;
+  _impl_._has_bits_[0] &= ~0x00000020u;
   ::mqas::tools::proto::p2p::Address* released = _impl_.peer_addr_;
   _impl_.peer_addr_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -5125,7 +5255,7 @@ inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE NotifyConnectResult
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.peer_addr)
 
-  _impl_._has_bits_[0] &= ~0x00000008u;
+  _impl_._has_bits_[0] &= ~0x00000020u;
   ::mqas::tools::proto::p2p::Address* temp = _impl_.peer_addr_;
   _impl_.peer_addr_ = nullptr;
   return temp;
@@ -5140,7 +5270,7 @@ inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL NotifyConnectResult:
 }
 inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL NotifyConnectResult::mutable_peer_addr()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  _impl_._has_bits_[0] |= 0x00000008u;
+  _impl_._has_bits_[0] |= 0x00000020u;
   ::mqas::tools::proto::p2p::Address* _msg = _internal_mutable_peer_addr();
   // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.peer_addr)
   return _msg;
@@ -5157,9 +5287,9 @@ inline void NotifyConnectResult::set_allocated_peer_addr(::mqas::tools::proto::p
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000008u;
+    _impl_._has_bits_[0] |= 0x00000020u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000008u;
+    _impl_._has_bits_[0] &= ~0x00000020u;
   }
 
   _impl_.peer_addr_ = reinterpret_cast<::mqas::tools::proto::p2p::Address*>(value);
@@ -5237,14 +5367,14 @@ inline void NotifyConnectResult::set_allocated_reason(std::string* PROTOBUF_NULL
 
 // optional .mqas.tools.proto.p2p.Address address = 4;
 inline bool NotifyConnectResult::has_address() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000010u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.address_ != nullptr);
   return value;
 }
 inline void NotifyConnectResult::clear_address() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.address_ != nullptr) _impl_.address_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000004u;
+  _impl_._has_bits_[0] &= ~0x00000010u;
 }
 inline const ::mqas::tools::proto::p2p::Address& NotifyConnectResult::_internal_address() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -5263,16 +5393,16 @@ inline void NotifyConnectResult::unsafe_arena_set_allocated_address(
   }
   _impl_.address_ = reinterpret_cast<::mqas::tools::proto::p2p::Address*>(value);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000004u;
+    _impl_._has_bits_[0] |= 0x00000010u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000004u;
+    _impl_._has_bits_[0] &= ~0x00000010u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.address)
 }
 inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE NotifyConnectResult::release_address() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  _impl_._has_bits_[0] &= ~0x00000004u;
+  _impl_._has_bits_[0] &= ~0x00000010u;
   ::mqas::tools::proto::p2p::Address* released = _impl_.address_;
   _impl_.address_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -5292,7 +5422,7 @@ inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE NotifyConnectResult
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.address)
 
-  _impl_._has_bits_[0] &= ~0x00000004u;
+  _impl_._has_bits_[0] &= ~0x00000010u;
   ::mqas::tools::proto::p2p::Address* temp = _impl_.address_;
   _impl_.address_ = nullptr;
   return temp;
@@ -5307,7 +5437,7 @@ inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL NotifyConnectResult:
 }
 inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL NotifyConnectResult::mutable_address()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  _impl_._has_bits_[0] |= 0x00000004u;
+  _impl_._has_bits_[0] |= 0x00000010u;
   ::mqas::tools::proto::p2p::Address* _msg = _internal_mutable_address();
   // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.address)
   return _msg;
@@ -5324,9 +5454,9 @@ inline void NotifyConnectResult::set_allocated_address(::mqas::tools::proto::p2p
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000004u;
+    _impl_._has_bits_[0] |= 0x00000010u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000004u;
+    _impl_._has_bits_[0] &= ~0x00000010u;
   }
 
   _impl_.address_ = reinterpret_cast<::mqas::tools::proto::p2p::Address*>(value);
@@ -5335,14 +5465,14 @@ inline void NotifyConnectResult::set_allocated_address(::mqas::tools::proto::p2p
 
 // optional .mqas.tools.proto.p2p.Address relay_addr = 7;
 inline bool NotifyConnectResult::has_relay_addr() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000010u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000040u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.relay_addr_ != nullptr);
   return value;
 }
 inline void NotifyConnectResult::clear_relay_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.relay_addr_ != nullptr) _impl_.relay_addr_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000010u;
+  _impl_._has_bits_[0] &= ~0x00000040u;
 }
 inline const ::mqas::tools::proto::p2p::Address& NotifyConnectResult::_internal_relay_addr() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -5361,16 +5491,16 @@ inline void NotifyConnectResult::unsafe_arena_set_allocated_relay_addr(
   }
   _impl_.relay_addr_ = reinterpret_cast<::mqas::tools::proto::p2p::Address*>(value);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000010u;
+    _impl_._has_bits_[0] |= 0x00000040u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000010u;
+    _impl_._has_bits_[0] &= ~0x00000040u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.relay_addr)
 }
 inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE NotifyConnectResult::release_relay_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  _impl_._has_bits_[0] &= ~0x00000010u;
+  _impl_._has_bits_[0] &= ~0x00000040u;
   ::mqas::tools::proto::p2p::Address* released = _impl_.relay_addr_;
   _impl_.relay_addr_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -5390,7 +5520,7 @@ inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE NotifyConnectResult
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.relay_addr)
 
-  _impl_._has_bits_[0] &= ~0x00000010u;
+  _impl_._has_bits_[0] &= ~0x00000040u;
   ::mqas::tools::proto::p2p::Address* temp = _impl_.relay_addr_;
   _impl_.relay_addr_ = nullptr;
   return temp;
@@ -5405,7 +5535,7 @@ inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL NotifyConnectResult:
 }
 inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL NotifyConnectResult::mutable_relay_addr()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  _impl_._has_bits_[0] |= 0x00000010u;
+  _impl_._has_bits_[0] |= 0x00000040u;
   ::mqas::tools::proto::p2p::Address* _msg = _internal_mutable_relay_addr();
   // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.relay_addr)
   return _msg;
@@ -5422,9 +5552,9 @@ inline void NotifyConnectResult::set_allocated_relay_addr(::mqas::tools::proto::
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000010u;
+    _impl_._has_bits_[0] |= 0x00000040u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000010u;
+    _impl_._has_bits_[0] &= ~0x00000040u;
   }
 
   _impl_.relay_addr_ = reinterpret_cast<::mqas::tools::proto::p2p::Address*>(value);
@@ -5433,13 +5563,13 @@ inline void NotifyConnectResult::set_allocated_relay_addr(::mqas::tools::proto::
 
 // optional bool use_relay = 8;
 inline bool NotifyConnectResult::has_use_relay() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000200u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00002000u) != 0;
   return value;
 }
 inline void NotifyConnectResult::clear_use_relay() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.use_relay_ = false;
-  _impl_._has_bits_[0] &= ~0x00000200u;
+  _impl_._has_bits_[0] &= ~0x00002000u;
 }
 inline bool NotifyConnectResult::use_relay() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.use_relay)
@@ -5447,7 +5577,7 @@ inline bool NotifyConnectResult::use_relay() const {
 }
 inline void NotifyConnectResult::set_use_relay(bool value) {
   _internal_set_use_relay(value);
-  _impl_._has_bits_[0] |= 0x00000200u;
+  _impl_._has_bits_[0] |= 0x00002000u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.use_relay)
 }
 inline bool NotifyConnectResult::_internal_use_relay() const {
@@ -5526,6 +5656,184 @@ inline void NotifyConnectResult::set_allocated_relay_token(std::string* PROTOBUF
     _impl_.relay_token_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.relay_token)
+}
+
+// bytes psk_identity = 11;
+inline void NotifyConnectResult::clear_psk_identity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.psk_identity_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline const std::string& NotifyConnectResult::psk_identity() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.psk_identity)
+  return _internal_psk_identity();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void NotifyConnectResult::set_psk_identity(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  _impl_.psk_identity_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.psk_identity)
+}
+inline std::string* PROTOBUF_NONNULL NotifyConnectResult::mutable_psk_identity()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_psk_identity();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.psk_identity)
+  return _s;
+}
+inline const std::string& NotifyConnectResult::_internal_psk_identity() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.psk_identity_.Get();
+}
+inline void NotifyConnectResult::_internal_set_psk_identity(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  _impl_.psk_identity_.Set(value, GetArena());
+}
+inline std::string* PROTOBUF_NONNULL NotifyConnectResult::_internal_mutable_psk_identity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  return _impl_.psk_identity_.Mutable( GetArena());
+}
+inline std::string* PROTOBUF_NULLABLE NotifyConnectResult::release_psk_identity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.psk_identity)
+  if ((_impl_._has_bits_[0] & 0x00000004u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000004u;
+  auto* released = _impl_.psk_identity_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.psk_identity_.Set("", GetArena());
+  }
+  return released;
+}
+inline void NotifyConnectResult::set_allocated_psk_identity(std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000004u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000004u;
+  }
+  _impl_.psk_identity_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.psk_identity_.IsDefault()) {
+    _impl_.psk_identity_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.psk_identity)
+}
+
+// bytes psk_secret = 12;
+inline void NotifyConnectResult::clear_psk_secret() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.psk_secret_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline const std::string& NotifyConnectResult::psk_secret() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.psk_secret)
+  return _internal_psk_secret();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void NotifyConnectResult::set_psk_secret(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  _impl_.psk_secret_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.psk_secret)
+}
+inline std::string* PROTOBUF_NONNULL NotifyConnectResult::mutable_psk_secret()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_psk_secret();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.psk_secret)
+  return _s;
+}
+inline const std::string& NotifyConnectResult::_internal_psk_secret() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.psk_secret_.Get();
+}
+inline void NotifyConnectResult::_internal_set_psk_secret(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  _impl_.psk_secret_.Set(value, GetArena());
+}
+inline std::string* PROTOBUF_NONNULL NotifyConnectResult::_internal_mutable_psk_secret() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  return _impl_.psk_secret_.Mutable( GetArena());
+}
+inline std::string* PROTOBUF_NULLABLE NotifyConnectResult::release_psk_secret() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.psk_secret)
+  if ((_impl_._has_bits_[0] & 0x00000008u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000008u;
+  auto* released = _impl_.psk_secret_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.psk_secret_.Set("", GetArena());
+  }
+  return released;
+}
+inline void NotifyConnectResult::set_allocated_psk_secret(std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000008u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000008u;
+  }
+  _impl_.psk_secret_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.psk_secret_.IsDefault()) {
+    _impl_.psk_secret_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.psk_secret)
+}
+
+// uint64 psk_issued_at_ms = 13;
+inline void NotifyConnectResult::clear_psk_issued_at_ms() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.psk_issued_at_ms_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000400u;
+}
+inline ::uint64_t NotifyConnectResult::psk_issued_at_ms() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.psk_issued_at_ms)
+  return _internal_psk_issued_at_ms();
+}
+inline void NotifyConnectResult::set_psk_issued_at_ms(::uint64_t value) {
+  _internal_set_psk_issued_at_ms(value);
+  _impl_._has_bits_[0] |= 0x00000400u;
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.psk_issued_at_ms)
+}
+inline ::uint64_t NotifyConnectResult::_internal_psk_issued_at_ms() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.psk_issued_at_ms_;
+}
+inline void NotifyConnectResult::_internal_set_psk_issued_at_ms(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.psk_issued_at_ms_ = value;
+}
+
+// uint64 psk_expires_at_ms = 14;
+inline void NotifyConnectResult::clear_psk_expires_at_ms() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.psk_expires_at_ms_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000800u;
+}
+inline ::uint64_t NotifyConnectResult::psk_expires_at_ms() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.psk_expires_at_ms)
+  return _internal_psk_expires_at_ms();
+}
+inline void NotifyConnectResult::set_psk_expires_at_ms(::uint64_t value) {
+  _internal_set_psk_expires_at_ms(value);
+  _impl_._has_bits_[0] |= 0x00000800u;
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.psk_expires_at_ms)
+}
+inline ::uint64_t NotifyConnectResult::_internal_psk_expires_at_ms() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.psk_expires_at_ms_;
+}
+inline void NotifyConnectResult::_internal_set_psk_expires_at_ms(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.psk_expires_at_ms_ = value;
 }
 
 // -------------------------------------------------------------------

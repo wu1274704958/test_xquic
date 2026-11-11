@@ -3,14 +3,17 @@
 
 #endif
 #include <mqas/core/engine_base.h>
+#include <mqas/core/tls_configuration.h>
 #include <mqas/macro.h>
 #include <span>
 #include <memory>
 #include <vector>
 #include <queue>
 #include <functional>
+#include <atomic>
 
 namespace mqas::core {
+	namespace detail { struct ConnectionSecurityAccess; }
 
 	struct engine_cxt;
 
@@ -30,7 +33,6 @@ namespace mqas::core {
 		void on_goaway_received();
 		ssize_t on_dg_write(void*, size_t);
 		void on_datagram(const void* buf, size_t);
-		void on_hsk_done(enum lsquic_hsk_status s);
 		void on_new_token(const unsigned char* token, size_t token_size);
 		void on_stream_reset(lsquic_stream_t* s, int how);
 		void on_conncloseframe_received(int app_error, uint64_t error_code, const char* reason, int reason_len);
@@ -56,9 +58,17 @@ namespace mqas::core {
 		[[nodiscard]] bool flush_datagram() const;
 		bool write_stream(::lsquic_stream_t*,const std::span<uint8_t>&);
 		[[nodiscard]] ::lsquic_hsk_status get_hsk_status() const;
+		// An atomic snapshot can be read from any thread.
+		[[nodiscard]] ConnectionSecurityInfo security_info() const noexcept {
+			const auto value = security_state_.load(std::memory_order_acquire);
+			return {static_cast<HandshakeState>(value & 0xff), static_cast<PeerAuthentication>((value >> 8) & 0xff)};
+		}
         bool has_stream(::lsquic_stream_t*) const;
 		[[nodiscard]] std::shared_ptr<engine_cxt> get_engine_cxt() const;
 	protected:
+		friend struct detail::ConnectionSecurityAccess;
+		void on_init_security(PeerAuthentication policy) noexcept { authentication_policy_ = policy; }
+		void on_hsk_done(enum lsquic_hsk_status s);
 		void make_stream();
 		// Connect<S> synchronizes its request queue when the base API cancels streams.
 		std::function<void(unsigned int)> on_pending_streams_cancelled_;
@@ -71,11 +81,17 @@ namespace mqas::core {
 		std::queue<short> datagram_queue_;
 		size_t datagram_buf_write_p_ = 0;
 		::lsquic_hsk_status hsk_status_ = ::lsquic_hsk_status::LSQ_HSK_FAIL;
+		std::atomic<unsigned> security_state_{0};
+		PeerAuthentication authentication_policy_ = PeerAuthentication::None;
 		bool goaway_receive_:1 = false; 
 		bool datagram_supported_:1 = false;
 		bool is_closed_:1 = false;
 	};
 
+	namespace detail { struct ConnectionSecurityAccess {
+		static void init(IConnect& connection, PeerAuthentication policy) noexcept { connection.on_init_security(policy); }
+		static void handshake_done(IConnect& connection, lsquic_hsk_status status) { connection.on_hsk_done(status); }
+	}; }
 	template<typename C>
 	requires requires{
 		requires std::is_default_constructible_v<C>;
@@ -110,7 +126,7 @@ namespace mqas::core {
 
 		void init(std::shared_ptr<engine_cxt> cxt); //override
 		bool contain(::lsquic_conn_t* conn) const;
-		std::weak_ptr<C> add(::lsquic_conn_t* conn);
+		std::weak_ptr<C> add(::lsquic_conn_t* conn, bool server_handshake_complete = false);
         bool write_datagram(::lsquic_conn_t* conn,const std::span<uint8_t>&);
         bool write_stream(::lsquic_conn_t* conn,lsquic_stream_t* stream,const std::span<uint8_t>&);
         bool has_stream(lsquic_conn_t* conn,lsquic_stream_t* stream) const;

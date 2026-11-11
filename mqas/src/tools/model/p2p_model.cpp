@@ -350,13 +350,13 @@ namespace mqas::tools::p2p {
 		relay_token = generator();
 		return relay_token.value();
 	}
-        const boost::uuids::uuid &connect_cxt::get_verify_token()
+	bool connect_cxt::prepare_tls_credential(uint64_t now_ms)
 	{
-		if(verify_token)
-			return verify_token.value();
-		boost::uuids::random_generator generator;
-		verify_token = generator();
-		return verify_token.value();
+		if (tls_credential) return tls_credential->valid_at(now_ms);
+		auto credential = std::make_unique<session_credential>();
+		if (!credential->generate(pid[0], pid[1], now_ms)) return false;
+		tls_credential = std::move(credential);
+		return true;
 	}
 
 #ifndef NDEBUG  

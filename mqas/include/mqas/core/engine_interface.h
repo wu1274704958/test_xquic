@@ -6,9 +6,11 @@
 #include <toml.hpp>
 #include <memory>
 #include <mqas/core/def.h>
+#include <mqas/core/tls_configuration.h>
 
 namespace mqas::core
 {
+	namespace detail { struct EngineTransportAccess; }
 	struct MQAS_EXTERN engine_cxt;
 	class MQAS_EXTERN IEngine
 	{
@@ -45,15 +47,26 @@ namespace mqas::core
 		const std::shared_ptr<io::UdpSocket> get_socket() const;
 		const std::shared_ptr<engine_config> get_engine_config() const;
 	private:
+		friend struct detail::EngineTransportAccess;
+		void on_init_transport(void* peer_ctx, PeerAuthentication authentication) noexcept {
+			connect_peer_context_ = peer_ctx; authentication_policy_ = authentication;
+		}
 		char _check_code = CHECK_CODE;
 	public:
 		std::shared_ptr<engine_cxt> context;
 		std::vector<uint16_t> whitelist_port;
 		std::vector<sockaddr> whitelist_addr;
 	protected:
+		void* connect_peer_context_ = nullptr;
+		PeerAuthentication authentication_policy_ = PeerAuthentication::None;
 		std::shared_ptr<toml::value> config;
 		std::shared_ptr<io::UdpSocket> socket_;
 		std::shared_ptr<engine_config> _engine_config;
 	};
+	namespace detail { struct EngineTransportAccess {
+		static void init(IEngine& engine, void* context, PeerAuthentication authentication) noexcept {
+			engine.on_init_transport(context, authentication);
+		}
+	}; }
 
 }

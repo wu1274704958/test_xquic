@@ -4,6 +4,9 @@
 #include <easylogging++.h>
 #include <mqas/io/ip.h>
 #include <mqas/io/exception.h>
+#include <openssl/crypto.h>
+#include <openssl/evp.h>
+#include <openssl/x509.h>
 
 namespace mqas::core {
 
@@ -21,19 +24,13 @@ namespace mqas::core {
 	sub_engine<E,ED,SC>::sub_engine(io::Context& c):io_cxt(c), _socket(nullptr),
 		_proc_conns_timer(nullptr), _engine_flags(EngineFlags::None), _local_addr({}),
 		_lsquic_engine_api({})
-	{}
+	{ _connect_peer_context.engine = this; }
 
 	SUB_ENGINE_TEMPLATE_DECL
-	sub_engine<E,ED,SC>::sub_engine(sub_engine&& oth) noexcept :io_cxt(oth.io_cxt), _socket(std::move(oth._socket)),
-		_proc_conns_timer(oth._proc_conns_timer), _engine_flags(oth._engine_flags), _local_addr(oth._local_addr),
-		_lsquic_engine_api(oth._lsquic_engine_api) 
+	void sub_engine<E,ED,SC>::init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<SC> socket,
+		std::shared_ptr<const TlsConfiguration> tls_context) noexcept(false)
 	{
-		oth._proc_conns_timer = nullptr;
-	}
-
-	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E,ED,SC>::init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<SC> socket) noexcept(false)
-	{
+		_tls_context = std::move(tls_context);
 		if (!ED::instance()->initialization(conf_file))
 			throw std::runtime_error("Initialize engine driver failed!");
 		
@@ -41,7 +38,12 @@ namespace mqas::core {
 
 		init_config(conf_file, engine_flags);
 		_engine_flags = engine_flags;
+		if (_tls_context && _verify_server_cert)
+			throw std::runtime_error("server_cert_sha256 cannot be combined with an externally supplied TLS context");
 
+		detail::EngineTransportAccess::init(*_engine_extern, _tls_context ? &_connect_peer_context : nullptr,
+			_verify_server_cert ? PeerAuthentication::CertificatePin :
+			(_tls_context ? _tls_context->authentication() : PeerAuthentication::None));
 		init_socket(std::move(socket));
 		init_engine_core();
 		init_context();
@@ -65,6 +67,29 @@ namespace mqas::core {
 		}
 
 		_conf = std::make_shared<engine_config>(toml::find<engine_config>(*_conf_origin, "engine_config"));
+		if (!comm::contain<uint32_t>(engine_flags, EngineFlags::Server))
+		{
+			const auto& config = _conf_origin->at("engine_config");
+			const auto pin = toml::find_or<std::string>(config, "server_cert_sha256", "");
+			if (!pin.empty())
+			{
+				if (pin.size() != _server_cert_sha256.size() * 2)
+					throw std::runtime_error("server_cert_sha256 must contain 64 hexadecimal characters");
+				auto hex = [](char c) -> int {
+					if (c >= '0' && c <= '9') return c - '0';
+					if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+					if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+					return -1;
+				};
+				for (size_t i = 0; i < _server_cert_sha256.size(); ++i)
+				{
+					const int hi = hex(pin[i * 2]), lo = hex(pin[i * 2 + 1]);
+					if (hi < 0 || lo < 0) throw std::runtime_error("invalid server_cert_sha256");
+					_server_cert_sha256[i] = static_cast<unsigned char>((hi << 4) | lo);
+				}
+				_verify_server_cert = true;
+			}
+		}
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
@@ -80,6 +105,11 @@ namespace mqas::core {
 		ED::instance()->fill_lsquic_engine_api(this, _engine_flags, _lsquic_engine_api,*_conf);
 
 		_lsquic_engine_api.ea_packets_out = on_packets_out;
+		if (_verify_server_cert)
+		{
+			_lsquic_engine_api.ea_verify_cert = verify_server_cert;
+			_lsquic_engine_api.ea_verify_ctx = this;
+		}
 
 		if (has_engine_setting())
 		{
@@ -89,7 +119,12 @@ namespace mqas::core {
 			_lsquic_engine_api.ea_settings = &_conf->lsquic_settings;
 		}
 
-		if (comm::contain<uint32_t>(_engine_flags, EngineFlags::Server))
+		if (_tls_context)
+		{
+			_lsquic_engine_api.ea_get_ssl_ctx = on_get_ssl_ctx;
+			_ssl_ctx = detail::TlsAccess::native(*_tls_context);
+		}
+		else if (comm::contain<uint32_t>(_engine_flags, EngineFlags::Server))
 		{ 
 			_lsquic_engine_api.ea_get_ssl_ctx = on_get_ssl_ctx;
 			_ssl_ctx = ED::instance()->get_ssl_or_generate(_conf->ssl_cert_path,_conf->ssl_key_path,_conf->alpn);
@@ -180,6 +215,12 @@ namespace mqas::core {
 			_engine_extern->close();
 		while (_engine_extern && _engine_extern->connect_count() > 0)
 			io_cxt.run(mqas::io::Context::RunMode::ONCE);
+		if (_engine_extern) detail::EngineTransportAccess::init(*_engine_extern, nullptr, PeerAuthentication::None);
+		if (context) {
+			context->engine_core = nullptr;
+			context->process_conns = {};
+			context->process_conns_lazy = {};
+		}
 		_engine_extern.reset();
 	}
 
@@ -191,7 +232,7 @@ namespace mqas::core {
 			close();
 			::lsquic_engine_destroy(_engine);
 			ED::instance()->unregister_engine(this,_engine);
-			_ssl_ctx = ED::instance()->destroy_ssl_ctx(_ssl_ctx);
+			if (!_tls_context) _ssl_ctx = ED::instance()->destroy_ssl_ctx(_ssl_ctx);
 			if (_recv_connection.connected())
 				_recv_connection.disconnect();
 			_engine = nullptr;
@@ -279,6 +320,20 @@ namespace mqas::core {
 	{
 		auto ptr = static_cast<peer_context<sub_engine<E, ED, SC>>*>(peer_ctx);
 		return ptr->engine->_ssl_ctx;
+	}
+
+	SUB_ENGINE_TEMPLATE_DECL
+	int sub_engine<E,ED,SC>::verify_server_cert(void* verify_ctx, struct stack_st_X509* chain)
+	{
+		auto* self = static_cast<sub_engine*>(verify_ctx);
+		if (!self || !self->_verify_server_cert || !chain || sk_X509_num(chain) < 1)
+			return -1;
+		unsigned char digest[EVP_MAX_MD_SIZE];
+		unsigned int size = 0;
+		if (!X509_digest(sk_X509_value(chain, 0), EVP_sha256(), digest, &size) ||
+			size != self->_server_cert_sha256.size())
+			return -1;
+		return CRYPTO_memcmp(digest, self->_server_cert_sha256.data(), size) == 0 ? 0 : -1;
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
@@ -374,7 +429,7 @@ namespace mqas::core {
 	SUB_ENGINE_TEMPLATE_DECL
 	void sub_engine<E,ED,SC>::on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size)
 	{
-		MQAS_DBG("conn on new token " << c << " token = " << token);
+		MQAS_DBG("conn on new token " << c << " size = " << token_size);
 		_engine_extern->on_new_token(c, token, token_size);
 	}
 	SUB_ENGINE_TEMPLATE_DECL

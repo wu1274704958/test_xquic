@@ -3,8 +3,12 @@
 #include "engine_interface.h"
 #include "mqas/tools/peer_context_mgr.h"
 #include "core_concept.h"
+#include <array>
 
 namespace mqas::core {
+	namespace detail { struct TlsAccess {
+		static SSL_CTX* native(const TlsConfiguration& config) noexcept { return config.context_.get(); }
+	}; }
 	
 	template<typename E,typename ED = engine_driver,typename SC = io::UdpSocket>
 	requires requires
@@ -20,11 +24,13 @@ namespace mqas::core {
 	public:
 		~sub_engine();
 		sub_engine(io::Context&);
-		sub_engine(sub_engine&&) noexcept;
+		// LSQUIC callbacks retain addresses inside the engine until it is destroyed.
+		sub_engine(sub_engine&&) = delete;
 		sub_engine(const sub_engine&) = delete;
 		sub_engine& operator=(sub_engine&&) = delete;
 		sub_engine& operator=(const sub_engine&) = delete;
-		void init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<SC> socket = nullptr) noexcept(false);
+		void init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<SC> socket = nullptr,
+			std::shared_ptr<const TlsConfiguration> tls_context = nullptr) noexcept(false);
 		void process_conns() const;
 		void process_conns_lazy() const;
 		void start_recv();
@@ -59,6 +65,7 @@ namespace mqas::core {
 		void on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len) override;
 		/////
 		static ssl_ctx_st* on_get_ssl_ctx(void* peer_ctx, const sockaddr* local);
+		static int verify_server_cert(void* verify_ctx, struct stack_st_X509* chain);
 		static int on_packets_out(void* packets_out_ctx, const lsquic_out_spec* out_spec,unsigned n_packets_out);
 	public:
 		std::shared_ptr<engine_cxt> context;
@@ -74,7 +81,11 @@ namespace mqas::core {
 		std::shared_ptr<E> _engine_extern;
 		::lsquic_engine_api _lsquic_engine_api = {};
 		sigc::connection _recv_connection;
-		::SSL_CTX* _ssl_ctx;
+		::SSL_CTX* _ssl_ctx = nullptr;
+		std::shared_ptr<const TlsConfiguration> _tls_context;
+		core::peer_context<sub_engine<E,ED,SC>> _connect_peer_context;
+		std::array<unsigned char, 32> _server_cert_sha256{};
+		bool _verify_server_cert = false;
 		tools::peer_context_mgr<sub_engine<E,ED,SC>> _peer_context_mgr;
 	};
 
