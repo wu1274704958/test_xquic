@@ -9,7 +9,8 @@ namespace mqas::tools::p2p {
 		if (msg->name().empty())
 		{
 			auto engine = connect_cxt_->engine_cxt_->engine.lock();
-			name = toml::find<std::string>(*engine->get_config(), "p2p", "name");
+			const auto config = connect_cxt_->config ? connect_cxt_->config : engine->get_config();
+			name = toml::find<std::string>(*config, "p2p", "name");
 			msg->set_name(name);
 		}else
 			name = msg->name();

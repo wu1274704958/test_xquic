@@ -8,10 +8,12 @@
 #include <mqas/core/def.h>
 #include <openssl/ssl.h>
 #include <concepts>
+#include <stdexcept>
 #include <span>
 #include <optional>
 #include <sigc++/sigc++.h>
 #include "engine_interface.h"
+#include "engine_settings.h"
 #include "engine_driver.h"
 #include "mqas/tools/peer_context_mgr.h"
 #include "core_concept.h"
@@ -38,6 +40,10 @@ namespace mqas::core
 		engine_base& operator=(const engine_base&) = delete;
 		void init(const char* conf_file, core::EngineFlags engine_flags,
 			std::shared_ptr<io::UdpSocket> socket = nullptr) noexcept(false);
+		void init(const toml::value& config, const char* source_file, core::EngineFlags engine_flags,
+			std::shared_ptr<io::UdpSocket> socket = nullptr) noexcept(false);
+		[[nodiscard]] EngineSettingsView get_settings_view() const { if (!settings_ready_) throw std::logic_error("engine not initialized"); return make_engine_settings_view(local_addr_, *conf_, *conf_origin_, engine_flags_); }
+		[[nodiscard]] const EngineSettingsHash& get_settings_hash() const { if (!settings_ready_) throw std::logic_error("engine not initialized"); return settings_hash_; }
 		void process_conns() const;
         void process_conns_lazy() const;
 		void start_recv();
@@ -46,7 +52,7 @@ namespace mqas::core
 		~engine_base();
 	protected:
 		void init_socket(std::shared_ptr<io::UdpSocket> sock = nullptr);
-		void init_config(const char* conf_file);
+		void init_config(const toml::value& config, const char* source_file);
 		bool has_engine_setting() const;
 		void init_timer();
 		void init_engine_core();
@@ -89,6 +95,8 @@ namespace mqas::core
 		io::Timer* proc_conns_timer_;
 		std::shared_ptr<engine_config> conf_;
 		std::shared_ptr<toml::value> conf_origin_;
+		EngineSettingsHash settings_hash_{};
+		bool settings_ready_ = false;
 		::lsquic_engine* engine_ = nullptr;
 		::SSL_CTX* ssl_ctx_ = nullptr;
 		EngineFlags engine_flags_;

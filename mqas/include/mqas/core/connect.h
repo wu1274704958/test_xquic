@@ -77,6 +77,7 @@ namespace mqas::core{
     };
     struct connect_cxt{
         std::shared_ptr<engine_cxt> engine_cxt_;
+        std::shared_ptr<const toml::value> config;
         std::function<bool(lsquic_stream_t*)> has_stream;
         std::function<bool(lsquic_stream_t*,const std::span<uint8_t>&)> write_stream;
         void* cxt;
@@ -96,6 +97,7 @@ namespace mqas::core{
         sigc::signal<void(std::shared_ptr<S>)> on_new_stream_signal;
         sigc::signal<void(std::shared_ptr<S>)> on_stream_close_signal;
         void init(::lsquic_conn_t* conn, std::shared_ptr<engine_cxt> cxt);
+        void set_connection_config(std::shared_ptr<const toml::value> config) { _connect_cxt.config = std::move(config); }
         void on_close();
         void on_new_stream(::lsquic_stream_t* lsquic_stream);
         void on_stream_read(::lsquic_stream_t* lsquic_stream);

@@ -71,8 +71,11 @@ namespace mqas::core
 			const engine_config& conf) const;
 		std::shared_ptr<engine_config> get_engine_conf() const { return _engine_config; }
 		bool initialization(const char* conf);
+		bool initialization(const toml::value& conf);
 		::SSL_CTX* get_ssl_or_generate(const std::string& cert_file, const std::string& key_file,const std::string& alpn);
 		::SSL_CTX* destroy_ssl_ctx(::SSL_CTX* ctx);
+		static void init_settings(::lsquic_engine_settings& s, const toml::value& config, EngineFlags flags);
+		static void normalize_engine_config(std::shared_ptr<toml::value>& config, const char* source_file);
 		static void settings_from_toml(::lsquic_engine_settings& s, const toml::value& v,bool is_server);
 		static void preprocess_config_path(const std::string& field_name,
 		                                    const std::string& config_file_path,

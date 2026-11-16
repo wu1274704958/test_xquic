@@ -30,13 +30,25 @@ namespace mqas::core {
 	void sub_engine<E,ED,SC>::init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<SC> socket,
 		std::shared_ptr<const TlsConfiguration> tls_context) noexcept(false)
 	{
+		init(toml::parse(conf_file), conf_file, engine_flags, std::move(socket), std::move(tls_context));
+	}
+
+	SUB_ENGINE_TEMPLATE_DECL
+	void sub_engine<E,ED,SC>::init(const toml::value& config, const char* conf_file, core::EngineFlags engine_flags,
+		std::shared_ptr<SC> socket, std::shared_ptr<const TlsConfiguration> tls_context) noexcept(false)
+	{
 		_tls_context = std::move(tls_context);
-		if (!ED::instance()->initialization(conf_file))
+		const bool driver_ready = [&] {
+			if constexpr (requires { ED::instance()->initialization(config); })
+				return ED::instance()->initialization(config);
+			else return ED::instance()->initialization(conf_file);
+		}();
+		if (!driver_ready)
 			throw std::runtime_error("Initialize engine driver failed!");
 		
 		_engine_extern = std::make_shared<E>();
 
-		init_config(conf_file, engine_flags);
+		init_config(config, conf_file, engine_flags);
 		_engine_flags = engine_flags;
 		if (_tls_context && _verify_server_cert)
 			throw std::runtime_error("server_cert_sha256 cannot be combined with an externally supplied TLS context");
@@ -55,16 +67,11 @@ namespace mqas::core {
 	}
 
 	SUB_ENGINE_TEMPLATE_DECL
-	void sub_engine<E,ED,SC>::init_config(const char* conf_file, core::EngineFlags engine_flags)
+	void sub_engine<E,ED,SC>::init_config(const toml::value& config, const char* conf_file, core::EngineFlags engine_flags)
 	{
-		_conf_origin = std::make_shared<toml::value>(toml::parse(conf_file));
+		_conf_origin = std::make_shared<toml::value>(config);
 
-		// ssl_cert_path / ssl_key_path are only meaningful for Server mode
-		if (comm::contain<uint32_t>(engine_flags, EngineFlags::Server))
-		{
-			ED::instance()->preprocess_config_path("ssl_cert_path", conf_file, _conf_origin);
-			ED::instance()->preprocess_config_path("ssl_key_path",  conf_file, _conf_origin);
-		}
+		engine_driver::normalize_engine_config(_conf_origin, conf_file);
 
 		_conf = std::make_shared<engine_config>(toml::find<engine_config>(*_conf_origin, "engine_config"));
 		if (!comm::contain<uint32_t>(engine_flags, EngineFlags::Server))
@@ -111,13 +118,8 @@ namespace mqas::core {
 			_lsquic_engine_api.ea_verify_ctx = this;
 		}
 
-		if (has_engine_setting())
-		{
-			::lsquic_engine_init_settings(&_conf->lsquic_settings, static_cast<unsigned>(_engine_flags));
-			engine_driver::settings_from_toml(_conf->lsquic_settings, _conf_origin->at("lsquic_settings"),
-				comm::contain<uint32_t>(_engine_flags, EngineFlags::Server));
-			_lsquic_engine_api.ea_settings = &_conf->lsquic_settings;
-		}
+		engine_driver::init_settings(_conf->lsquic_settings, *_conf_origin, _engine_flags);
+		_lsquic_engine_api.ea_settings = &_conf->lsquic_settings;
 
 		if (_tls_context)
 		{
@@ -148,6 +150,13 @@ namespace mqas::core {
 		}
 
 		_engine_extern->on_new_lsquic_engine(_lsquic_engine_api, _engine_flags);
+		if (!_lsquic_engine_api.ea_settings)
+			::lsquic_engine_init_settings(&_conf->lsquic_settings, static_cast<unsigned>(_engine_flags));
+		else if (_lsquic_engine_api.ea_settings != &_conf->lsquic_settings)
+			_conf->lsquic_settings = *_lsquic_engine_api.ea_settings;
+		_lsquic_engine_api.ea_settings = &_conf->lsquic_settings;
+		_settings_hash = EngineSettingsHasher{}(make_engine_settings_view(_local_addr, *_conf, *_conf_origin, _engine_flags, _tls_context.get()));
+
 		_engine = lsquic_engine_new(static_cast<unsigned>(_engine_flags), &_lsquic_engine_api);
 		if (_engine == nullptr)
 		{
@@ -155,6 +164,7 @@ namespace mqas::core {
 			throw std::runtime_error("Create engine failed!");
 		}
 		LOG(INFO) << "Create engine success!";
+		_settings_ready = true;
 
 		_engine_extern->on_init_config(_conf_origin);
 		_engine_extern->on_init_engine_config(_conf);

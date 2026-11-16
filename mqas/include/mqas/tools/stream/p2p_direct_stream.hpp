@@ -46,7 +46,8 @@ const std::string& P2PDirectStream<S,MSG...>::get_name()
     if (!_name.empty())
         return _name;
     const auto engine = this->connect_cxt_->engine_cxt_->engine.lock();
-    _name = toml::find<std::string>(*engine->get_config(), "p2p", "name");
+    const auto config = this->connect_cxt_->config ? this->connect_cxt_->config : engine->get_config();
+    _name = toml::find<std::string>(*config, "p2p", "name");
     return _name;
 }
 

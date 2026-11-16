@@ -99,7 +99,7 @@ namespace mqas::core
         std::string alpn;
         std::string ssl_cert_path;
         std::string ssl_key_path;
-        short port = 0;
+        uint16_t port = 0;
         ::lsquic_engine_settings lsquic_settings = {};
     };
 
@@ -107,7 +107,7 @@ namespace mqas::core
 
     struct MQAS_EXTERN engine_cxt
     {
-        engine_cxt(io::Context& io_cxt, ::sockaddr& local_addr) : 
+        engine_cxt(io::Context& io_cxt, ::sockaddr& local_addr) :
         io_cxt(io_cxt),local_addr(local_addr){}
         EngineFlags engine_flags;
         io::Context& io_cxt;

@@ -5,6 +5,8 @@
 #include <mqas/io/udp.h>
 #include <mqas/io/exception.h>
 #include <filesystem>
+#include <algorithm>
+#include <cctype>
 
 namespace mqas::core {
 
@@ -40,7 +42,13 @@ namespace mqas::core {
 	{
 		if(initialized())
 			return true;
-		_golbal_conf = std::make_shared<toml::value>(toml::parse(conf));
+		return initialization(toml::parse(conf));
+	}
+
+	bool engine_driver::initialization(const toml::value& conf)
+	{
+		if (initialized()) return true;
+		_golbal_conf = std::make_shared<toml::value>(conf);
 		_engine_config = std::make_shared<engine_config>(toml::find<engine_config>(*_golbal_conf, "engine_config"));
 
 		init_logger();
@@ -402,7 +410,7 @@ namespace mqas::core {
 
 	///read lsquic setting from config
 #define CK_READ_SETTING(k,t,def) s.k = toml::find_or<t>(v, #k, def)
-#define CK_READ_SETTING_Str(k,def) if (v.contains(#k)) s.k = toml::find<std::string>(v, #k).c_str(); else s.k = #def
+#define CK_READ_SETTING_Str(k,def) if (v.contains(#k)) s.k = v.at(#k).as_string().c_str(); else s.k = def
 	void engine_driver::settings_from_toml(::lsquic_engine_settings& s, const toml::value& v,bool is_server)
 	{
 CK_READ_SETTING(es_versions, unsigned, LSQUIC_DF_VERSIONS);
@@ -482,6 +490,32 @@ CK_READ_SETTING(es_check_tp_sanity, int, LSQUIC_DF_CHECK_TP_SANITY); // Default:
 	}
 #undef CK_READ_SETTING
 #undef CK_READ_SETTING_Str
+
+	void engine_driver::init_settings(::lsquic_engine_settings& s, const toml::value& config, EngineFlags flags)
+	{
+		::lsquic_engine_init_settings(&s, static_cast<unsigned>(flags));
+		if (config.contains("lsquic_settings"))
+			settings_from_toml(s, config.at("lsquic_settings"), (static_cast<unsigned>(flags) & static_cast<unsigned>(EngineFlags::Server)) != 0);
+	}
+
+	void engine_driver::normalize_engine_config(std::shared_ptr<toml::value>& config, const char* source_file)
+	{
+		auto& table = config->at("engine_config").as_table();
+		if (source_file && *source_file) for (const auto* name : {"ssl_cert_path", "ssl_key_path"})
+		{
+			auto it = table.find(name);
+			if (it != table.end() && it->second.is_string() && !it->second.as_string().empty())
+			{
+				preprocess_config_path(name, source_file, config);
+				it->second = std::filesystem::absolute(it->second.as_string()).lexically_normal().generic_string();
+			}
+		}
+		if (auto it = table.find("server_cert_sha256"); it != table.end() && it->second.is_string())
+		{
+			auto& pin = it->second.as_string();
+			std::transform(pin.begin(), pin.end(), pin.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+		}
+	}
 
 	void engine_driver::preprocess_config_path(const std::string& field_name,
 	                                            const std::string& config_file_path,

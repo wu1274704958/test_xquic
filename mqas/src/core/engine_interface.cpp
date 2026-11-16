@@ -14,11 +14,11 @@ void mqas::core::IEngine::on_init_socket(std::shared_ptr<io::UdpSocket> socket) 
 	socket_ = std::move(socket);
 }
 
-void mqas::core::IEngine::on_init_config(std::shared_ptr<toml::value> config) {
+void mqas::core::IEngine::on_init_config(std::shared_ptr<const toml::value> config) {
 	this->config = std::move(config);
 }
 
-void mqas::core::IEngine::on_init_engine_config(std::shared_ptr<mqas::core::engine_config> config)
+void mqas::core::IEngine::on_init_engine_config(std::shared_ptr<const mqas::core::engine_config> config)
 {
 	this->_engine_config = std::move(config);
 }
@@ -131,7 +131,7 @@ void mqas::core::IEngine::on_conncloseframe_received(lsquic_conn_t* c, int app_e
 #endif
 }
 
-const std::shared_ptr<toml::value> mqas::core::IEngine::get_config() const
+const std::shared_ptr<const toml::value> mqas::core::IEngine::get_config() const
 {
 	return config;
 }
@@ -141,7 +141,7 @@ const std::shared_ptr<mqas::io::UdpSocket> mqas::core::IEngine::get_socket() con
 	return socket_;
 }
 
-const std::shared_ptr<mqas::core::engine_config> mqas::core::IEngine::get_engine_config() const
+const std::shared_ptr<const mqas::core::engine_config> mqas::core::IEngine::get_engine_config() const
 {
 	return _engine_config;
 }

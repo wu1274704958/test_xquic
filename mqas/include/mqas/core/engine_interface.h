@@ -23,8 +23,8 @@ namespace mqas::core
 		void init(std::shared_ptr<engine_cxt> cxt);
 		void on_new_lsquic_engine(::lsquic_engine_api&, EngineFlags);
 		void on_init_socket(std::shared_ptr<io::UdpSocket> socket);
-		void on_init_config(std::shared_ptr<toml::value> config);
-		void on_init_engine_config(std::shared_ptr<engine_config> config);
+		void on_init_config(std::shared_ptr<const toml::value> config);
+		void on_init_engine_config(std::shared_ptr<const engine_config> config);
 		void on_init_logger();
 		bool on_recv(const std::optional<std::span<uint8_t>>& buf, ssize_t nread, const sockaddr* addr, unsigned flags);
 
@@ -43,9 +43,9 @@ namespace mqas::core
 		void on_new_token(lsquic_conn_t* c, const unsigned char* token, size_t token_size);
 		void on_reset(lsquic_stream_t* s, lsquic_stream_ctx_t* h, int how);
 		void on_conncloseframe_received(lsquic_conn_t* c, int app_error, uint64_t error_code, const char* reason, int reason_len);
-		const std::shared_ptr<toml::value> get_config() const;
+		const std::shared_ptr<const toml::value> get_config() const;
 		const std::shared_ptr<io::UdpSocket> get_socket() const;
-		const std::shared_ptr<engine_config> get_engine_config() const;
+		const std::shared_ptr<const engine_config> get_engine_config() const;
 	private:
 		friend struct detail::EngineTransportAccess;
 		void on_init_transport(void* peer_ctx, PeerAuthentication authentication) noexcept {
@@ -59,9 +59,9 @@ namespace mqas::core
 	protected:
 		void* connect_peer_context_ = nullptr;
 		PeerAuthentication authentication_policy_ = PeerAuthentication::None;
-		std::shared_ptr<toml::value> config;
+		std::shared_ptr<const toml::value> config;
 		std::shared_ptr<io::UdpSocket> socket_;
-		std::shared_ptr<engine_config> _engine_config;
+		std::shared_ptr<const engine_config> _engine_config;
 	};
 	namespace detail { struct EngineTransportAccess {
 		static void init(IEngine& engine, void* context, PeerAuthentication authentication) noexcept {

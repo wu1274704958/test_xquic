@@ -115,9 +115,9 @@ namespace mqas::tools::p2p {
         if (cxt->state == p2p::ConnectState::Ready)
         {
             std::optional<toml::value> relay_conf = {};
-            auto conf = connect_cxt_->engine_cxt_->engine.lock()->get_config();
+            const auto conf = connect_cxt_->config ? connect_cxt_->config : connect_cxt_->engine_cxt_->engine.lock()->get_config();
             if(conf->contains("p2p"))
-                relay_conf = conf->operator[]("p2p");
+                relay_conf = conf->at("p2p");
             locator->deposit_cxt<tools::controller::p2p_helper_controller>((size_t)_merge_id, _self->id, id, &connect_cxt_->engine_cxt_->io_cxt,relay_conf);
             auto controller = locator->get<tools::controller::p2p_helper_controller>((size_t)_merge_id);
             setup_event(*controller);

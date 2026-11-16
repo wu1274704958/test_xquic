@@ -177,7 +177,8 @@ namespace mqas::tools {
     std::optional<uint16_t> RelayStreamClient::try_load_datagram_min_size() const
     {
         auto e = connect_cxt_->engine_cxt_->engine.lock();
-        auto size = toml::find_or<int>(*e->get_config(),"relay","datagram_min_size",-1);
+        const auto config = connect_cxt_->config ? connect_cxt_->config : e->get_config();
+        auto size = toml::find_or<int>(*config,"relay","datagram_min_size",-1);
         if(size < 0)
             return {};
         else

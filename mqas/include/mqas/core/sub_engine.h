@@ -1,9 +1,11 @@
 #pragma once
 #include "engine_driver.h"
+#include "engine_settings.h"
 #include "engine_interface.h"
 #include "mqas/tools/peer_context_mgr.h"
 #include "core_concept.h"
 #include <array>
+#include <stdexcept>
 
 namespace mqas::core {
 	namespace detail { struct TlsAccess {
@@ -31,6 +33,12 @@ namespace mqas::core {
 		sub_engine& operator=(const sub_engine&) = delete;
 		void init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<SC> socket = nullptr,
 			std::shared_ptr<const TlsConfiguration> tls_context = nullptr) noexcept(false);
+		// The configuration is copied; source_file resolves relative paths.
+		void init(const toml::value& config, const char* source_file, core::EngineFlags engine_flags,
+			std::shared_ptr<SC> socket = nullptr, std::shared_ptr<const TlsConfiguration> tls_context = nullptr) noexcept(false);
+		[[nodiscard]] const sockaddr& get_local_addr() const { return _local_addr; }
+		[[nodiscard]] EngineSettingsView get_settings_view() const { if (!_settings_ready) throw std::logic_error("engine not initialized"); return make_engine_settings_view(_local_addr, *_conf, *_conf_origin, _engine_flags, _tls_context.get()); }
+		[[nodiscard]] const EngineSettingsHash& get_settings_hash() const { if (!_settings_ready) throw std::logic_error("engine not initialized"); return _settings_hash; }
 		void process_conns() const;
 		void process_conns_lazy() const;
 		void start_recv();
@@ -45,7 +53,7 @@ namespace mqas::core {
 		void init_timer();
 		void init_context();
 
-		void init_config(const char* conf_file, core::EngineFlags engine_flags);
+		void init_config(const toml::value& config, const char* conf_file, core::EngineFlags engine_flags);
 		bool has_engine_setting() const;
 		void close_timer();
 		///// lsquic event
@@ -75,6 +83,8 @@ namespace mqas::core {
 		io::Timer* _proc_conns_timer;
 		std::shared_ptr<engine_config> _conf;
 		std::shared_ptr<toml::value> _conf_origin;
+		EngineSettingsHash _settings_hash{};
+		bool _settings_ready = false;
 		::lsquic_engine* _engine = nullptr;
 		EngineFlags _engine_flags;
 		::sockaddr _local_addr = {};

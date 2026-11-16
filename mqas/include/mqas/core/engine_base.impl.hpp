@@ -44,6 +44,8 @@ lsquic_engine_api_(oth.lsquic_engine_api_),lsquic_stream_if_(oth.lsquic_stream_i
 	socket_ = oth.socket_;
 	oth.socket_ = nullptr;
 
+	settings_hash_ = oth.settings_hash_;
+	settings_ready_ = oth.settings_ready_;
 	proc_conns_timer_ = oth.proc_conns_timer_;
 	oth.proc_conns_timer_ = nullptr;
 }
@@ -66,8 +68,13 @@ void mqas::core::engine_base<E,ED,SC>::init_socket(std::shared_ptr<io::UdpSocket
 ENGINE_BASE_TEMPLATE_DECL
 void mqas::core::engine_base<E,ED,SC>::init(const char* conf_file, core::EngineFlags engine_flags, std::shared_ptr<io::UdpSocket> socket)
 {
-	//parse config 
-	init_config(conf_file);
+	init(toml::parse(conf_file), conf_file, engine_flags, std::move(socket));
+}
+
+ENGINE_BASE_TEMPLATE_DECL
+void mqas::core::engine_base<E,ED,SC>::init(const toml::value& config, const char* source_file, core::EngineFlags engine_flags, std::shared_ptr<io::UdpSocket> socket)
+{
+	init_config(config, source_file);
 	
 	init_lsquic();
 
@@ -92,9 +99,10 @@ void mqas::core::engine_base<E,ED,SC>::init(const char* conf_file, core::EngineF
 }
 
 ENGINE_BASE_TEMPLATE_DECL
-void mqas::core::engine_base<E,ED,SC>::init_config(const char* conf_file)
+void mqas::core::engine_base<E,ED,SC>::init_config(const toml::value& config, const char* source_file)
 {
-	conf_origin_ = std::make_shared<toml::value>(toml::parse(conf_file));
+	conf_origin_ = std::make_shared<toml::value>(config);
+	engine_driver::normalize_engine_config(conf_origin_, source_file);
 	conf_ = std::make_shared<engine_config>(toml::find<engine_config>(*conf_origin_, "engine_config"));
 }
 
@@ -117,14 +125,8 @@ void mqas::core::engine_base<E,ED,SC>::init_engine_core()
 	lsquic_engine_api_.ea_stream_if = &lsquic_stream_if_;
 	lsquic_engine_api_.ea_stream_if_ctx = engine_extern_.get();
 
-	if (has_engine_setting())
-	{
-		::lsquic_engine_init_settings(&conf_->lsquic_settings, static_cast<unsigned>(engine_flags_));
-		engine_driver::settings_from_toml(conf_->lsquic_settings, conf_origin_->at("lsquic_settings"),
-			comm::contain<uint32_t>(engine_flags_, EngineFlags::Server));
-
-		lsquic_engine_api_.ea_settings = &conf_->lsquic_settings;
-	}
+	engine_driver::init_settings(conf_->lsquic_settings, *conf_origin_, engine_flags_);
+	lsquic_engine_api_.ea_settings = &conf_->lsquic_settings;
 
 	if (comm::contain<uint32_t>(engine_flags_, EngineFlags::Server))
 	{
@@ -150,6 +152,13 @@ void mqas::core::engine_base<E,ED,SC>::init_engine_core()
 	}
 
 	engine_extern_->on_new_lsquic_engine(lsquic_engine_api_, engine_flags_);
+	if (!lsquic_engine_api_.ea_settings)
+			::lsquic_engine_init_settings(&conf_->lsquic_settings, static_cast<unsigned>(engine_flags_));
+		else if (lsquic_engine_api_.ea_settings != &conf_->lsquic_settings)
+		conf_->lsquic_settings = *lsquic_engine_api_.ea_settings;
+	lsquic_engine_api_.ea_settings = &conf_->lsquic_settings;
+	settings_hash_ = EngineSettingsHasher{}(make_engine_settings_view(local_addr_, *conf_, *conf_origin_, engine_flags_));
+
 	engine_ = lsquic_engine_new(static_cast<unsigned>(engine_flags_), &lsquic_engine_api_);
 	if (engine_ == nullptr)
 	{
@@ -157,6 +166,7 @@ void mqas::core::engine_base<E,ED,SC>::init_engine_core()
 		throw std::runtime_error("Create engine failed!");
 	}
 	LOG(INFO) << "Create engine success!";
+	settings_ready_ = true;
 
 	engine_extern_->on_init_config(conf_origin_);
 	engine_extern_->on_init_engine_config(conf_);
