@@ -32,11 +32,21 @@ mqas::core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_local_change_msg_
         return mqas::core::StreamVariantErrcode::failed;
 
     _self_id = self_id.value();
+    auto locator = comm::locator::inst();
+    auto registry = locator->get<std::shared_ptr<DirectStreamRegistry>>(connect);
+    if (!registry) {
+        locator->deposit_cxt<std::shared_ptr<DirectStreamRegistry>>(connect, std::make_shared<DirectStreamRegistry>());
+        registry = locator->get<std::shared_ptr<DirectStreamRegistry>>(connect);
+    }
+    const auto& connection_registry = registry->get();
+    _local_stream_id = msg->stream_id();
+    _entry = connection_registry->reserve_local(this->get_origin(), _local_stream_id);
+    if (!_entry) return core::StreamVariantErrcode::failed;
     msg->set_peer_id(_self_id);
     msg->clear_token();
 
-    const auto result = comm::locator::inst()->get<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(connect);
     mqas::core::ProtoBufMsg::write_msg<ReqDirectConnectPair>(ret_buf, *msg);
+    _awaiting_direct_ack = true;
     return mqas::core::StreamVariantErrcode::ok;
 }
 
@@ -62,6 +72,7 @@ template<typename S,typename... MSG>
 void P2PDirectStream<S,MSG...>::on_disconnected(const std::string& reason)
 {
     _connected = false;
+    release_stream_id();
     on_disconnected_signal.emit(reason,_peer_id);
 }
 
@@ -97,6 +108,7 @@ core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_change_msg_s(
     {                                                                                       \
         resp.set_code(C);                                                                   \
         core::ProtoBufMsg::write_msg<RespondDirectConnectPair>(ret_buf, resp);              \
+        release_stream_id();                                                                \
         on_connect_failed(C);                                                               \
         return core::StreamVariantErrcode::failed;                                          \
     }
@@ -117,6 +129,24 @@ core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_change_msg_s(
     if (!result || !result.value().get() || result.value().get()->peer_id() != req->peer_id())
         RESP_CODE(proto::p2p_client::id_not_found)
 
+    auto locator = comm::locator::inst();
+    auto registry = locator->get<std::shared_ptr<DirectStreamRegistry>>(connect);
+    if (!registry) {
+        locator->deposit_cxt<std::shared_ptr<DirectStreamRegistry>>(connect, std::make_shared<DirectStreamRegistry>());
+        registry = locator->get<std::shared_ptr<DirectStreamRegistry>>(connect);
+    }
+    _peer_stream_id = req->stream_id();
+    _local_stream_id = _peer_stream_id;
+    std::string reason;
+    if (!_peer_stream_id) { resp.set_reason("missing stream identifier"); RESP_CODE(proto::p2p_client::refused_by_peer) }
+    const auto& connection_registry = registry->get();
+    _entry = connection_registry->reserve_peer(this->get_origin(), _peer_stream_id);
+    if (!_entry) { resp.set_reason("duplicate peer stream identifier"); RESP_CODE(proto::p2p_client::already_connected) }
+    const auto policy = locator->get<DirectStreamPolicy>(connect);
+    if (policy && !policy->get()(this->get_origin(), _peer_stream_id, _local_stream_id, reason)) {
+        if (reason.size() > 1024) reason = "stream rejected";
+        resp.set_reason(reason); RESP_CODE(proto::p2p_client::refused_by_peer)
+    }
     bool accepted = true;
     if (!on_connect_request_signal.empty())
         accepted = on_connect_request_signal.emit(req);
@@ -124,10 +154,18 @@ core::StreamVariantErrcode P2PDirectStream<S,MSG...>::on_change_msg_s(
     if (!accepted)
         RESP_CODE(proto::p2p_client::refused_by_peer)
 
+    // Callbacks may close the connection and clear its locator context.
+    const auto live_registry = locator->get<std::shared_ptr<DirectStreamRegistry>>(connect);
+    if (!live_registry || !live_registry->get()) RESP_CODE(proto::p2p_client::unknown_error)
+    if (!live_registry->get()->complete(_entry, _local_stream_id, _peer_stream_id)) {
+        resp.set_reason("invalid or duplicate stream identifier"); RESP_CODE(proto::p2p_client::already_connected)
+    }
+
     _peer_id = req->peer_id();
     resp.set_code(proto::p2p_client::ok);
     resp.set_name(get_name());
     resp.set_peer_id(_self_id);
+    resp.set_stream_id(_local_stream_id);
     core::ProtoBufMsg::write_msg<RespondDirectConnectPair>(ret_buf, resp);
     _peer_name = req->name();
 
@@ -142,18 +180,29 @@ template<typename S,typename... MSG>
 void P2PDirectStream<S,MSG...>::on_peer_change_ack_msg_s(core::StreamVariantErrcode code,
     const std::shared_ptr<proto::p2p_client::RespondDirectConnect>& msg)
 {
+    if (!msg) return;
+    _awaiting_direct_ack = false;
     LOG(INFO) << "[P2PDirectStream] on_connect_result code=" << static_cast<int>(code)
               << " ret=" << static_cast<int>(msg->code());
 
-    if (code == core::StreamVariantErrcode::ok)
+    const auto connect = this->connect.lock();
+    const auto result = connect ? comm::locator::inst()->get<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(connect) : std::nullopt;
+    const auto registry = connect ? comm::locator::inst()->get<std::shared_ptr<DirectStreamRegistry>>(connect) : std::nullopt;
+    if (code == core::StreamVariantErrcode::ok && msg->code() == proto::p2p_client::ok &&
+        result && result.value().get() && result.value().get()->peer_id() == msg->peer_id() &&
+        registry && registry->get() && registry->get()->complete(_entry, _local_stream_id, msg->stream_id()))
     {
+        _peer_stream_id = msg->stream_id();
         _peer_id = msg->peer_id();
         _peer_name = msg->name();
         on_connected(_peer_name);
     }
     else
     {
-        on_connect_failed(msg->code());
+        release_stream_id();
+        on_rejected_signal.emit(msg->reason());
+        on_connect_failed(msg->code() == proto::p2p_client::ok ? proto::p2p_client::refused_by_peer : msg->code());
+        if (code == core::StreamVariantErrcode::ok) this->close();
     }
 }
 

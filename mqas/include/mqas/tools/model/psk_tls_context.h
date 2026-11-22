@@ -2,6 +2,8 @@
 
 #include <mqas/macro.h>
 #include <cstdint>
+#include <array>
+#include <string>
 #include <memory>
 #include <span>
 #include <string_view>
@@ -10,6 +12,13 @@
 #include <mqas/core/tls_configuration.h>
 
 namespace mqas::tools::p2p {
+struct PskCredentialView {
+    std::span<const unsigned char> secret, identity;
+    uint32_t self, peer;
+};
+MQAS_EXTERN std::string psk_server_name(std::span<const unsigned char> identity);
+MQAS_EXTERN std::shared_ptr<const core::TlsConfiguration> make_psk_server_context(
+    std::span<const PskCredentialView> credentials, std::string_view alpn);
 // Creates a TLS 1.3 external-PSK-only context. Both peers must supply the
 // same credential, peer IDs, and ALPN. No certificate fallback is configured.
 MQAS_EXTERN std::shared_ptr<const core::TlsConfiguration> make_psk_tls_context(

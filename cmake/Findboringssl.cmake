@@ -56,13 +56,15 @@ if(TRUE)
     check_cxx_source_compiles("#include <openssl/ssl.h>
         int main() {
             auto *credential = SSL_CREDENTIAL_new_pre_shared_key(nullptr, 0, nullptr, 0, nullptr, nullptr, 0);
+            size_t len = 0;
+            (void) SSL_CREDENTIAL_get0_pre_shared_key_id(SSL_get0_selected_credential(nullptr), &len);
             SSL_CREDENTIAL_free(credential);
             return 0;
         }" MQAS_BORINGSSL_HAS_EXTERNAL_PSK)
     set(CMAKE_REQUIRED_INCLUDES "${_mqas_saved_required_includes}")
     set(CMAKE_REQUIRED_LIBRARIES "${_mqas_saved_required_libraries}")
     if(NOT MQAS_BORINGSSL_HAS_EXTERNAL_PSK)
-        message(FATAL_ERROR "BoringSSL lacks TLS 1.3 external PSK support. Set SSL_PATH to a matching BoringSSL installation with SSL_CREDENTIAL_new_pre_shared_key.")
+        message(FATAL_ERROR "BoringSSL lacks TLS 1.3 external PSK credential support. Set SSL_PATH to a matching installation with SSL_CREDENTIAL_new_pre_shared_key and SSL_CREDENTIAL_get0_pre_shared_key_id.")
     endif()
 endif()
 

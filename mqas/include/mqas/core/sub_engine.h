@@ -42,6 +42,13 @@ namespace mqas::core {
 		void process_conns() const;
 		void process_conns_lazy() const;
 		void start_recv();
+		// Replace the context used for new handshakes on the I/O thread.
+		void set_tls_context(std::shared_ptr<const TlsConfiguration> tls) {
+			if (!tls || !_tls_context || tls->authentication() != _tls_context->authentication())
+				throw std::invalid_argument("incompatible TLS context");
+			_ssl_ctx = detail::TlsAccess::native(*tls);
+			_tls_context = std::move(tls);
+		}
 		std::shared_ptr<E> get_engine() const;
 		void close();
 		[[nodiscard]] ::lsquic_engine* get_origin() const override { return _engine;}

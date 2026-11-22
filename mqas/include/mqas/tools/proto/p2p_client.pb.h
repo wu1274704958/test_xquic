@@ -476,8 +476,10 @@ class MQAS_EXTERN RespondDirectConnect final : public ::google::protobuf::Messag
   // accessors -------------------------------------------------------
   enum : int {
     kNameFieldNumber = 2,
+    kReasonFieldNumber = 5,
     kCodeFieldNumber = 1,
     kPeerIdFieldNumber = 3,
+    kStreamIdFieldNumber = 4,
   };
   // string name = 2;
   void clear_name() ;
@@ -492,6 +494,21 @@ class MQAS_EXTERN RespondDirectConnect final : public ::google::protobuf::Messag
   const std::string& _internal_name() const;
   PROTOBUF_ALWAYS_INLINE void _internal_set_name(const std::string& value);
   std::string* PROTOBUF_NONNULL _internal_mutable_name();
+
+  public:
+  // string reason = 5;
+  void clear_reason() ;
+  const std::string& reason() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_reason(Arg_&& arg, Args_... args);
+  std::string* PROTOBUF_NONNULL mutable_reason();
+  [[nodiscard]] std::string* PROTOBUF_NULLABLE release_reason();
+  void set_allocated_reason(std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const std::string& _internal_reason() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_reason(const std::string& value);
+  std::string* PROTOBUF_NONNULL _internal_mutable_reason();
 
   public:
   // .mqas.tools.proto.p2p_client.RetCode code = 1;
@@ -514,12 +531,22 @@ class MQAS_EXTERN RespondDirectConnect final : public ::google::protobuf::Messag
   void _internal_set_peer_id(::uint32_t value);
 
   public:
+  // uint32 stream_id = 4;
+  void clear_stream_id() ;
+  ::uint32_t stream_id() const;
+  void set_stream_id(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_stream_id() const;
+  void _internal_set_stream_id(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p_client.RespondDirectConnect)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
-                                   0, 61,
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
+                                   0, 67,
                                    2>
       _table_;
 
@@ -541,8 +568,10 @@ class MQAS_EXTERN RespondDirectConnect final : public ::google::protobuf::Messag
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr name_;
+    ::google::protobuf::internal::ArenaStringPtr reason_;
     int code_;
     ::uint32_t peer_id_;
+    ::uint32_t stream_id_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -895,6 +924,7 @@ class MQAS_EXTERN RequestDirectConnect final : public ::google::protobuf::Messag
     kNameFieldNumber = 2,
     kTokenFieldNumber = 1,
     kPeerIdFieldNumber = 3,
+    kStreamIdFieldNumber = 4,
   };
   // string name = 2;
   void clear_name() ;
@@ -936,11 +966,21 @@ class MQAS_EXTERN RequestDirectConnect final : public ::google::protobuf::Messag
   void _internal_set_peer_id(::uint32_t value);
 
   public:
+  // uint32 stream_id = 4;
+  void clear_stream_id() ;
+  ::uint32_t stream_id() const;
+  void set_stream_id(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_stream_id() const;
+  void _internal_set_stream_id(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p_client.RequestDirectConnect)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
                                    1, 61,
                                    2>
       _table_;
@@ -965,6 +1005,7 @@ class MQAS_EXTERN RequestDirectConnect final : public ::google::protobuf::Messag
     ::google::protobuf::internal::ArenaStringPtr name_;
     ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE token_;
     ::uint32_t peer_id_;
+    ::uint32_t stream_id_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -1171,6 +1212,30 @@ inline void RequestDirectConnect::_internal_set_peer_id(::uint32_t value) {
   _impl_.peer_id_ = value;
 }
 
+// uint32 stream_id = 4;
+inline void RequestDirectConnect::clear_stream_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.stream_id_ = 0u;
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline ::uint32_t RequestDirectConnect::stream_id() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p_client.RequestDirectConnect.stream_id)
+  return _internal_stream_id();
+}
+inline void RequestDirectConnect::set_stream_id(::uint32_t value) {
+  _internal_set_stream_id(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p_client.RequestDirectConnect.stream_id)
+}
+inline ::uint32_t RequestDirectConnect::_internal_stream_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.stream_id_;
+}
+inline void RequestDirectConnect::_internal_set_stream_id(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.stream_id_ = value;
+}
+
 // -------------------------------------------------------------------
 
 // RespondDirectConnect
@@ -1179,7 +1244,7 @@ inline void RequestDirectConnect::_internal_set_peer_id(::uint32_t value) {
 inline void RespondDirectConnect::clear_code() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.code_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000002u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
 }
 inline ::mqas::tools::proto::p2p_client::RetCode RespondDirectConnect::code() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p_client.RespondDirectConnect.code)
@@ -1187,7 +1252,7 @@ inline ::mqas::tools::proto::p2p_client::RetCode RespondDirectConnect::code() co
 }
 inline void RespondDirectConnect::set_code(::mqas::tools::proto::p2p_client::RetCode value) {
   _internal_set_code(value);
-  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_._has_bits_[0] |= 0x00000004u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p_client.RespondDirectConnect.code)
 }
 inline ::mqas::tools::proto::p2p_client::RetCode RespondDirectConnect::_internal_code() const {
@@ -1268,7 +1333,7 @@ inline void RespondDirectConnect::set_allocated_name(std::string* PROTOBUF_NULLA
 inline void RespondDirectConnect::clear_peer_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.peer_id_ = 0u;
-  _impl_._has_bits_[0] &= ~0x00000004u;
+  _impl_._has_bits_[0] &= ~0x00000008u;
 }
 inline ::uint32_t RespondDirectConnect::peer_id() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p_client.RespondDirectConnect.peer_id)
@@ -1276,7 +1341,7 @@ inline ::uint32_t RespondDirectConnect::peer_id() const {
 }
 inline void RespondDirectConnect::set_peer_id(::uint32_t value) {
   _internal_set_peer_id(value);
-  _impl_._has_bits_[0] |= 0x00000004u;
+  _impl_._has_bits_[0] |= 0x00000008u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p_client.RespondDirectConnect.peer_id)
 }
 inline ::uint32_t RespondDirectConnect::_internal_peer_id() const {
@@ -1286,6 +1351,95 @@ inline ::uint32_t RespondDirectConnect::_internal_peer_id() const {
 inline void RespondDirectConnect::_internal_set_peer_id(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.peer_id_ = value;
+}
+
+// uint32 stream_id = 4;
+inline void RespondDirectConnect::clear_stream_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.stream_id_ = 0u;
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline ::uint32_t RespondDirectConnect::stream_id() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p_client.RespondDirectConnect.stream_id)
+  return _internal_stream_id();
+}
+inline void RespondDirectConnect::set_stream_id(::uint32_t value) {
+  _internal_set_stream_id(value);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p_client.RespondDirectConnect.stream_id)
+}
+inline ::uint32_t RespondDirectConnect::_internal_stream_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.stream_id_;
+}
+inline void RespondDirectConnect::_internal_set_stream_id(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.stream_id_ = value;
+}
+
+// string reason = 5;
+inline void RespondDirectConnect::clear_reason() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.reason_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline const std::string& RespondDirectConnect::reason() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p_client.RespondDirectConnect.reason)
+  return _internal_reason();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void RespondDirectConnect::set_reason(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_.reason_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p_client.RespondDirectConnect.reason)
+}
+inline std::string* PROTOBUF_NONNULL RespondDirectConnect::mutable_reason()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_reason();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p_client.RespondDirectConnect.reason)
+  return _s;
+}
+inline const std::string& RespondDirectConnect::_internal_reason() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.reason_.Get();
+}
+inline void RespondDirectConnect::_internal_set_reason(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_.reason_.Set(value, GetArena());
+}
+inline std::string* PROTOBUF_NONNULL RespondDirectConnect::_internal_mutable_reason() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  return _impl_.reason_.Mutable( GetArena());
+}
+inline std::string* PROTOBUF_NULLABLE RespondDirectConnect::release_reason() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p_client.RespondDirectConnect.reason)
+  if ((_impl_._has_bits_[0] & 0x00000002u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  auto* released = _impl_.reason_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.reason_.Set("", GetArena());
+  }
+  return released;
+}
+inline void RespondDirectConnect::set_allocated_reason(std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  _impl_.reason_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.reason_.IsDefault()) {
+    _impl_.reason_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p_client.RespondDirectConnect.reason)
 }
 
 // -------------------------------------------------------------------

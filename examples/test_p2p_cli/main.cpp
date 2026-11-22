@@ -651,6 +651,7 @@ void tui::on_new_p2p_stream(std::shared_ptr<P2PStreamType> stream, bool is_serve
 	}
 	else {
 		tools::proto::p2p_client::RequestDirectConnect req;
+		req.set_stream_id(1);
 		req.set_peer_id(helper_result->peer_id());
 		if (stream->req_change<P2PChatStream, tools::p2p_direct::ReqDirectConnectPair>(req))
 		{

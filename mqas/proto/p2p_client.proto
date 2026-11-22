@@ -19,12 +19,15 @@ message RequestDirectConnect {
     common.UUID token = 1;
 	string name = 2;
     uint32 peer_id = 3;
+    uint32 stream_id = 4;
 }
 
 message RespondDirectConnect {
     RetCode code = 1;
 	string name = 2;
 	uint32 peer_id = 3;
+    uint32 stream_id = 4;
+    string reason = 5;
 }
 
 message RequestDirectQuit {
