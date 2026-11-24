@@ -70,6 +70,13 @@ namespace mqas::tools::controller {
 			notify_failed(_peer_list[1]->id, std::string("Unable to create session credential"));
 			return;
 		}
+		if (auto model = comm::locator::inst()->get<p2p::p2p_model>()) {
+			const auto* credential = _cxt->get_tls_credential();
+			const auto server = _cxt->select_server();
+			const auto client = p2p::other(_cxt->pid, server);
+			const auto& id = credential->negotiation_id();
+			model->get().track_ready(std::string(reinterpret_cast<const char*>(id.data()), id.size()), server, client, credential->expires_at_ms());
+		}
 		notify_success(_peer_list[0]->id);
 		notify_success(_peer_list[1]->id);
 	}
@@ -227,13 +234,14 @@ namespace mqas::tools::controller {
 		mqas::tools::proto::p2p::NotifyConnectResult msg;
 		msg.set_peer_id(tools::p2p::other(_cxt->pid, id));
 		msg.set_ret(mqas::tools::proto::p2p::RetCode::ok);
-		msg.set_is_server(idx == 0);
+		msg.set_is_server(id == _cxt->select_server());
 		const auto* credential = _cxt->get_tls_credential();
 		if (!credential) return;
 		msg.set_psk_identity(credential->identity().data(), credential->identity().size());
 		msg.set_psk_secret(credential->secret().data(), credential->secret().size());
 		msg.set_psk_issued_at_ms(credential->issued_at_ms());
 		msg.set_psk_expires_at_ms(credential->expires_at_ms());
+		msg.set_negotiation_id(credential->negotiation_id().data(), credential->negotiation_id().size());
 		if (has_relay_config() && always_use_relay())
 			append_relay(id,msg);
 		else{
@@ -260,7 +268,7 @@ namespace mqas::tools::controller {
 		if (has_relay_config())
 		{
 			append_relay(id,msg);
-			msg.set_is_server(idx == 0);
+			msg.set_is_server(id == _cxt->select_server());
 		}
 		_notify_connect_result[idx](msg);
 	}

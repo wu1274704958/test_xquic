@@ -2,6 +2,11 @@
 #include "mqas/core/protobuf_msg.h"
 
 namespace mqas::tools::p2p {
+	void P2PLobbyClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyP2PServerReady>& msg) { on_server_ready.emit(msg); }
+	bool P2PLobbyClientStream::notify_server_ready(uint32_t peer, const std::string& negotiation) {
+		proto::p2p::ReqP2PServerReady msg; msg.set_peer_id(peer); msg.set_negotiation_id(negotiation);
+		return send<ReqP2PServerReadyPair>(msg);
+	}
 
 
 	core::StreamVariantErrcode mqas::tools::p2p::P2PLobbyClientStream::on_local_change_msg_s(const std::shared_ptr<proto::p2p::ReqRegistePeer>& msg, std::vector<uint8_t>& ret)
@@ -50,7 +55,7 @@ namespace mqas::tools::p2p {
 		send<ReqPeerListPair>(msg);
 	}
 
-	bool P2PLobbyClientStream::req_connect(uint32_t peer_id)
+	bool P2PLobbyClientStream::req_connect(uint32_t peer_id, proto::p2p::ServerPreference preference)
 	{
 		auto conn = connect.lock();
 		if (!conn || conn->security_info().handshake != core::HandshakeState::Succeeded ||
@@ -58,6 +63,8 @@ namespace mqas::tools::p2p {
 		proto::p2p::ReqConnectPeer msg;
 		msg.set_peer_id(peer_id);
 		msg.set_auth_version(1);
+		msg.set_server_preference(preference);
+		pending_preferences[peer_id] = preference;
 		send<ReqConnectPeerPair>(msg);
 		return true;
 	}
@@ -82,6 +89,10 @@ namespace mqas::tools::p2p {
 			proto::p2p::ReqConnectPeer req_msg;
 			req_msg.set_peer_id(msg->peer_id());
 			req_msg.set_auth_version(1);
+			if (const auto it = pending_preferences.find(msg->peer_id()); it != pending_preferences.end()) {
+				req_msg.set_server_preference(it->second);
+				pending_preferences.erase(it);
+			}
 			proto::p2p::ClientIpList* ip_list = req_msg.mutable_ip_list();
 			if (!get_ip_list(*ip_list))
 			{
@@ -92,7 +103,7 @@ namespace mqas::tools::p2p {
 				on_change_helper_by_req(req_msg);
 			else
 				LOG(ERROR) << "p2p lobby client on_change_helper_by_req not set";
-		}
+		} else pending_preferences.erase(msg->peer_id());
 	}
 
 	bool P2PLobbyClientStream::get_ip_list(proto::p2p::ClientIpList& res) const
@@ -115,7 +126,7 @@ namespace mqas::tools::p2p {
 		return true;
 	}
 
-	void P2PLobbyClientStream::req_respond(uint32_t id, bool agree)
+	void P2PLobbyClientStream::req_respond(uint32_t id, bool agree, proto::p2p::ServerPreference preference)
 	{
 		auto conn = connect.lock();
 		if (agree && (!conn || conn->security_info().handshake != core::HandshakeState::Succeeded ||
@@ -126,6 +137,7 @@ namespace mqas::tools::p2p {
 		proto::p2p::ReqRespondPeerReqConnect ret;
 		ret.set_peer_id(id);
 		ret.set_auth_version(1);
+		ret.set_server_preference(preference);
 		auto ip_list = ret.mutable_ip_list();
 		if (agree)
 		{

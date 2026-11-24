@@ -34,6 +34,8 @@ namespace mqas::tools::p2p {
     using NotifyConnectPeerDataPair = core::PBMsgPair<16, proto::p2p::NotifyConnectPeerData>;
     using ReqSubmitRecvPeerKeyCodePair = core::PBMsgPair<17, proto::p2p::ReqSubmitRecvPeerKeyCode>;
     using NotifyConnectResultPair = core::PBMsgPair<18, proto::p2p::NotifyConnectResult>;
+    using ReqP2PServerReadyPair = core::PBMsgPair<19, proto::p2p::ReqP2PServerReady>;
+    using NotifyP2PServerReadyPair = core::PBMsgPair<20, proto::p2p::NotifyP2PServerReady>;
 
 }
 

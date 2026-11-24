@@ -63,8 +63,8 @@ namespace mqas::tools::p2p {
 
     core::StreamVariantErrcode P2PHelperStream::on_change_msg_s(const std::shared_ptr<proto::p2p::ReqConnectPeer>& msg, std::vector<uint8_t>& ret)
     {
-		if (msg->auth_version() != 1) return core::StreamVariantErrcode::failed;
-        const auto res = on_peer_connect(msg->peer_id(),msg->ip_list());
+		if (msg->auth_version() != 1 || !proto::p2p::ServerPreference_IsValid(msg->server_preference())) return core::StreamVariantErrcode::failed;
+        const auto res = on_peer_connect(msg->peer_id(),msg->ip_list(), msg->server_preference(), true);
         proto::p2p::RespondConnectPeer ret_msg;
         ret_msg.set_peer_id(msg->peer_id());
         ret_msg.set_ret(res == core::StreamVariantErrcode::ok ? proto::p2p::RetCode::ok : proto::p2p::RetCode::failed);
@@ -76,11 +76,11 @@ namespace mqas::tools::p2p {
     core::StreamVariantErrcode P2PHelperStream::on_change_msg_s(const std::shared_ptr<proto::p2p::ReqRespondPeerReqConnect>& msg,
         std::vector<uint8_t>& ret)
     {
-		if (msg->auth_version() != 1) return core::StreamVariantErrcode::failed;
+		if (msg->auth_version() != 1 || !proto::p2p::ServerPreference_IsValid(msg->server_preference())) return core::StreamVariantErrcode::failed;
 		auto model = comm::locator::inst()->get<p2p_model>();
 		if (!model)return core::StreamVariantErrcode::failed;
 
-		const auto res = on_peer_connect(msg->peer_id(), msg->ip_list());
+		const auto res = on_peer_connect(msg->peer_id(), msg->ip_list(), msg->server_preference(), false);
 		proto::p2p::RetCode ret_code = res == core::StreamVariantErrcode::ok ? proto::p2p::RetCode::ok : proto::p2p::RetCode::failed;
 		//send RespondConnectPeer to peer
 		if (ret_code == proto::p2p::RetCode::ok)
@@ -101,7 +101,7 @@ namespace mqas::tools::p2p {
         return res;
     }
 
-    core::StreamVariantErrcode P2PHelperStream::on_peer_connect(uint32_t id, const proto::p2p::ClientIpList & ip)
+    core::StreamVariantErrcode P2PHelperStream::on_peer_connect(uint32_t id, const proto::p2p::ClientIpList & ip, proto::p2p::ServerPreference preference, bool initiator)
     {
         _self = connect_cxt_->get_cxt<p2p::peer_data>();
         auto locator = locator::inst();
@@ -111,6 +111,8 @@ namespace mqas::tools::p2p {
 
         const p2p::connect_cxt* cxt;
         _merge_id = model.value().get().reg_context(_self->id, id, ip,this->weak_from_this(), &cxt);
+        if (!_merge_id || !cxt || !model.value().get().set_server_preference(_merge_id, _self->id, preference, initiator))
+            return core::StreamVariantErrcode::failed;
         _other_id = id;
         if (cxt->state == p2p::ConnectState::Ready)
         {

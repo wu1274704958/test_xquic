@@ -15,7 +15,7 @@ namespace mqas::tools::p2p {
 		ReqPeerListPair,RespondPeerListPair,
 		ReqConnectPeerPair,RespondConnectPeerPair,
 		NotifyPeerWantConnectPair,
-		ReqRespondPeerReqConnectPair
+		ReqRespondPeerReqConnectPair, ReqP2PServerReadyPair, NotifyP2PServerReadyPair
 	> {
 	public:
 		~P2PLobbyStream();
@@ -28,6 +28,8 @@ namespace mqas::tools::p2p {
 		void on_read_msg_s(const std::shared_ptr<proto::p2p::ReqPeerList>& msg);
 		void on_read_msg_s(const std::shared_ptr<proto::p2p::ReqConnectPeer>& msg);
 		void on_read_msg_s(const std::shared_ptr<proto::p2p::ReqRespondPeerReqConnect>& msg);
+		void on_read_msg_s(const std::shared_ptr<proto::p2p::ReqP2PServerReady>& msg);
+		bool notify_server_ready(uint32_t server, const std::string& negotiation);
 		void on_close();
 	protected:
 		void try_unregiste();

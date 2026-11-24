@@ -26,6 +26,7 @@ int main(int argc,const char** argv)
 		core::StreamVariantPair<1, mqas::tools::p2p::P2PLobbyStream>,
 		core::StreamVariantPair<2, mqas::tools::p2p::P2PHelperStream>>,
 		core::Connect,core::engine,core::engine_base>(io_cxt,"conf.txt",core::EngineFlags::Server);
+	if (!e) return 1;
 
 	io_cxt.run_until(IsRunning());
 	return 0;

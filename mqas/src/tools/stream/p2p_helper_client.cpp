@@ -2,6 +2,7 @@
 #include "mqas/core/proto/simple.h"
 
 namespace mqas::tools::p2p {
+	void P2PHelperClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyP2PServerReady>& msg) { on_server_ready.emit(msg); }
 	void P2PHelperClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectPeerData>& msg)
 	{
 		on_connect_peer.emit(msg);

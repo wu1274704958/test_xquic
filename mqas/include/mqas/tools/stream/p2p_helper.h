@@ -35,7 +35,7 @@ namespace mqas::tools::p2p {
 		void on_leave();
 		void on_timeout(io::Timer* t);
 		void stop_check_timeout();
-		core::StreamVariantErrcode on_peer_connect(uint32_t id,const proto::p2p::ClientIpList& ip);
+		core::StreamVariantErrcode on_peer_connect(uint32_t id,const proto::p2p::ClientIpList& ip, proto::p2p::ServerPreference preference, bool initiator);
 		void setup_event(mqas::tools::controller::p2p_helper_controller& controller) ;
 		void stop(std::optional<std::string> reason);
 		void send_connect(const proto::p2p::NotifyConnectPeerData& msg);

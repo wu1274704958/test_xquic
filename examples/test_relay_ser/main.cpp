@@ -24,6 +24,7 @@ int main(int argc,const char** argv)
 	auto e = mqas::comm::engine_util::launch_sub_engine<core::StreamVariant<
 		core::StreamVariantPair<1, mqas::tools::RelayStream>>,
 		core::Connect,core::engine,core::engine_base>(io_cxt,"conf.txt",core::EngineFlags::Server);
+	if (!e) return 1;
 
 	io_cxt.run_until(IsRunning());
 	return 0;

@@ -62,6 +62,8 @@ namespace proto {
 namespace p2p {
 enum RetCode : int;
 MQAS_EXTERN extern const uint32_t RetCode_internal_data_[];
+enum ServerPreference : int;
+MQAS_EXTERN extern const uint32_t ServerPreference_internal_data_[];
 class Address;
 struct AddressDefaultTypeInternal;
 MQAS_EXTERN extern AddressDefaultTypeInternal _Address_default_instance_;
@@ -82,6 +84,10 @@ class NotifyConnectResult;
 struct NotifyConnectResultDefaultTypeInternal;
 MQAS_EXTERN extern NotifyConnectResultDefaultTypeInternal _NotifyConnectResult_default_instance_;
 MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull NotifyConnectResult_class_data_;
+class NotifyP2PServerReady;
+struct NotifyP2PServerReadyDefaultTypeInternal;
+MQAS_EXTERN extern NotifyP2PServerReadyDefaultTypeInternal _NotifyP2PServerReady_default_instance_;
+MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull NotifyP2PServerReady_class_data_;
 class NotifyPeerWantConnect;
 struct NotifyPeerWantConnectDefaultTypeInternal;
 MQAS_EXTERN extern NotifyPeerWantConnectDefaultTypeInternal _NotifyPeerWantConnect_default_instance_;
@@ -94,6 +100,10 @@ class ReqConnectPeer;
 struct ReqConnectPeerDefaultTypeInternal;
 MQAS_EXTERN extern ReqConnectPeerDefaultTypeInternal _ReqConnectPeer_default_instance_;
 MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull ReqConnectPeer_class_data_;
+class ReqP2PServerReady;
+struct ReqP2PServerReadyDefaultTypeInternal;
+MQAS_EXTERN extern ReqP2PServerReadyDefaultTypeInternal _ReqP2PServerReady_default_instance_;
+MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull ReqP2PServerReady_class_data_;
 class ReqPeerList;
 struct ReqPeerListDefaultTypeInternal;
 MQAS_EXTERN extern ReqPeerListDefaultTypeInternal _ReqPeerList_default_instance_;
@@ -139,6 +149,9 @@ namespace protobuf {
 template <>
 internal::EnumTraitsT<::mqas::tools::proto::p2p::RetCode_internal_data_>
     internal::EnumTraitsImpl::value<::mqas::tools::proto::p2p::RetCode>;
+template <>
+internal::EnumTraitsT<::mqas::tools::proto::p2p::ServerPreference_internal_data_>
+    internal::EnumTraitsImpl::value<::mqas::tools::proto::p2p::ServerPreference>;
 }  // namespace protobuf
 }  // namespace google
 
@@ -183,6 +196,43 @@ inline const std::string& RetCode_Name(RetCode value) {
 inline bool RetCode_Parse(
     absl::string_view name, RetCode* PROTOBUF_NONNULL value) {
   return ::google::protobuf::internal::ParseNamedEnum<RetCode>(RetCode_descriptor(), name,
+                                           value);
+}
+enum ServerPreference : int {
+  SERVER_NO_PREFERENCE = 0,
+  SERVER_VOLUNTEER = 1,
+  SERVER_REUSABLE = 2,
+  ServerPreference_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      std::numeric_limits<::int32_t>::min(),
+  ServerPreference_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      std::numeric_limits<::int32_t>::max(),
+};
+
+MQAS_EXTERN extern const uint32_t ServerPreference_internal_data_[];
+inline constexpr ServerPreference ServerPreference_MIN =
+    static_cast<ServerPreference>(0);
+inline constexpr ServerPreference ServerPreference_MAX =
+    static_cast<ServerPreference>(2);
+inline bool ServerPreference_IsValid(int value) {
+  return 0 <= value && value <= 2;
+}
+inline constexpr int ServerPreference_ARRAYSIZE = 2 + 1;
+MQAS_EXTERN const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL ServerPreference_descriptor();
+template <typename T>
+const std::string& ServerPreference_Name(T value) {
+  static_assert(std::is_same<T, ServerPreference>::value ||
+                    std::is_integral<T>::value,
+                "Incorrect type passed to ServerPreference_Name().");
+  return ServerPreference_Name(static_cast<ServerPreference>(value));
+}
+template <>
+inline const std::string& ServerPreference_Name(ServerPreference value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<ServerPreference_descriptor, 0, 2>(
+      static_cast<int>(value));
+}
+inline bool ServerPreference_Parse(
+    absl::string_view name, ServerPreference* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<ServerPreference>(ServerPreference_descriptor(), name,
                                            value);
 }
 
@@ -1276,6 +1326,214 @@ class MQAS_EXTERN ReqPeerList final : public ::google::protobuf::internal::ZeroF
 MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull ReqPeerList_class_data_;
 // -------------------------------------------------------------------
 
+class MQAS_EXTERN ReqP2PServerReady final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:mqas.tools.proto.p2p.ReqP2PServerReady) */ {
+ public:
+  inline ReqP2PServerReady() : ReqP2PServerReady(nullptr) {}
+  ~ReqP2PServerReady() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ReqP2PServerReady* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ReqP2PServerReady));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ReqP2PServerReady(::google::protobuf::internal::ConstantInitialized);
+
+  inline ReqP2PServerReady(const ReqP2PServerReady& from) : ReqP2PServerReady(nullptr, from) {}
+  inline ReqP2PServerReady(ReqP2PServerReady&& from) noexcept
+      : ReqP2PServerReady(nullptr, std::move(from)) {}
+  inline ReqP2PServerReady& operator=(const ReqP2PServerReady& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ReqP2PServerReady& operator=(ReqP2PServerReady&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ReqP2PServerReady& default_instance() {
+    return *reinterpret_cast<const ReqP2PServerReady*>(
+        &_ReqP2PServerReady_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 15;
+  friend void swap(ReqP2PServerReady& a, ReqP2PServerReady& b) { a.Swap(&b); }
+  inline void Swap(ReqP2PServerReady* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ReqP2PServerReady* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ReqP2PServerReady* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ReqP2PServerReady>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ReqP2PServerReady& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ReqP2PServerReady& from) { ReqP2PServerReady::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ReqP2PServerReady* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "mqas.tools.proto.p2p.ReqP2PServerReady"; }
+
+ protected:
+  explicit ReqP2PServerReady(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ReqP2PServerReady(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ReqP2PServerReady& from);
+  ReqP2PServerReady(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ReqP2PServerReady&& from) noexcept
+      : ReqP2PServerReady(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kNegotiationIdFieldNumber = 2,
+    kPeerIdFieldNumber = 1,
+  };
+  // bytes negotiation_id = 2;
+  void clear_negotiation_id() ;
+  const std::string& negotiation_id() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_negotiation_id(Arg_&& arg, Args_... args);
+  std::string* PROTOBUF_NONNULL mutable_negotiation_id();
+  [[nodiscard]] std::string* PROTOBUF_NULLABLE release_negotiation_id();
+  void set_allocated_negotiation_id(std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const std::string& _internal_negotiation_id() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_negotiation_id(const std::string& value);
+  std::string* PROTOBUF_NONNULL _internal_mutable_negotiation_id();
+
+  public:
+  // uint32 peer_id = 1;
+  void clear_peer_id() ;
+  ::uint32_t peer_id() const;
+  void set_peer_id(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_peer_id() const;
+  void _internal_set_peer_id(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.ReqP2PServerReady)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ReqP2PServerReady& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr negotiation_id_;
+    ::uint32_t peer_id_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_p2p_2eproto;
+};
+
+MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull ReqP2PServerReady_class_data_;
+// -------------------------------------------------------------------
+
 class MQAS_EXTERN PeerData final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:mqas.tools.proto.p2p.PeerData) */ {
  public:
@@ -1482,6 +1740,214 @@ class MQAS_EXTERN PeerData final : public ::google::protobuf::Message
 };
 
 MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull PeerData_class_data_;
+// -------------------------------------------------------------------
+
+class MQAS_EXTERN NotifyP2PServerReady final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:mqas.tools.proto.p2p.NotifyP2PServerReady) */ {
+ public:
+  inline NotifyP2PServerReady() : NotifyP2PServerReady(nullptr) {}
+  ~NotifyP2PServerReady() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(NotifyP2PServerReady* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(NotifyP2PServerReady));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR NotifyP2PServerReady(::google::protobuf::internal::ConstantInitialized);
+
+  inline NotifyP2PServerReady(const NotifyP2PServerReady& from) : NotifyP2PServerReady(nullptr, from) {}
+  inline NotifyP2PServerReady(NotifyP2PServerReady&& from) noexcept
+      : NotifyP2PServerReady(nullptr, std::move(from)) {}
+  inline NotifyP2PServerReady& operator=(const NotifyP2PServerReady& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline NotifyP2PServerReady& operator=(NotifyP2PServerReady&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const NotifyP2PServerReady& default_instance() {
+    return *reinterpret_cast<const NotifyP2PServerReady*>(
+        &_NotifyP2PServerReady_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 16;
+  friend void swap(NotifyP2PServerReady& a, NotifyP2PServerReady& b) { a.Swap(&b); }
+  inline void Swap(NotifyP2PServerReady* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(NotifyP2PServerReady* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  NotifyP2PServerReady* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<NotifyP2PServerReady>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const NotifyP2PServerReady& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const NotifyP2PServerReady& from) { NotifyP2PServerReady::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(NotifyP2PServerReady* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "mqas.tools.proto.p2p.NotifyP2PServerReady"; }
+
+ protected:
+  explicit NotifyP2PServerReady(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  NotifyP2PServerReady(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const NotifyP2PServerReady& from);
+  NotifyP2PServerReady(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, NotifyP2PServerReady&& from) noexcept
+      : NotifyP2PServerReady(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kNegotiationIdFieldNumber = 2,
+    kPeerIdFieldNumber = 1,
+  };
+  // bytes negotiation_id = 2;
+  void clear_negotiation_id() ;
+  const std::string& negotiation_id() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_negotiation_id(Arg_&& arg, Args_... args);
+  std::string* PROTOBUF_NONNULL mutable_negotiation_id();
+  [[nodiscard]] std::string* PROTOBUF_NULLABLE release_negotiation_id();
+  void set_allocated_negotiation_id(std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const std::string& _internal_negotiation_id() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_negotiation_id(const std::string& value);
+  std::string* PROTOBUF_NONNULL _internal_mutable_negotiation_id();
+
+  public:
+  // uint32 peer_id = 1;
+  void clear_peer_id() ;
+  ::uint32_t peer_id() const;
+  void set_peer_id(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_peer_id() const;
+  void _internal_set_peer_id(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.NotifyP2PServerReady)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const NotifyP2PServerReady& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr negotiation_id_;
+    ::uint32_t peer_id_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_p2p_2eproto;
+};
+
+MQAS_EXTERN extern const ::google::protobuf::internal::ClassDataFull NotifyP2PServerReady_class_data_;
 // -------------------------------------------------------------------
 
 class MQAS_EXTERN ConnectPeerData final : public ::google::protobuf::Message
@@ -2415,7 +2881,7 @@ class MQAS_EXTERN ReqSubmitRecvPeerKeyCode final : public ::google::protobuf::Me
     return *reinterpret_cast<const ReqSubmitRecvPeerKeyCode*>(
         &_ReqSubmitRecvPeerKeyCode_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(ReqSubmitRecvPeerKeyCode& a, ReqSubmitRecvPeerKeyCode& b) { a.Swap(&b); }
   inline void Swap(ReqSubmitRecvPeerKeyCode* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2739,6 +3205,7 @@ class MQAS_EXTERN ReqRespondPeerReqConnect final : public ::google::protobuf::Me
     kPeerIdFieldNumber = 1,
     kAgreeFieldNumber = 2,
     kAuthVersionFieldNumber = 4,
+    kServerPreferenceFieldNumber = 5,
   };
   // optional .mqas.tools.proto.p2p.ClientIpList ip_list = 3;
   bool has_ip_list() const;
@@ -2785,11 +3252,21 @@ class MQAS_EXTERN ReqRespondPeerReqConnect final : public ::google::protobuf::Me
   void _internal_set_auth_version(::uint32_t value);
 
   public:
+  // .mqas.tools.proto.p2p.ServerPreference server_preference = 5;
+  void clear_server_preference() ;
+  ::mqas::tools::proto::p2p::ServerPreference server_preference() const;
+  void set_server_preference(::mqas::tools::proto::p2p::ServerPreference value);
+
+  private:
+  ::mqas::tools::proto::p2p::ServerPreference _internal_server_preference() const;
+  void _internal_set_server_preference(::mqas::tools::proto::p2p::ServerPreference value);
+
+  public:
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.ReqRespondPeerReqConnect)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 4,
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
                                    1, 0,
                                    2>
       _table_;
@@ -2815,6 +3292,7 @@ class MQAS_EXTERN ReqRespondPeerReqConnect final : public ::google::protobuf::Me
     ::uint32_t peer_id_;
     bool agree_;
     ::uint32_t auth_version_;
+    int server_preference_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -2970,6 +3448,7 @@ class MQAS_EXTERN ReqConnectPeer final : public ::google::protobuf::Message
     kIpListFieldNumber = 2,
     kPeerIdFieldNumber = 1,
     kAuthVersionFieldNumber = 3,
+    kServerPreferenceFieldNumber = 4,
   };
   // optional .mqas.tools.proto.p2p.ClientIpList ip_list = 2;
   bool has_ip_list() const;
@@ -3006,11 +3485,21 @@ class MQAS_EXTERN ReqConnectPeer final : public ::google::protobuf::Message
   void _internal_set_auth_version(::uint32_t value);
 
   public:
+  // .mqas.tools.proto.p2p.ServerPreference server_preference = 4;
+  void clear_server_preference() ;
+  ::mqas::tools::proto::p2p::ServerPreference server_preference() const;
+  void set_server_preference(::mqas::tools::proto::p2p::ServerPreference value);
+
+  private:
+  ::mqas::tools::proto::p2p::ServerPreference _internal_server_preference() const;
+  void _internal_set_server_preference(::mqas::tools::proto::p2p::ServerPreference value);
+
+  public:
   // @@protoc_insertion_point(class_scope:mqas.tools.proto.p2p.ReqConnectPeer)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
                                    1, 0,
                                    2>
       _table_;
@@ -3035,6 +3524,7 @@ class MQAS_EXTERN ReqConnectPeer final : public ::google::protobuf::Message
     ::mqas::tools::proto::p2p::ClientIpList* PROTOBUF_NULLABLE ip_list_;
     ::uint32_t peer_id_;
     ::uint32_t auth_version_;
+    int server_preference_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -3099,7 +3589,7 @@ class MQAS_EXTERN NotifyPeerWantConnect final : public ::google::protobuf::Messa
     return *reinterpret_cast<const NotifyPeerWantConnect*>(
         &_NotifyPeerWantConnect_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 17;
   friend void swap(NotifyPeerWantConnect& a, NotifyPeerWantConnect& b) { a.Swap(&b); }
   inline void Swap(NotifyPeerWantConnect* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3387,6 +3877,7 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
     kRelayTokenFieldNumber = 9,
     kPskIdentityFieldNumber = 11,
     kPskSecretFieldNumber = 12,
+    kNegotiationIdFieldNumber = 15,
     kAddressFieldNumber = 4,
     kPeerAddrFieldNumber = 6,
     kRelayAddrFieldNumber = 7,
@@ -3458,6 +3949,21 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
   const std::string& _internal_psk_secret() const;
   PROTOBUF_ALWAYS_INLINE void _internal_set_psk_secret(const std::string& value);
   std::string* PROTOBUF_NONNULL _internal_mutable_psk_secret();
+
+  public:
+  // bytes negotiation_id = 15;
+  void clear_negotiation_id() ;
+  const std::string& negotiation_id() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_negotiation_id(Arg_&& arg, Args_... args);
+  std::string* PROTOBUF_NONNULL mutable_negotiation_id();
+  [[nodiscard]] std::string* PROTOBUF_NULLABLE release_negotiation_id();
+  void set_allocated_negotiation_id(std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const std::string& _internal_negotiation_id() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_negotiation_id(const std::string& value);
+  std::string* PROTOBUF_NONNULL _internal_mutable_negotiation_id();
 
   public:
   // optional .mqas.tools.proto.p2p.Address address = 4;
@@ -3585,7 +4091,7 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<4, 14,
+  static const ::google::protobuf::internal::TcParseTable<4, 15,
                                    4, 63,
                                    2>
       _table_;
@@ -3611,6 +4117,7 @@ class MQAS_EXTERN NotifyConnectResult final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr relay_token_;
     ::google::protobuf::internal::ArenaStringPtr psk_identity_;
     ::google::protobuf::internal::ArenaStringPtr psk_secret_;
+    ::google::protobuf::internal::ArenaStringPtr negotiation_id_;
     ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE address_;
     ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE peer_addr_;
     ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE relay_addr_;
@@ -4677,6 +5184,30 @@ inline void ReqConnectPeer::_internal_set_auth_version(::uint32_t value) {
   _impl_.auth_version_ = value;
 }
 
+// .mqas.tools.proto.p2p.ServerPreference server_preference = 4;
+inline void ReqConnectPeer::clear_server_preference() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.server_preference_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline ::mqas::tools::proto::p2p::ServerPreference ReqConnectPeer::server_preference() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.ReqConnectPeer.server_preference)
+  return _internal_server_preference();
+}
+inline void ReqConnectPeer::set_server_preference(::mqas::tools::proto::p2p::ServerPreference value) {
+  _internal_set_server_preference(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ReqConnectPeer.server_preference)
+}
+inline ::mqas::tools::proto::p2p::ServerPreference ReqConnectPeer::_internal_server_preference() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::mqas::tools::proto::p2p::ServerPreference>(_impl_.server_preference_);
+}
+inline void ReqConnectPeer::_internal_set_server_preference(::mqas::tools::proto::p2p::ServerPreference value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.server_preference_ = value;
+}
+
 // -------------------------------------------------------------------
 
 // ReqRespondPeerReqConnect
@@ -4849,6 +5380,30 @@ inline ::uint32_t ReqRespondPeerReqConnect::_internal_auth_version() const {
 inline void ReqRespondPeerReqConnect::_internal_set_auth_version(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.auth_version_ = value;
+}
+
+// .mqas.tools.proto.p2p.ServerPreference server_preference = 5;
+inline void ReqRespondPeerReqConnect::clear_server_preference() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.server_preference_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline ::mqas::tools::proto::p2p::ServerPreference ReqRespondPeerReqConnect::server_preference() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.ReqRespondPeerReqConnect.server_preference)
+  return _internal_server_preference();
+}
+inline void ReqRespondPeerReqConnect::set_server_preference(::mqas::tools::proto::p2p::ServerPreference value) {
+  _internal_set_server_preference(value);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ReqRespondPeerReqConnect.server_preference)
+}
+inline ::mqas::tools::proto::p2p::ServerPreference ReqRespondPeerReqConnect::_internal_server_preference() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::mqas::tools::proto::p2p::ServerPreference>(_impl_.server_preference_);
+}
+inline void ReqRespondPeerReqConnect::_internal_set_server_preference(::mqas::tools::proto::p2p::ServerPreference value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.server_preference_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -5037,7 +5592,7 @@ inline void NotifyConnectPeerData::set_allocated_connect_data(::mqas::tools::pro
 inline void NotifyConnectResult::clear_ret() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.ret_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000100u;
+  _impl_._has_bits_[0] &= ~0x00000200u;
 }
 inline ::mqas::tools::proto::p2p::RetCode NotifyConnectResult::ret() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.ret)
@@ -5045,7 +5600,7 @@ inline ::mqas::tools::proto::p2p::RetCode NotifyConnectResult::ret() const {
 }
 inline void NotifyConnectResult::set_ret(::mqas::tools::proto::p2p::RetCode value) {
   _internal_set_ret(value);
-  _impl_._has_bits_[0] |= 0x00000100u;
+  _impl_._has_bits_[0] |= 0x00000200u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.ret)
 }
 inline ::mqas::tools::proto::p2p::RetCode NotifyConnectResult::_internal_ret() const {
@@ -5061,7 +5616,7 @@ inline void NotifyConnectResult::_internal_set_ret(::mqas::tools::proto::p2p::Re
 inline void NotifyConnectResult::clear_peer_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.peer_id_ = 0u;
-  _impl_._has_bits_[0] &= ~0x00000200u;
+  _impl_._has_bits_[0] &= ~0x00000400u;
 }
 inline ::uint32_t NotifyConnectResult::peer_id() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.peer_id)
@@ -5069,7 +5624,7 @@ inline ::uint32_t NotifyConnectResult::peer_id() const {
 }
 inline void NotifyConnectResult::set_peer_id(::uint32_t value) {
   _internal_set_peer_id(value);
-  _impl_._has_bits_[0] |= 0x00000200u;
+  _impl_._has_bits_[0] |= 0x00000400u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.peer_id)
 }
 inline ::uint32_t NotifyConnectResult::_internal_peer_id() const {
@@ -5085,7 +5640,7 @@ inline void NotifyConnectResult::_internal_set_peer_id(::uint32_t value) {
 inline void NotifyConnectResult::clear_is_server() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.is_server_ = false;
-  _impl_._has_bits_[0] &= ~0x00001000u;
+  _impl_._has_bits_[0] &= ~0x00002000u;
 }
 inline bool NotifyConnectResult::is_server() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.is_server)
@@ -5093,7 +5648,7 @@ inline bool NotifyConnectResult::is_server() const {
 }
 inline void NotifyConnectResult::set_is_server(bool value) {
   _internal_set_is_server(value);
-  _impl_._has_bits_[0] |= 0x00001000u;
+  _impl_._has_bits_[0] |= 0x00002000u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.is_server)
 }
 inline bool NotifyConnectResult::_internal_is_server() const {
@@ -5107,7 +5662,7 @@ inline void NotifyConnectResult::_internal_set_is_server(bool value) {
 
 // optional .mqas.tools.proto.common.UUID verify_token = 10;
 inline bool NotifyConnectResult::has_verify_token() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000080u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000100u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.verify_token_ != nullptr);
   return value;
 }
@@ -5128,16 +5683,16 @@ inline void NotifyConnectResult::unsafe_arena_set_allocated_verify_token(
   }
   _impl_.verify_token_ = reinterpret_cast<::mqas::tools::proto::common::UUID*>(value);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000080u;
+    _impl_._has_bits_[0] |= 0x00000100u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000080u;
+    _impl_._has_bits_[0] &= ~0x00000100u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.verify_token)
 }
 inline ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE NotifyConnectResult::release_verify_token() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  _impl_._has_bits_[0] &= ~0x00000080u;
+  _impl_._has_bits_[0] &= ~0x00000100u;
   ::mqas::tools::proto::common::UUID* released = _impl_.verify_token_;
   _impl_.verify_token_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -5157,7 +5712,7 @@ inline ::mqas::tools::proto::common::UUID* PROTOBUF_NULLABLE NotifyConnectResult
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.verify_token)
 
-  _impl_._has_bits_[0] &= ~0x00000080u;
+  _impl_._has_bits_[0] &= ~0x00000100u;
   ::mqas::tools::proto::common::UUID* temp = _impl_.verify_token_;
   _impl_.verify_token_ = nullptr;
   return temp;
@@ -5172,7 +5727,7 @@ inline ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL NotifyConnectResult:
 }
 inline ::mqas::tools::proto::common::UUID* PROTOBUF_NONNULL NotifyConnectResult::mutable_verify_token()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  _impl_._has_bits_[0] |= 0x00000080u;
+  _impl_._has_bits_[0] |= 0x00000100u;
   ::mqas::tools::proto::common::UUID* _msg = _internal_mutable_verify_token();
   // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.verify_token)
   return _msg;
@@ -5189,9 +5744,9 @@ inline void NotifyConnectResult::set_allocated_verify_token(::mqas::tools::proto
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000080u;
+    _impl_._has_bits_[0] |= 0x00000100u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000080u;
+    _impl_._has_bits_[0] &= ~0x00000100u;
   }
 
   _impl_.verify_token_ = reinterpret_cast<::mqas::tools::proto::common::UUID*>(value);
@@ -5200,14 +5755,14 @@ inline void NotifyConnectResult::set_allocated_verify_token(::mqas::tools::proto
 
 // optional .mqas.tools.proto.p2p.Address peer_addr = 6;
 inline bool NotifyConnectResult::has_peer_addr() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000020u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000040u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.peer_addr_ != nullptr);
   return value;
 }
 inline void NotifyConnectResult::clear_peer_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.peer_addr_ != nullptr) _impl_.peer_addr_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000020u;
+  _impl_._has_bits_[0] &= ~0x00000040u;
 }
 inline const ::mqas::tools::proto::p2p::Address& NotifyConnectResult::_internal_peer_addr() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -5226,16 +5781,16 @@ inline void NotifyConnectResult::unsafe_arena_set_allocated_peer_addr(
   }
   _impl_.peer_addr_ = reinterpret_cast<::mqas::tools::proto::p2p::Address*>(value);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000020u;
+    _impl_._has_bits_[0] |= 0x00000040u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000020u;
+    _impl_._has_bits_[0] &= ~0x00000040u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.peer_addr)
 }
 inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE NotifyConnectResult::release_peer_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  _impl_._has_bits_[0] &= ~0x00000020u;
+  _impl_._has_bits_[0] &= ~0x00000040u;
   ::mqas::tools::proto::p2p::Address* released = _impl_.peer_addr_;
   _impl_.peer_addr_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -5255,7 +5810,7 @@ inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE NotifyConnectResult
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.peer_addr)
 
-  _impl_._has_bits_[0] &= ~0x00000020u;
+  _impl_._has_bits_[0] &= ~0x00000040u;
   ::mqas::tools::proto::p2p::Address* temp = _impl_.peer_addr_;
   _impl_.peer_addr_ = nullptr;
   return temp;
@@ -5270,7 +5825,7 @@ inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL NotifyConnectResult:
 }
 inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL NotifyConnectResult::mutable_peer_addr()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  _impl_._has_bits_[0] |= 0x00000020u;
+  _impl_._has_bits_[0] |= 0x00000040u;
   ::mqas::tools::proto::p2p::Address* _msg = _internal_mutable_peer_addr();
   // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.peer_addr)
   return _msg;
@@ -5287,9 +5842,9 @@ inline void NotifyConnectResult::set_allocated_peer_addr(::mqas::tools::proto::p
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000020u;
+    _impl_._has_bits_[0] |= 0x00000040u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000020u;
+    _impl_._has_bits_[0] &= ~0x00000040u;
   }
 
   _impl_.peer_addr_ = reinterpret_cast<::mqas::tools::proto::p2p::Address*>(value);
@@ -5367,14 +5922,14 @@ inline void NotifyConnectResult::set_allocated_reason(std::string* PROTOBUF_NULL
 
 // optional .mqas.tools.proto.p2p.Address address = 4;
 inline bool NotifyConnectResult::has_address() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000010u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000020u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.address_ != nullptr);
   return value;
 }
 inline void NotifyConnectResult::clear_address() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.address_ != nullptr) _impl_.address_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000010u;
+  _impl_._has_bits_[0] &= ~0x00000020u;
 }
 inline const ::mqas::tools::proto::p2p::Address& NotifyConnectResult::_internal_address() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -5393,16 +5948,16 @@ inline void NotifyConnectResult::unsafe_arena_set_allocated_address(
   }
   _impl_.address_ = reinterpret_cast<::mqas::tools::proto::p2p::Address*>(value);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000010u;
+    _impl_._has_bits_[0] |= 0x00000020u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000010u;
+    _impl_._has_bits_[0] &= ~0x00000020u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.address)
 }
 inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE NotifyConnectResult::release_address() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  _impl_._has_bits_[0] &= ~0x00000010u;
+  _impl_._has_bits_[0] &= ~0x00000020u;
   ::mqas::tools::proto::p2p::Address* released = _impl_.address_;
   _impl_.address_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -5422,7 +5977,7 @@ inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE NotifyConnectResult
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.address)
 
-  _impl_._has_bits_[0] &= ~0x00000010u;
+  _impl_._has_bits_[0] &= ~0x00000020u;
   ::mqas::tools::proto::p2p::Address* temp = _impl_.address_;
   _impl_.address_ = nullptr;
   return temp;
@@ -5437,7 +5992,7 @@ inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL NotifyConnectResult:
 }
 inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL NotifyConnectResult::mutable_address()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  _impl_._has_bits_[0] |= 0x00000010u;
+  _impl_._has_bits_[0] |= 0x00000020u;
   ::mqas::tools::proto::p2p::Address* _msg = _internal_mutable_address();
   // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.address)
   return _msg;
@@ -5454,9 +6009,9 @@ inline void NotifyConnectResult::set_allocated_address(::mqas::tools::proto::p2p
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000010u;
+    _impl_._has_bits_[0] |= 0x00000020u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000010u;
+    _impl_._has_bits_[0] &= ~0x00000020u;
   }
 
   _impl_.address_ = reinterpret_cast<::mqas::tools::proto::p2p::Address*>(value);
@@ -5465,14 +6020,14 @@ inline void NotifyConnectResult::set_allocated_address(::mqas::tools::proto::p2p
 
 // optional .mqas.tools.proto.p2p.Address relay_addr = 7;
 inline bool NotifyConnectResult::has_relay_addr() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000040u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000080u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.relay_addr_ != nullptr);
   return value;
 }
 inline void NotifyConnectResult::clear_relay_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.relay_addr_ != nullptr) _impl_.relay_addr_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000040u;
+  _impl_._has_bits_[0] &= ~0x00000080u;
 }
 inline const ::mqas::tools::proto::p2p::Address& NotifyConnectResult::_internal_relay_addr() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -5491,16 +6046,16 @@ inline void NotifyConnectResult::unsafe_arena_set_allocated_relay_addr(
   }
   _impl_.relay_addr_ = reinterpret_cast<::mqas::tools::proto::p2p::Address*>(value);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000040u;
+    _impl_._has_bits_[0] |= 0x00000080u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000040u;
+    _impl_._has_bits_[0] &= ~0x00000080u;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.relay_addr)
 }
 inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE NotifyConnectResult::release_relay_addr() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  _impl_._has_bits_[0] &= ~0x00000040u;
+  _impl_._has_bits_[0] &= ~0x00000080u;
   ::mqas::tools::proto::p2p::Address* released = _impl_.relay_addr_;
   _impl_.relay_addr_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -5520,7 +6075,7 @@ inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NULLABLE NotifyConnectResult
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.relay_addr)
 
-  _impl_._has_bits_[0] &= ~0x00000040u;
+  _impl_._has_bits_[0] &= ~0x00000080u;
   ::mqas::tools::proto::p2p::Address* temp = _impl_.relay_addr_;
   _impl_.relay_addr_ = nullptr;
   return temp;
@@ -5535,7 +6090,7 @@ inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL NotifyConnectResult:
 }
 inline ::mqas::tools::proto::p2p::Address* PROTOBUF_NONNULL NotifyConnectResult::mutable_relay_addr()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  _impl_._has_bits_[0] |= 0x00000040u;
+  _impl_._has_bits_[0] |= 0x00000080u;
   ::mqas::tools::proto::p2p::Address* _msg = _internal_mutable_relay_addr();
   // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.relay_addr)
   return _msg;
@@ -5552,9 +6107,9 @@ inline void NotifyConnectResult::set_allocated_relay_addr(::mqas::tools::proto::
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000040u;
+    _impl_._has_bits_[0] |= 0x00000080u;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000040u;
+    _impl_._has_bits_[0] &= ~0x00000080u;
   }
 
   _impl_.relay_addr_ = reinterpret_cast<::mqas::tools::proto::p2p::Address*>(value);
@@ -5563,13 +6118,13 @@ inline void NotifyConnectResult::set_allocated_relay_addr(::mqas::tools::proto::
 
 // optional bool use_relay = 8;
 inline bool NotifyConnectResult::has_use_relay() const {
-  bool value = (_impl_._has_bits_[0] & 0x00002000u) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00004000u) != 0;
   return value;
 }
 inline void NotifyConnectResult::clear_use_relay() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.use_relay_ = false;
-  _impl_._has_bits_[0] &= ~0x00002000u;
+  _impl_._has_bits_[0] &= ~0x00004000u;
 }
 inline bool NotifyConnectResult::use_relay() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.use_relay)
@@ -5577,7 +6132,7 @@ inline bool NotifyConnectResult::use_relay() const {
 }
 inline void NotifyConnectResult::set_use_relay(bool value) {
   _internal_set_use_relay(value);
-  _impl_._has_bits_[0] |= 0x00002000u;
+  _impl_._has_bits_[0] |= 0x00004000u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.use_relay)
 }
 inline bool NotifyConnectResult::_internal_use_relay() const {
@@ -5792,7 +6347,7 @@ inline void NotifyConnectResult::set_allocated_psk_secret(std::string* PROTOBUF_
 inline void NotifyConnectResult::clear_psk_issued_at_ms() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.psk_issued_at_ms_ = ::uint64_t{0u};
-  _impl_._has_bits_[0] &= ~0x00000400u;
+  _impl_._has_bits_[0] &= ~0x00000800u;
 }
 inline ::uint64_t NotifyConnectResult::psk_issued_at_ms() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.psk_issued_at_ms)
@@ -5800,7 +6355,7 @@ inline ::uint64_t NotifyConnectResult::psk_issued_at_ms() const {
 }
 inline void NotifyConnectResult::set_psk_issued_at_ms(::uint64_t value) {
   _internal_set_psk_issued_at_ms(value);
-  _impl_._has_bits_[0] |= 0x00000400u;
+  _impl_._has_bits_[0] |= 0x00000800u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.psk_issued_at_ms)
 }
 inline ::uint64_t NotifyConnectResult::_internal_psk_issued_at_ms() const {
@@ -5816,7 +6371,7 @@ inline void NotifyConnectResult::_internal_set_psk_issued_at_ms(::uint64_t value
 inline void NotifyConnectResult::clear_psk_expires_at_ms() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.psk_expires_at_ms_ = ::uint64_t{0u};
-  _impl_._has_bits_[0] &= ~0x00000800u;
+  _impl_._has_bits_[0] &= ~0x00001000u;
 }
 inline ::uint64_t NotifyConnectResult::psk_expires_at_ms() const {
   // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.psk_expires_at_ms)
@@ -5824,7 +6379,7 @@ inline ::uint64_t NotifyConnectResult::psk_expires_at_ms() const {
 }
 inline void NotifyConnectResult::set_psk_expires_at_ms(::uint64_t value) {
   _internal_set_psk_expires_at_ms(value);
-  _impl_._has_bits_[0] |= 0x00000800u;
+  _impl_._has_bits_[0] |= 0x00001000u;
   // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.psk_expires_at_ms)
 }
 inline ::uint64_t NotifyConnectResult::_internal_psk_expires_at_ms() const {
@@ -5834,6 +6389,257 @@ inline ::uint64_t NotifyConnectResult::_internal_psk_expires_at_ms() const {
 inline void NotifyConnectResult::_internal_set_psk_expires_at_ms(::uint64_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.psk_expires_at_ms_ = value;
+}
+
+// bytes negotiation_id = 15;
+inline void NotifyConnectResult::clear_negotiation_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.negotiation_id_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline const std::string& NotifyConnectResult::negotiation_id() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyConnectResult.negotiation_id)
+  return _internal_negotiation_id();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void NotifyConnectResult::set_negotiation_id(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  _impl_.negotiation_id_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyConnectResult.negotiation_id)
+}
+inline std::string* PROTOBUF_NONNULL NotifyConnectResult::mutable_negotiation_id()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_negotiation_id();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyConnectResult.negotiation_id)
+  return _s;
+}
+inline const std::string& NotifyConnectResult::_internal_negotiation_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.negotiation_id_.Get();
+}
+inline void NotifyConnectResult::_internal_set_negotiation_id(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  _impl_.negotiation_id_.Set(value, GetArena());
+}
+inline std::string* PROTOBUF_NONNULL NotifyConnectResult::_internal_mutable_negotiation_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  return _impl_.negotiation_id_.Mutable( GetArena());
+}
+inline std::string* PROTOBUF_NULLABLE NotifyConnectResult::release_negotiation_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyConnectResult.negotiation_id)
+  if ((_impl_._has_bits_[0] & 0x00000010u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000010u;
+  auto* released = _impl_.negotiation_id_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.negotiation_id_.Set("", GetArena());
+  }
+  return released;
+}
+inline void NotifyConnectResult::set_allocated_negotiation_id(std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000010u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000010u;
+  }
+  _impl_.negotiation_id_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.negotiation_id_.IsDefault()) {
+    _impl_.negotiation_id_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.NotifyConnectResult.negotiation_id)
+}
+
+// -------------------------------------------------------------------
+
+// ReqP2PServerReady
+
+// uint32 peer_id = 1;
+inline void ReqP2PServerReady::clear_peer_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.peer_id_ = 0u;
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::uint32_t ReqP2PServerReady::peer_id() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.ReqP2PServerReady.peer_id)
+  return _internal_peer_id();
+}
+inline void ReqP2PServerReady::set_peer_id(::uint32_t value) {
+  _internal_set_peer_id(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ReqP2PServerReady.peer_id)
+}
+inline ::uint32_t ReqP2PServerReady::_internal_peer_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.peer_id_;
+}
+inline void ReqP2PServerReady::_internal_set_peer_id(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.peer_id_ = value;
+}
+
+// bytes negotiation_id = 2;
+inline void ReqP2PServerReady::clear_negotiation_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.negotiation_id_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const std::string& ReqP2PServerReady::negotiation_id() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.ReqP2PServerReady.negotiation_id)
+  return _internal_negotiation_id();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ReqP2PServerReady::set_negotiation_id(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.negotiation_id_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.ReqP2PServerReady.negotiation_id)
+}
+inline std::string* PROTOBUF_NONNULL ReqP2PServerReady::mutable_negotiation_id()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_negotiation_id();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.ReqP2PServerReady.negotiation_id)
+  return _s;
+}
+inline const std::string& ReqP2PServerReady::_internal_negotiation_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.negotiation_id_.Get();
+}
+inline void ReqP2PServerReady::_internal_set_negotiation_id(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.negotiation_id_.Set(value, GetArena());
+}
+inline std::string* PROTOBUF_NONNULL ReqP2PServerReady::_internal_mutable_negotiation_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.negotiation_id_.Mutable( GetArena());
+}
+inline std::string* PROTOBUF_NULLABLE ReqP2PServerReady::release_negotiation_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.ReqP2PServerReady.negotiation_id)
+  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* released = _impl_.negotiation_id_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.negotiation_id_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ReqP2PServerReady::set_allocated_negotiation_id(std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.negotiation_id_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.negotiation_id_.IsDefault()) {
+    _impl_.negotiation_id_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.ReqP2PServerReady.negotiation_id)
+}
+
+// -------------------------------------------------------------------
+
+// NotifyP2PServerReady
+
+// uint32 peer_id = 1;
+inline void NotifyP2PServerReady::clear_peer_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.peer_id_ = 0u;
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::uint32_t NotifyP2PServerReady::peer_id() const {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyP2PServerReady.peer_id)
+  return _internal_peer_id();
+}
+inline void NotifyP2PServerReady::set_peer_id(::uint32_t value) {
+  _internal_set_peer_id(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyP2PServerReady.peer_id)
+}
+inline ::uint32_t NotifyP2PServerReady::_internal_peer_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.peer_id_;
+}
+inline void NotifyP2PServerReady::_internal_set_peer_id(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.peer_id_ = value;
+}
+
+// bytes negotiation_id = 2;
+inline void NotifyP2PServerReady::clear_negotiation_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.negotiation_id_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const std::string& NotifyP2PServerReady::negotiation_id() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:mqas.tools.proto.p2p.NotifyP2PServerReady.negotiation_id)
+  return _internal_negotiation_id();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void NotifyP2PServerReady::set_negotiation_id(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.negotiation_id_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:mqas.tools.proto.p2p.NotifyP2PServerReady.negotiation_id)
+}
+inline std::string* PROTOBUF_NONNULL NotifyP2PServerReady::mutable_negotiation_id()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_negotiation_id();
+  // @@protoc_insertion_point(field_mutable:mqas.tools.proto.p2p.NotifyP2PServerReady.negotiation_id)
+  return _s;
+}
+inline const std::string& NotifyP2PServerReady::_internal_negotiation_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.negotiation_id_.Get();
+}
+inline void NotifyP2PServerReady::_internal_set_negotiation_id(const std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.negotiation_id_.Set(value, GetArena());
+}
+inline std::string* PROTOBUF_NONNULL NotifyP2PServerReady::_internal_mutable_negotiation_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.negotiation_id_.Mutable( GetArena());
+}
+inline std::string* PROTOBUF_NULLABLE NotifyP2PServerReady::release_negotiation_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:mqas.tools.proto.p2p.NotifyP2PServerReady.negotiation_id)
+  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* released = _impl_.negotiation_id_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.negotiation_id_.Set("", GetArena());
+  }
+  return released;
+}
+inline void NotifyP2PServerReady::set_allocated_negotiation_id(std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.negotiation_id_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.negotiation_id_.IsDefault()) {
+    _impl_.negotiation_id_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:mqas.tools.proto.p2p.NotifyP2PServerReady.negotiation_id)
 }
 
 // -------------------------------------------------------------------
@@ -6131,6 +6937,12 @@ struct is_proto_enum<::mqas::tools::proto::p2p::RetCode> : std::true_type {};
 template <>
 inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::mqas::tools::proto::p2p::RetCode>() {
   return ::mqas::tools::proto::p2p::RetCode_descriptor();
+}
+template <>
+struct is_proto_enum<::mqas::tools::proto::p2p::ServerPreference> : std::true_type {};
+template <>
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::mqas::tools::proto::p2p::ServerPreference>() {
+  return ::mqas::tools::proto::p2p::ServerPreference_descriptor();
 }
 
 }  // namespace protobuf

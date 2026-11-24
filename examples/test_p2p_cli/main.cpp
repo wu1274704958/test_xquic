@@ -28,7 +28,8 @@ const std::string none_str = "none";
 const int zero = 0;
 
 class LobbyStream : public tools::p2p::P2PLobbyClientStream {
-protected:
+public:
+	void on_resume() {}
 };
 
 using StreamType = core::StreamVariant<
@@ -102,6 +103,7 @@ struct tui
 	void init();
 	void init_stream(std::shared_ptr<LobbyStream> stream);
 	void reg_helper_stream(std::shared_ptr<mqas::tools::p2p::P2PHelperClientStream> stream);
+	void on_lobby_resumed();
 	void draw();
 	void handle_input();
 	void destroy();
@@ -114,6 +116,8 @@ protected:
 	void on_peer_want_connect(const mqas::tools::proto::p2p::PeerData&);
 	void on_get_respond(const std::shared_ptr<mqas::tools::proto::p2p::RespondConnectPeer>& code);
 	void on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>& msg, std::shared_ptr<io::UdpSocket>);
+	void on_server_ready(const std::shared_ptr<mqas::tools::proto::p2p::NotifyP2PServerReady>& msg);
+	void fail_waiting_for_server(const char* reason);
 	void append_state(ui_state state);
 	void quit_helper();
 	void quit_p2p();
@@ -133,7 +137,7 @@ protected:
 	void clean_relay();
 public:
 	//conf
-	std::shared_ptr<toml::value> config;
+	std::shared_ptr<const toml::value> config;
 protected:
 	std::stack<ui_state> stack;
 	std::shared_ptr<LobbyStream> stream;
@@ -153,6 +157,10 @@ protected:
 	std::shared_ptr<io::Idle> idle;
 	std::vector<std::function<void()>> lazy_task;
 	std::shared_ptr<io::Timer> p2p_server_wait_timer;
+	std::shared_ptr<io::UdpSocket> pending_p2p_socket;
+	std::shared_ptr<mqas::tools::proto::p2p::NotifyP2PServerReady> early_server_ready;
+	bool waiting_for_server_ready = false;
+	bool server_ready_pending = false;
 	sockaddr p2p_addr;
 	//relay
 	std::shared_ptr<RelayEngineType> relay_engine;
@@ -189,6 +197,9 @@ int main(int argc, const char** argv)
 			stream_out = stream;
 			auto s = stream.lock();
 			if (!s) return;
+			s->on_resume_stream_signal.connect([&ui](const std::shared_ptr<core::IStreamVariant>& resumed) {
+				if (std::dynamic_pointer_cast<LobbyStream>(resumed)) ui.on_lobby_resumed();
+			});
 			mqas::tools::proto::p2p::ReqRegistePeer msg;
 			s->req_change<LobbyStream, mqas::tools::p2p::ReqRegistePeerPair>(msg);
 			auto lobby_stream = s->get_holds_stream<LobbyStream>();
@@ -247,9 +258,10 @@ void tui::init()
 
 	idle = comm::locator::inst()->get_ref<io::Context>().value().get().make_shared<io::Idle>();
 	idle->start([this](io::Idle*) {
-		for(auto& t : lazy_task)
-			t();
+		auto tasks = std::move(lazy_task);
 		lazy_task.clear();
+		for(auto& t : tasks)
+			t();
 	});
 }
 
@@ -276,6 +288,7 @@ void tui::init_stream(std::shared_ptr<LobbyStream> stream)
 	stream->on_peer_list_signal.connect(sigc::mem_fun(*this, &tui::on_get_peer_list));
 	stream->on_request_connect_signal.connect(sigc::mem_fun(*this, &tui::on_peer_want_connect));
 	stream->on_connect_response_signal.connect(sigc::mem_fun(*this, &tui::on_get_respond));
+	stream->on_server_ready.connect(sigc::mem_fun(*this, &tui::on_server_ready));
 	stream->on_register_signal.connect([this](const std::shared_ptr<mqas::tools::proto::p2p::RespondRegistePeer>& msg) {
 		_local_peer_id = msg->ret() == mqas::tools::proto::p2p::RetCode::ok ? msg->id() : 0;
 	});
@@ -373,7 +386,7 @@ void tui::draw()
 		wprintw(win, "Get success p2p ready to connect to %d addr is %s:%d",helper_result->peer_id(),
 			helper_result->address().ip().c_str(), helper_result->address().port());
 		wmove(win, ++y, 1);
-		wprintw(win, helper_result->is_server() ? "wating connect" : "connecting...");
+		wprintw(win, helper_result->is_server() ? "waiting for connection" : (waiting_for_server_ready ? "waiting for server ready" : "connecting..."));
 		//todo sync p2p connect state
 		break;
 	case ui_state::p2p_chat:
@@ -517,6 +530,7 @@ void tui::reg_helper_stream(std::shared_ptr<mqas::tools::p2p::P2PHelperClientStr
 	helper_stream->on_change_result.connect(sigc::mem_fun(*this, &tui::on_change_helper_result));
 	helper_stream->on_connect_peer.connect(sigc::mem_fun(*this, &tui::on_helper_connect_to));
 	helper_stream->on_quit_result.connect(sigc::mem_fun(*this, &tui::on_helper_result));
+	helper_stream->on_server_ready.connect(sigc::mem_fun(*this, &tui::on_server_ready));
 }
 
 void tui::on_change_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::RespondConnectPeer>& respond)
@@ -575,7 +589,73 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 
 	if (current_state() == ui_state::helper_main) pop_state();
 	append_state(ui_state::p2p_main);
-	launch_p2p(msg, sock);
+	if (msg->negotiation_id().size() != 16) {
+		fail_waiting_for_server("Missing negotiation ID");
+		return;
+	}
+	if (msg->is_server()) {
+		launch_p2p(msg, sock);
+		if (!p2p_engine) return;
+		server_ready_pending = true;
+	} else {
+		pending_p2p_socket = std::move(sock);
+		waiting_for_server_ready = true;
+		LOG(INFO) << "Waiting for P2P server ready from peer " << msg->peer_id();
+		if (!p2p_server_wait_timer)
+			p2p_server_wait_timer = comm::locator::inst()->get_ref<io::Context>().value().get().make_shared<io::Timer>();
+		p2p_server_wait_timer->start([this](io::Timer* t) { t->stop(); fail_waiting_for_server("P2P server ready timed out"); }, 15000, 0);
+		if (early_server_ready) on_server_ready(early_server_ready);
+	}
+}
+
+void tui::on_lobby_resumed()
+{
+	if (!server_ready_pending || !p2p_engine || !helper_result || !helper_result->is_server()) return;
+	const auto peer = helper_result->peer_id();
+	const auto negotiation = helper_result->negotiation_id();
+	LOG(INFO) << "Lobby stream resumed; P2P server is ready for peer " << peer;
+	// Queue after the resume callback so the helper quit acknowledgement is written first.
+	lazy_task.push_back([this, peer, negotiation] {
+		if (!server_ready_pending || !p2p_engine || !helper_result || helper_result->negotiation_id() != negotiation) return;
+		server_ready_pending = false;
+		if (!stream || !stream->notify_server_ready(peer, negotiation))
+			fail_waiting_for_server("Could not notify lobby that the P2P server is ready");
+		else LOG(INFO) << "P2P server ready notification sent for peer " << peer;
+	});
+}
+
+void tui::on_server_ready(const std::shared_ptr<mqas::tools::proto::p2p::NotifyP2PServerReady>& msg)
+{
+	if (!msg || msg->negotiation_id().size() != 16) return;
+	if (!waiting_for_server_ready) {
+		if (helper_stream) early_server_ready = msg;
+		return;
+	}
+	if (!helper_result || helper_result->is_server() || msg->peer_id() != helper_result->peer_id() ||
+		msg->negotiation_id() != helper_result->negotiation_id()) return;
+	LOG(INFO) << "P2P server ready received from peer " << msg->peer_id();
+	waiting_for_server_ready = false;
+	early_server_ready.reset();
+	if (p2p_server_wait_timer) p2p_server_wait_timer->stop();
+	auto socket = std::move(pending_p2p_socket);
+	if (!socket) { fail_waiting_for_server("P2P socket expired"); return; }
+	launch_p2p(helper_result, std::move(socket));
+}
+
+void tui::fail_waiting_for_server(const char* reason)
+{
+	waiting_for_server_ready = false;
+	server_ready_pending = false;
+	pending_p2p_socket.reset();
+	early_server_ready.reset();
+	if (p2p_server_wait_timer) p2p_server_wait_timer->stop();
+	if (helper_result) { p2p_example::clear_secret(*helper_result); helper_result->set_reason(reason); }
+	if (p2p_engine) {
+		std::static_pointer_cast<P2PEngineType>(p2p_engine)->close();
+		p2p_engine.reset();
+	}
+	if (current_state() == ui_state::p2p_main) pop_state();
+	append_state(ui_state::helper_result_failed);
 }
 
 
@@ -594,6 +674,12 @@ std::optional<mqas::tools::proto::p2p::PeerData> tui::get_peer(uint32_t id) cons
 
 void tui::quit_helper()
 {
+	if (helper_result) p2p_example::clear_secret(*helper_result);
+	server_ready_pending = false;
+	pending_p2p_socket.reset();
+	early_server_ready.reset();
+	waiting_for_server_ready = false;
+	if (p2p_server_wait_timer) p2p_server_wait_timer->stop();
 	if (helper_stream)
 	{
 		helper_stream->req_quit();
@@ -605,6 +691,7 @@ void tui::quit_helper()
 
 void tui::quit_p2p()
 {
+	if (waiting_for_server_ready) { fail_waiting_for_server("P2P connection cancelled"); return; }
 	if (p2p_engine)
 	{
 		if(use_relay)
@@ -706,6 +793,7 @@ void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,
 		<< " conn=" << conn.get();
 #endif
 	comm::locator::inst()->deposit_cxt<LocalPeerId>(conn,_local_peer_id);
+	comm::locator::inst()->deposit_cxt<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(conn,helper_result);
 	conn->on_close_signal.connect([](core::IConnect& c) {
 		comm::locator::inst()->clear_by_context(c);
 	});
@@ -715,7 +803,6 @@ void tui::on_new_p2p_connect(std::shared_ptr<core::Connect<P2PStreamType>> conn,
 		LOG(DEBUG) << "[on_new_p2p_connect] server: waiting for incoming stream";
 
 #endif
-		comm::locator::inst()->deposit_cxt<std::shared_ptr<mqas::tools::proto::p2p::NotifyConnectResult>>(conn,helper_result);
 		conn->on_new_stream_signal.connect(std::bind(&tui::on_new_p2p_stream, this, std::placeholders::_1, is_server));
 	}
 	else
@@ -754,6 +841,7 @@ void tui::on_p2p_connected(const std::string& name,PeerId peer_id)
 
 void tui::clean_up_p2p(bool active)
 {
+	server_ready_pending = false;
 	p2p_stream.reset();
 	if(use_relay)
 	{
@@ -800,8 +888,8 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 #endif
 
 	std::function<void(std::shared_ptr<core::Connect<P2PStreamType>>)> func = std::bind(&tui::on_new_p2p_connect, this, std::placeholders::_1, msg->is_server());
-	std::function<void(const std::exception&)> exception_func = [this](const std::exception&) {
-		on_p2p_peer_quit(nullptr);
+	std::function<void(const std::exception&)> exception_func = [](const std::exception& e) {
+		LOG(ERROR) << "P2P engine startup failed: " << e.what();
 	};
 	std::function<void(EngineTy&)> on_init_func = [this](EngineTy& e)
 	{

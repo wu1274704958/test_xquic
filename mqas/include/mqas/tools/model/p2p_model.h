@@ -92,6 +92,8 @@ namespace mqas::tools::p2p {
 		static constexpr int16_t ExternalIpIndex = 9999;
 		uint64_t id;
 		std::array<uint32_t, 2> pid;
+		std::array<proto::p2p::ServerPreference, 2> server_preferences{};
+		uint32_t request_initiator = 0;
 		std::array<std::vector<std::string>, 2> ip_list;
 		std::array<uint16_t, 2> port_list;
 		ConnectState state;
@@ -110,6 +112,12 @@ namespace mqas::tools::p2p {
 		connect_cxt() : port_list({0,0}) {}
 		inline operator bool() const { return tag[0] >= 0 && tag[1] >= 0; }
 		bool is_receive(uint32_t id) const;
+		uint32_t select_server() const noexcept {
+			const auto a = server_preferences[0], b = server_preferences[1];
+			if (a != b) return a > b ? pid[0] : pid[1];
+			if (a != proto::p2p::SERVER_NO_PREFERENCE && (request_initiator == pid[0] || request_initiator == pid[1])) return request_initiator;
+			return pid[0];
+		}
 		const boost::uuids::uuid& get_relay_token();
 		bool prepare_tls_credential(uint64_t now_ms);
 		const session_credential* get_tls_credential() const noexcept { return tls_credential.get(); }
@@ -168,6 +176,9 @@ namespace mqas::tools::p2p {
 			return std::dynamic_pointer_cast<T>(shared_ptr);
 		}
 		uint64_t reg_context(uint32_t self, uint32_t oth,const proto::p2p::ClientIpList& self_ip, std::weak_ptr<mqas::core::IStreamVariant> stream,const connect_cxt** out);
+		bool set_server_preference(uint64_t id, uint32_t self, proto::p2p::ServerPreference preference, bool initiator);
+		void track_ready(const std::string& negotiation, uint32_t server, uint32_t client, uint64_t expires_ms);
+		bool consume_ready(const std::string& negotiation, uint32_t server, uint32_t client, uint64_t now_ms);
 		/// <summary>
 		/// 
 		/// </summary>
@@ -210,6 +221,8 @@ namespace mqas::tools::p2p {
 	protected:
 		std::map<uint32_t, peer_data> client_map;
 		std::map<uint64_t, connect_cxt> cxt_map;
+		struct ready_entry { uint32_t server, client; uint64_t expires_ms; };
+		std::unordered_map<std::string, ready_entry> ready_sessions;
 		
 	private:
 		uint32_t min_id = 0;

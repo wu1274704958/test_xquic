@@ -20,6 +20,7 @@ public:
     bool valid_at(uint64_t now_ms) const noexcept;
     const std::array<unsigned char, 32>& secret() const noexcept { return secret_; }
     const std::array<unsigned char, 16>& identity() const noexcept { return identity_; }
+    const std::array<unsigned char, 16>& negotiation_id() const noexcept { return negotiation_id_; }
     uint64_t expires_at_ms() const noexcept { return expires_at_ms_; }
     uint64_t issued_at_ms() const noexcept { return issued_at_ms_; }
     uint32_t first_peer() const noexcept { return first_peer_; }
@@ -27,6 +28,7 @@ public:
 private:
     std::array<unsigned char, 32> secret_{};
     std::array<unsigned char, 16> identity_{};
+    std::array<unsigned char, 16> negotiation_id_{};
     uint64_t issued_at_ms_ = 0, expires_at_ms_ = 0;
     uint32_t first_peer_ = 0, second_peer_ = 0;
 };

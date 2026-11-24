@@ -9,16 +9,18 @@ namespace mqas::tools::p2p {
 		ReqConnectPeerPair, RespondConnectPeerPair,
 		ReqRespondPeerReqConnectPair,
 		NotifyConnectPeerDataPair, ReqSubmitRecvPeerKeyCodePair,
-		NotifyConnectResultPair
+		NotifyConnectResultPair, NotifyP2PServerReadyPair
 	> {
 	public:
 		sigc::signal<void(const std::shared_ptr<proto::p2p::NotifyConnectPeerData>&)> on_connect_peer;
 		sigc::signal<void(const std::shared_ptr<proto::p2p::RespondConnectPeer>&)> on_change_result;
 		sigc::signal<void(const std::shared_ptr<proto::p2p::NotifyConnectResult>&,std::shared_ptr<io::UdpSocket>)> on_quit_result;
+		sigc::signal<void(const std::shared_ptr<proto::p2p::NotifyP2PServerReady>&)> on_server_ready;
 
 		~P2PHelperClientStream();
 
 		void on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectPeerData>& msg);
+		void on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyP2PServerReady>& msg);
 		mqas::core::StreamVariantErrcode on_peer_quit_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectResult>& res,
 			std::vector<uint8_t>& buf);
 		void on_peer_change_ack_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondConnectPeer>&);

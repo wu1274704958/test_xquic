@@ -56,6 +56,7 @@ namespace mqas::comm {
 			LOG(ERROR) << "Launch engine failed: " << e.what();
 			if (on_exception)
 				on_exception(e);
+			return nullptr;
 		}
 		return engine;
 	}

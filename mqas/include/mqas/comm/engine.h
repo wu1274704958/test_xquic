@@ -23,6 +23,7 @@ namespace mqas::comm {
 			requires core::IsVaildEngineDriver<ED>;
 			requires core::IsVaildSocket<SC>;
 		}
+		// Returns nullptr if initialization, receive startup, or callback registration fails.
 		static auto launch_sub_engine(io::Context& io_cxt, const char* conf_file, mqas::core::EngineFlags engine_flags,
 			std::shared_ptr<SC> socket = nullptr, std::function<void(std::shared_ptr<C<S>>)> on_connected = {},
 			const sockaddr* addr = nullptr, std::function<void(const std::exception&)> on_exception = {},

@@ -1,6 +1,7 @@
 #include "mqas/tools/model/p2p_model.h"
 #include "mqas/io/ip.h"
 #include <random>
+#include <chrono>
 #include "mqas/core/stream.h"
 #include <boost/uuid/uuid_generators.hpp>
 
@@ -20,6 +21,7 @@ uint32_t mqas::tools::p2p::p2p_model::registe_client(const std::string& name, co
 
 bool mqas::tools::p2p::p2p_model::unregiste_client(uint32_t id)
 {
+	std::erase_if(ready_sessions, [id](const auto& entry) { return entry.second.server == id || entry.second.client == id; });
 	auto it = this->client_map.find(id);
 	if (it != this->client_map.end())
 	{
@@ -60,6 +62,29 @@ uint32_t mqas::tools::p2p::p2p_model::next_id()
 
 // helper
 namespace mqas::tools::p2p {
+	void p2p_model::track_ready(const std::string& negotiation, uint32_t server, uint32_t client, uint64_t expires_ms)
+	{
+		const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		std::erase_if(ready_sessions, [now](const auto& entry) { return now < 0 || entry.second.expires_ms <= static_cast<uint64_t>(now); });
+		ready_sessions.insert_or_assign(negotiation, ready_entry{server, client, expires_ms});
+	}
+	bool p2p_model::consume_ready(const std::string& negotiation, uint32_t server, uint32_t client, uint64_t now_ms)
+	{
+		const auto it = ready_sessions.find(negotiation);
+		if (it == ready_sessions.end() || it->second.server != server || it->second.client != client ||
+			it->second.expires_ms <= now_ms || !(*this)[server] || !(*this)[client]) return false;
+		ready_sessions.erase(it);
+		return true;
+	}
+	bool p2p_model::set_server_preference(uint64_t id, uint32_t self, proto::p2p::ServerPreference preference, bool initiator)
+	{
+		auto* cxt = get_context(id);
+		if (!cxt || (self != cxt->pid[0] && self != cxt->pid[1]) ||
+			preference < proto::p2p::SERVER_NO_PREFERENCE || preference > proto::p2p::SERVER_REUSABLE) return false;
+		cxt->server_preferences[self_idx(cxt->pid, self)] = preference;
+		if (initiator) cxt->request_initiator = self;
+		return true;
+	}
 
 	uint64_t p2p_model::reg_context(uint32_t self, uint32_t oth, const proto::p2p::ClientIpList& self_ip, 
 		std::weak_ptr<mqas::core::IStreamVariant> self_stream, const connect_cxt** out)

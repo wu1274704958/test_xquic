@@ -17,6 +17,12 @@ enum RetCode{
     failed = 4;
 }
 
+enum ServerPreference {
+    SERVER_NO_PREFERENCE = 0;
+    SERVER_VOLUNTEER = 1;
+    SERVER_REUSABLE = 2;
+}
+
 message ClientIpList{
     repeated string ip_list = 1;
     uint32 port = 2;
@@ -66,6 +72,7 @@ message ReqConnectPeer{
     uint32 peer_id = 1;
     optional ClientIpList ip_list = 2;
     uint32 auth_version = 3;
+    ServerPreference server_preference = 4;
 }
 
 message ReqRespondPeerReqConnect{
@@ -73,6 +80,7 @@ message ReqRespondPeerReqConnect{
     bool agree = 2;
     optional ClientIpList ip_list = 3;
     uint32 auth_version = 4;
+    ServerPreference server_preference = 5;
 }
 
 message RespondConnectPeer{
@@ -100,6 +108,17 @@ message NotifyConnectResult{
     bytes psk_secret = 12;
     uint64 psk_issued_at_ms = 13;
     uint64 psk_expires_at_ms = 14;
+    bytes negotiation_id = 15;
+}
+
+message ReqP2PServerReady {
+    uint32 peer_id = 1;
+    bytes negotiation_id = 2;
+}
+
+message NotifyP2PServerReady {
+    uint32 peer_id = 1;
+    bytes negotiation_id = 2;
 }
 
 message NotifyPeerWantConnect{
