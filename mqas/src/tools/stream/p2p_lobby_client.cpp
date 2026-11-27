@@ -1,5 +1,6 @@
 #include "mqas/tools/stream/p2p_lobby_client.h"
 #include "mqas/core/protobuf_msg.h"
+#include "p2p_probe_path.hpp"
 
 namespace mqas::tools::p2p {
 	void P2PLobbyClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyP2PServerReady>& msg) { on_server_ready.emit(msg); }
@@ -114,15 +115,7 @@ namespace mqas::tools::p2p {
 
 		const sockaddr *local = nullptr, *peer = nullptr;
 		if (!conn->get_sockaddr(&local, &peer) || !local) return false;
-		std::vector<std::string> list;
-		const auto local_ip = mqas::io::Ip::addr2str(*local);
-		if (local_ip == "0.0.0.0" || local_ip == "::") {
-			mqas::io::Ip::collect_local_ip(list, local->sa_family);
-		} else if (mqas::io::Ip::is_valid_local_ip(local_ip.c_str(), local->sa_family)) {
-			list.push_back(local_ip);
-		}
-		for (auto& ip : list) *res.add_ip_list() = std::move(ip);
-		res.set_port(mqas::io::Ip::addr_get_port(*local));
+		LobbySocketProbePath::describe(*local, res);
 		return true;
 	}
 

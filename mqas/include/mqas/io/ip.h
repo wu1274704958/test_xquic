@@ -34,6 +34,7 @@ namespace mqas::io {
 		static bool is_valid_local_ip(const char* ip);
 		static void collect_local_ip(std::vector<std::string>& res);
 		static void collect_local_ip(std::vector<std::string>& res, int family);
+		static void visit_local_ip(int family, void* context, void (*visitor)(void*, const char*));
 		static bool is_valid_local_ip(const char* ip, int family);
 		static bool valid_ipv4(const char* str, int port);
 		static bool valid_ipv6(const char* str, int port);

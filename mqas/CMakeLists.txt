@@ -9,6 +9,12 @@ aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/src/tools/model" CUR_SRC_FILES
 aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/src/tools/controller" CUR_SRC_FILES)
 aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/src/tools" CUR_SRC_FILES)
 
+option(MQAS_TEST_IPV6_LOOPBACK "Enable the IPv6 loopback fixture for isolated test builds" OFF)
+if(MQAS_TEST_IPV6_LOOPBACK)
+    set_source_files_properties(src/tools/model/p2p_model.cpp src/tools/stream/p2p_helper_client.cpp src/tools/stream/p2p_lobby_client.cpp
+        PROPERTIES COMPILE_DEFINITIONS MQAS_TEST_IPV6_LOOPBACK)
+endif()
+
 set(CUR_TARGET_NAME mqas)
 if(BUILD_MQAS_LIB_OBJ)
     message(FATAL_ERROR "mqas only support shared library,beacuse depeney easylogging++")

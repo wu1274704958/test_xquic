@@ -26,6 +26,7 @@ enum ServerPreference {
 message ClientIpList{
     repeated string ip_list = 1;
     uint32 port = 2;
+    repeated Address additional_ipv6_endpoints = 3;
 }
 
 message Address {
@@ -65,6 +66,7 @@ message ConnectPeerData{
     uint32 send_times = 4; 
     uint32 send_delay = 5;
     uint32 ip_index = 6;
+    optional bool use_non_lobby_socket = 7;
 }
 
 //helper
@@ -109,6 +111,7 @@ message NotifyConnectResult{
     uint64 psk_issued_at_ms = 13;
     uint64 psk_expires_at_ms = 14;
     bytes negotiation_id = 15;
+    optional bool use_non_lobby_socket = 16;
 }
 
 message ReqP2PServerReady {

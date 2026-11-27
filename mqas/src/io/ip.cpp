@@ -116,23 +116,32 @@ void mqas::io::Ip::collect_local_ip(std::vector<std::string>& res)
 
 void mqas::io::Ip::collect_local_ip(std::vector<std::string>& res, int family)
 {
-	uv_interface_address_t* interfaces = nullptr;
-	int count = 0;
-	const int error = uv_interface_addresses(&interfaces, &count);
-	if (error != 0) {
-		LOG(ERROR) << "uv_interface_addresses failed: " << uv_strerror(error);
-		return;
-	}
-	for (int i = 0; i < count; ++i) {
-		const auto& entry = interfaces[i];
-		if (entry.is_internal || entry.address.address4.sin_family != family) continue;
-		char ip[INET6_ADDRSTRLEN]{};
-		const int result = family == AF_INET ? uv_ip4_name(&entry.address.address4, ip, sizeof(ip))
-			: uv_ip6_name(&entry.address.address6, ip, sizeof(ip));
-		if (result == 0 && is_valid_local_ip(ip, family) && std::find(res.begin(), res.end(), ip) == res.end())
-			res.emplace_back(ip);
-	}
-	uv_free_interface_addresses(interfaces, count);
+    visit_local_ip(family, &res, [](void* context, const char* ip) {
+        auto& addresses = *static_cast<std::vector<std::string>*>(context);
+        if (std::find(addresses.begin(), addresses.end(), ip) == addresses.end())
+            addresses.emplace_back(ip);
+    });
+}
+
+void mqas::io::Ip::visit_local_ip(int family, void* context, void (*visitor)(void*, const char*))
+{
+    if (!visitor || (family != AF_INET && family != AF_INET6)) return;
+    uv_interface_address_t* interfaces = nullptr;
+    int count = 0;
+    const int error = uv_interface_addresses(&interfaces, &count);
+    if (error != 0) {
+        LOG(ERROR) << "uv_interface_addresses failed: " << uv_strerror(error);
+        return;
+    }
+    for (int i = 0; i < count; ++i) {
+        const auto& entry = interfaces[i];
+        if (entry.is_internal || entry.address.address4.sin_family != family) continue;
+        char ip[INET6_ADDRSTRLEN]{};
+        const int result = family == AF_INET ? uv_ip4_name(&entry.address.address4, ip, sizeof(ip))
+            : uv_ip6_name(&entry.address.address6, ip, sizeof(ip));
+        if (result == 0 && is_valid_local_ip(ip, family)) visitor(context, ip);
+    }
+    uv_free_interface_addresses(interfaces, count);
 }
 
 bool mqas::io::Ip::valid_ipv4(const char* str, int port)

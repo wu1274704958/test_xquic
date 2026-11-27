@@ -1,148 +1,73 @@
-#include "mqas/tools/stream/p2p_helper_client.h"
-#include "mqas/core/proto/simple.h"
+#include "p2p_probe_path.hpp"
 
 namespace mqas::tools::p2p {
+	P2PHelperClientStream::~P2PHelperClientStream() = default;
+
+	void P2PHelperClientStream::on_init(::lsquic_stream_t* stream, core::connect_cxt* context, std::weak_ptr<core::IConnect> connection) {
+		BASE_TYPE::on_init(stream, context, connection);
+		auto engine = context->engine_cxt_->engine.lock();
+		if (!engine) return;
+		auto socket = engine->get_socket();
+		const auto self = *context->get_cxt<uint32_t>();
+		auto& io = context->engine_cxt_->io_cxt;
+		lobby_ = std::make_shared<LobbySocketProbePath>(io, self, socket);
+		lobby_->on_probe_received.connect(sigc::mem_fun(*this, &P2PHelperClientStream::report));
+		io::SocketAddress address;
+		socket->get_sock_addr(address.storage);
+		if (address.native().sa_family == AF_INET) {
+			ipv6_ = std::make_shared<IPv6SocketProbePath>(io, self);
+			ipv6_->on_probe_received.connect(sigc::mem_fun(*this, &P2PHelperClientStream::report));
+		}
+	}
+
+	template<class Pair>
+	core::StreamVariantErrcode P2PHelperClientStream::prepare(const std::shared_ptr<typename Pair::PB_MSG_TYPE>& msg, std::vector<uint8_t>& buf) {
+		if (!msg || !lobby_) return core::StreamVariantErrcode::failed;
+		peer_ = msg->peer_id();
+		auto& list = *msg->mutable_ip_list();
+		lobby_->prepare(list);
+		if (ipv6_) ipv6_->prepare(list);
+		else list.clear_additional_ipv6_endpoints();
+		LOG(INFO) << "p2p_probe peer=" << peer_ << " ipv6_prepared=" << list.additional_ipv6_endpoints_size();
+		return core::ProtoBufMsg::write_msg<Pair>(buf, *msg) ? core::StreamVariantErrcode::ok : core::StreamVariantErrcode::failed;
+	}
+	core::StreamVariantErrcode P2PHelperClientStream::on_local_change_msg_s(const std::shared_ptr<proto::p2p::ReqConnectPeer>& msg, std::vector<uint8_t>& buf) {
+		return prepare<ReqConnectPeerPair>(msg, buf);
+	}
+	core::StreamVariantErrcode P2PHelperClientStream::on_local_change_msg_s(const std::shared_ptr<proto::p2p::ReqRespondPeerReqConnect>& msg, std::vector<uint8_t>& buf) {
+		return prepare<ReqRespondPeerReqConnectPair>(msg, buf);
+	}
+	void P2PHelperClientStream::on_close() {
+		finished_ = true;
+		lobby_.reset();
+		ipv6_.reset();
+		BASE_TYPE::on_close();
+	}
+	void P2PHelperClientStream::report(const proto::p2p::ReqSubmitRecvPeerKeyCode& msg) {
+		if (!finished_ && msg.peer_id() == peer_) send<ReqSubmitRecvPeerKeyCodePair>(msg);
+	}
 	void P2PHelperClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyP2PServerReady>& msg) { on_server_ready.emit(msg); }
-	void P2PHelperClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectPeerData>& msg)
-	{
+	void P2PHelperClientStream::on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectPeerData>& msg) {
+		if (finished_ || msg->peer_id() != peer_) return;
 		on_connect_peer.emit(msg);
-
-		if(_timer == nullptr)
-			_timer = connect_cxt_->engine_cxt_->io_cxt.make_shared<io::Timer>();
-
-		_connect_peer_data = msg;
-		_connect_count = 0;
-
-		if (_timer->is_start())
-			return;
-
-		_timer->start([this](io::Timer* t) {
-			if (!_connect_peer_data || _connect_count >= _connect_peer_data->connect_data().send_times())
-				t->stop();
-			send_verify_msg(_connect_peer_data);
-			++_connect_count;
-			if(_connect_count >= _connect_peer_data->connect_data().send_times())
-				t->stop();
-		},0,msg->connect_data().send_delay());
+		auto& path = msg->connect_data().use_non_lobby_socket() ? ipv6_ : lobby_;
+		if (lobby_) lobby_->stop();
+		if (ipv6_) ipv6_->stop();
+		if (path) path->start(msg);
 	}
-
-	P2PHelperClientStream::~P2PHelperClientStream()
-	{
-		if (_receive_connect.connected())
-			_receive_connect.disconnect();
-	}
-
-	mqas::core::StreamVariantErrcode P2PHelperClientStream::on_peer_quit_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectResult>& res,
-		std::vector<uint8_t>& buf)
-	{
-		if (_receive_connect.connected())
-			_receive_connect.disconnect();
-		on_quit_result.emit(res,_socket);
-		return mqas::core::StreamVariantErrcode::ok;
-	}
-
-	void P2PHelperClientStream::on_peer_change_ack_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondConnectPeer>& res)
-	{
-		on_change_result.emit(res);
-		if (code != core::StreamVariantErrcode::ok)
-			req_quit();
-	}
-
-	void P2PHelperClientStream::on_init(::lsquic_stream_t* lsquic_stream, core::connect_cxt* connect_cxt, std::weak_ptr<core::IConnect> connect)
-	{
-		BASE_TYPE::on_init(lsquic_stream,connect_cxt,connect);
-
-		auto conn = connect.lock();
-		if (conn)
-			conn->get_sockaddr(&_local_addr,&_remote_addr);
-		auto engine = connect_cxt->engine_cxt_->engine.lock();
-		if (engine)
-		{
-			_socket = engine->get_socket();
-			_receive_connect = _socket->on_recv_signal.connect(sigc::mem_fun(*this, &P2PHelperClientStream::on_receive));
+	core::StreamVariantErrcode P2PHelperClientStream::on_peer_quit_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectResult>& msg, std::vector<uint8_t>&) {
+		if (!finished_) {
+			finished_ = true;
+			auto& path = msg->use_non_lobby_socket() ? ipv6_ : lobby_;
+			auto socket = path ? path->finish() : nullptr;
+			lobby_.reset();
+			ipv6_.reset();
+			on_quit_result.emit(msg, std::move(socket));
 		}
-
-		id = *connect_cxt_->get_cxt<uint32_t>();
+		return core::StreamVariantErrcode::ok;
 	}
-
-	void P2PHelperClientStream::send_verify_msg(const std::shared_ptr<proto::p2p::NotifyConnectPeerData>& msg) const
-	{
-		if(!_socket)
-			return;
-		core::proto::simple_pkg<uint32_t> pkg;
-
-		std::array<uint8_t, sizeof(uint32_t)> code_data{};
-		comm::to_big_endian(msg->connect_data().verify_code(), code_data);
-		std::array<uint8_t, sizeof(uint32_t)> peer_id_data{};
-		comm::to_big_endian(id, peer_id_data);
-		std::array<uint8_t, sizeof(uint16_t)> ip_data{};
-		comm::to_big_endian((uint16_t)msg->connect_data().ip_index(), ip_data);
-
-		std::array<uint8_t, sizeof(uint32_t) * 2 + sizeof(uint16_t)> body{};
-		std::memcpy(body.data(), code_data.data(), code_data.size());
-		std::memcpy(body.data() + sizeof(uint32_t), peer_id_data.data(), peer_id_data.size());
-		std::memcpy(body.data() + sizeof(uint32_t) * 2, ip_data.data(), ip_data.size());
-
-		pkg.body = body;
-		auto data = pkg.generate();
-		if (data)
-		{
-			io::SocketAddress addr;
-			if(io::Ip::str2addr(msg->connect_data().ip().c_str(),msg->connect_data().port(),addr.storage))
-			{
-				try{
-					_socket->try_send(*data,addr);
-				}catch(io::Exception e) {}
-			}
-		}
+	void P2PHelperClientStream::on_peer_change_ack_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondConnectPeer>& msg) {
+		on_change_result.emit(msg);
+		if (code != core::StreamVariantErrcode::ok) req_quit();
 	}
-
-	std::optional<proto::p2p::ReqSubmitRecvPeerKeyCode> P2PHelperClientStream::try_parse_verify_msg(const core::proto::simple_pkg<uint32_t>& pkg,
-		const sockaddr* addr) const
-	{
-		if (pkg.body.size() == sizeof(uint32_t) * 2 + sizeof(uint16_t))
-		{
-			auto code = comm::from_big_endian<uint32_t>(std::span(&pkg.body[0], sizeof(uint32_t)));
-			auto peer_id = comm::from_big_endian<uint32_t>(std::span(&pkg.body[sizeof(uint32_t)], sizeof(uint32_t)));
-			auto ip_index = comm::from_big_endian<uint16_t>(std::span(&pkg.body[sizeof(uint32_t) * 2], sizeof(uint16_t)));
-			
-
-			proto::p2p::ReqSubmitRecvPeerKeyCode msg;
-			msg.set_ip_index(ip_index);
-			msg.set_verify_code(code);
-			msg.set_peer_id(peer_id);
-			auto peer_addr = msg.mutable_peer_addr();
-			peer_addr->set_ip(io::Ip::addr2str(*addr));
-			peer_addr->set_port(io::Ip::addr_get_port(*addr));
-			#if !NDEBUG
-			LOG(INFO) << "ReqSubmitRecvPeerKeyCode " << "peer addr = " << peer_addr->ip() << ':' << peer_addr->port() << " ip idx = " << ip_index;
-			#endif
-			return { msg };
-		}
-
-		return {};
-	}
-
-	void P2PHelperClientStream::on_receive(io::UdpSocket* sock, const std::optional<std::span<uint8_t>>& buf, ssize_t nread, const sockaddr* addr, unsigned flags)
-	{
-		if (nread == 0 || addr == nullptr || nread < 0)
-			return;
-		if (!is_stream_addr(addr) && buf)
-		{
-			auto [pkg,size] = core::proto::simple_pkg<uint32_t>::parse_command(*buf);
-			if (pkg)
-			{
-				auto msg = try_parse_verify_msg(*pkg, addr);
-				if (msg)
-					send<ReqSubmitRecvPeerKeyCodePair>(*msg);
-			}
-		}
-	}
-
-	bool P2PHelperClientStream::is_stream_addr(const sockaddr* addr) const
-	{
-		return io::Ip::compare_ip(*_local_addr,*addr);
-	}
-
-
 }

@@ -5,6 +5,7 @@
 #include <mqas/io/udp.h>
 
 namespace mqas::tools::p2p {
+	class P2PProbePath;
 	class MQAS_EXTERN P2PHelperClientStream : public core::ProtoBufStream<P2PHelperClientStream,
 		ReqConnectPeerPair, RespondConnectPeerPair,
 		ReqRespondPeerReqConnectPair,
@@ -18,6 +19,7 @@ namespace mqas::tools::p2p {
 		sigc::signal<void(const std::shared_ptr<proto::p2p::NotifyP2PServerReady>&)> on_server_ready;
 
 		~P2PHelperClientStream();
+		void on_close();
 
 		void on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectPeerData>& msg);
 		void on_read_msg_s(const std::shared_ptr<proto::p2p::NotifyP2PServerReady>& msg);
@@ -25,20 +27,13 @@ namespace mqas::tools::p2p {
 			std::vector<uint8_t>& buf);
 		void on_peer_change_ack_msg_s(core::StreamVariantErrcode code, const std::shared_ptr<proto::p2p::RespondConnectPeer>&);
 		void on_init(::lsquic_stream_t* lsquic_stream, core::connect_cxt* connect_cxt, std::weak_ptr<core::IConnect> connect);
-	protected:
-		void send_verify_msg(const std::shared_ptr<proto::p2p::NotifyConnectPeerData>&) const;
-		std::optional<proto::p2p::ReqSubmitRecvPeerKeyCode> try_parse_verify_msg(const core::proto::simple_pkg<uint32_t>& pkg, const sockaddr* addr) const;
-		void on_receive(io::UdpSocket* sock, const std::optional<std::span<uint8_t>>& buf, ssize_t nread, const sockaddr* addr, unsigned flags);
-		bool is_stream_addr(const sockaddr* addr) const;
-
-	protected:
-		const sockaddr* _local_addr; 
-		const sockaddr* _remote_addr;
-		std::shared_ptr<io::UdpSocket> _socket;
-		sigc::connection _receive_connect;
-		std::shared_ptr<proto::p2p::NotifyConnectPeerData> _connect_peer_data;
-		std::shared_ptr<io::Timer> _timer;
-		uint32_t _connect_count = 0;
-		uint32_t id;
+		core::StreamVariantErrcode on_local_change_msg_s(const std::shared_ptr<proto::p2p::ReqConnectPeer>&, std::vector<uint8_t>&);
+		core::StreamVariantErrcode on_local_change_msg_s(const std::shared_ptr<proto::p2p::ReqRespondPeerReqConnect>&, std::vector<uint8_t>&);
+	private:
+		template<class Pair> core::StreamVariantErrcode prepare(const std::shared_ptr<typename Pair::PB_MSG_TYPE>&, std::vector<uint8_t>&);
+		void report(const proto::p2p::ReqSubmitRecvPeerKeyCode&);
+		std::shared_ptr<P2PProbePath> lobby_, ipv6_;
+		uint32_t peer_ = 0;
+		bool finished_ = false;
 	};
 }

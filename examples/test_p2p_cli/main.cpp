@@ -589,6 +589,10 @@ void tui::on_helper_result(const std::shared_ptr<mqas::tools::proto::p2p::Notify
 
 	if (current_state() == ui_state::helper_main) pop_state();
 	append_state(ui_state::p2p_main);
+	if (!sock) {
+		fail_waiting_for_server("Selected P2P probe socket is unavailable");
+		return;
+	}
 	if (msg->negotiation_id().size() != 16) {
 		fail_waiting_for_server("Missing negotiation ID");
 		return;

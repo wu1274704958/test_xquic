@@ -263,7 +263,8 @@ inline constexpr ConnectPeerData::Impl_::Impl_(
         verify_code_{0u},
         send_times_{0u},
         send_delay_{0u},
-        ip_index_{0u} {}
+        ip_index_{0u},
+        use_non_lobby_socket_{false} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR ConnectPeerData::ConnectPeerData(::_pbi::ConstantInitialized)
@@ -284,32 +285,6 @@ struct ConnectPeerDataDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MQAS_EXTERN
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ConnectPeerDataDefaultTypeInternal _ConnectPeerData_default_instance_;
-
-inline constexpr ClientIpList::Impl_::Impl_(
-    ::_pbi::ConstantInitialized) noexcept
-      : _cached_size_{0},
-        ip_list_{},
-        port_{0u} {}
-
-template <typename>
-PROTOBUF_CONSTEXPR ClientIpList::ClientIpList(::_pbi::ConstantInitialized)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(ClientIpList_class_data_.base()),
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(),
-#endif  // PROTOBUF_CUSTOM_VTABLE
-      _impl_(::_pbi::ConstantInitialized()) {
-}
-struct ClientIpListDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR ClientIpListDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~ClientIpListDefaultTypeInternal() {}
-  union {
-    ClientIpList _instance;
-  };
-};
-
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MQAS_EXTERN
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClientIpListDefaultTypeInternal _ClientIpList_default_instance_;
 
 inline constexpr Address::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -392,6 +367,134 @@ struct ReqSubmitRecvPeerKeyCodeDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MQAS_EXTERN
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ReqSubmitRecvPeerKeyCodeDefaultTypeInternal _ReqSubmitRecvPeerKeyCode_default_instance_;
 
+inline constexpr NotifyPeerWantConnect::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        peer_{nullptr} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR NotifyPeerWantConnect::NotifyPeerWantConnect(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(NotifyPeerWantConnect_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct NotifyPeerWantConnectDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR NotifyPeerWantConnectDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~NotifyPeerWantConnectDefaultTypeInternal() {}
+  union {
+    NotifyPeerWantConnect _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MQAS_EXTERN
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 NotifyPeerWantConnectDefaultTypeInternal _NotifyPeerWantConnect_default_instance_;
+
+inline constexpr NotifyConnectResult::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        reason_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        relay_token_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        psk_identity_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        psk_secret_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        negotiation_id_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        address_{nullptr},
+        peer_addr_{nullptr},
+        relay_addr_{nullptr},
+        verify_token_{nullptr},
+        ret_{static_cast< ::mqas::tools::proto::p2p::RetCode >(0)},
+        peer_id_{0u},
+        psk_issued_at_ms_{::uint64_t{0u}},
+        psk_expires_at_ms_{::uint64_t{0u}},
+        is_server_{false},
+        use_relay_{false},
+        use_non_lobby_socket_{false} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR NotifyConnectResult::NotifyConnectResult(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(NotifyConnectResult_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct NotifyConnectResultDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR NotifyConnectResultDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~NotifyConnectResultDefaultTypeInternal() {}
+  union {
+    NotifyConnectResult _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MQAS_EXTERN
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 NotifyConnectResultDefaultTypeInternal _NotifyConnectResult_default_instance_;
+
+inline constexpr NotifyConnectPeerData::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        connect_data_{nullptr},
+        peer_id_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR NotifyConnectPeerData::NotifyConnectPeerData(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(NotifyConnectPeerData_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct NotifyConnectPeerDataDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR NotifyConnectPeerDataDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~NotifyConnectPeerDataDefaultTypeInternal() {}
+  union {
+    NotifyConnectPeerData _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MQAS_EXTERN
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 NotifyConnectPeerDataDefaultTypeInternal _NotifyConnectPeerData_default_instance_;
+
+inline constexpr ClientIpList::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        ip_list_{},
+        additional_ipv6_endpoints_{},
+        port_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ClientIpList::ClientIpList(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ClientIpList_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ClientIpListDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ClientIpListDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ClientIpListDefaultTypeInternal() {}
+  union {
+    ClientIpList _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MQAS_EXTERN
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClientIpListDefaultTypeInternal _ClientIpList_default_instance_;
+
 inline constexpr ReqRespondPeerReqConnect::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -448,106 +551,6 @@ struct ReqConnectPeerDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MQAS_EXTERN
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ReqConnectPeerDefaultTypeInternal _ReqConnectPeer_default_instance_;
-
-inline constexpr NotifyPeerWantConnect::Impl_::Impl_(
-    ::_pbi::ConstantInitialized) noexcept
-      : _cached_size_{0},
-        peer_{nullptr} {}
-
-template <typename>
-PROTOBUF_CONSTEXPR NotifyPeerWantConnect::NotifyPeerWantConnect(::_pbi::ConstantInitialized)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(NotifyPeerWantConnect_class_data_.base()),
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(),
-#endif  // PROTOBUF_CUSTOM_VTABLE
-      _impl_(::_pbi::ConstantInitialized()) {
-}
-struct NotifyPeerWantConnectDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR NotifyPeerWantConnectDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~NotifyPeerWantConnectDefaultTypeInternal() {}
-  union {
-    NotifyPeerWantConnect _instance;
-  };
-};
-
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MQAS_EXTERN
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 NotifyPeerWantConnectDefaultTypeInternal _NotifyPeerWantConnect_default_instance_;
-
-inline constexpr NotifyConnectResult::Impl_::Impl_(
-    ::_pbi::ConstantInitialized) noexcept
-      : _cached_size_{0},
-        reason_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        relay_token_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        psk_identity_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        psk_secret_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        negotiation_id_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        address_{nullptr},
-        peer_addr_{nullptr},
-        relay_addr_{nullptr},
-        verify_token_{nullptr},
-        ret_{static_cast< ::mqas::tools::proto::p2p::RetCode >(0)},
-        peer_id_{0u},
-        psk_issued_at_ms_{::uint64_t{0u}},
-        psk_expires_at_ms_{::uint64_t{0u}},
-        is_server_{false},
-        use_relay_{false} {}
-
-template <typename>
-PROTOBUF_CONSTEXPR NotifyConnectResult::NotifyConnectResult(::_pbi::ConstantInitialized)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(NotifyConnectResult_class_data_.base()),
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(),
-#endif  // PROTOBUF_CUSTOM_VTABLE
-      _impl_(::_pbi::ConstantInitialized()) {
-}
-struct NotifyConnectResultDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR NotifyConnectResultDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~NotifyConnectResultDefaultTypeInternal() {}
-  union {
-    NotifyConnectResult _instance;
-  };
-};
-
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MQAS_EXTERN
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 NotifyConnectResultDefaultTypeInternal _NotifyConnectResult_default_instance_;
-
-inline constexpr NotifyConnectPeerData::Impl_::Impl_(
-    ::_pbi::ConstantInitialized) noexcept
-      : _cached_size_{0},
-        connect_data_{nullptr},
-        peer_id_{0u} {}
-
-template <typename>
-PROTOBUF_CONSTEXPR NotifyConnectPeerData::NotifyConnectPeerData(::_pbi::ConstantInitialized)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(NotifyConnectPeerData_class_data_.base()),
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(),
-#endif  // PROTOBUF_CUSTOM_VTABLE
-      _impl_(::_pbi::ConstantInitialized()) {
-}
-struct NotifyConnectPeerDataDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR NotifyConnectPeerDataDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~NotifyConnectPeerDataDefaultTypeInternal() {}
-  union {
-    NotifyConnectPeerData _instance;
-  };
-};
-
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MQAS_EXTERN
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 NotifyConnectPeerDataDefaultTypeInternal _NotifyConnectPeerData_default_instance_;
 }  // namespace p2p
 }  // namespace proto
 }  // namespace tools
@@ -581,8 +584,10 @@ const ::uint32_t
         ~0u,  // no sizeof(Split)
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ClientIpList, _impl_.ip_list_),
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ClientIpList, _impl_.port_),
+        PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ClientIpList, _impl_.additional_ipv6_endpoints_),
         ~0u,
         0,
+        ~0u,
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::Address, _impl_._has_bits_),
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::Address, _internal_metadata_),
         ~0u,  // no _extensions_
@@ -666,12 +671,14 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ConnectPeerData, _impl_.send_times_),
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ConnectPeerData, _impl_.send_delay_),
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ConnectPeerData, _impl_.ip_index_),
+        PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ConnectPeerData, _impl_.use_non_lobby_socket_),
         0,
         1,
         2,
         3,
         4,
         5,
+        6,
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqConnectPeer, _impl_._has_bits_),
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqConnectPeer, _internal_metadata_),
         ~0u,  // no _extensions_
@@ -753,6 +760,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.psk_issued_at_ms_),
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.psk_expires_at_ms_),
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.negotiation_id_),
+        PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::NotifyConnectResult, _impl_.use_non_lobby_socket_),
         9,
         10,
         13,
@@ -768,6 +776,7 @@ const ::uint32_t
         11,
         12,
         4,
+        15,
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqP2PServerReady, _impl_._has_bits_),
         PROTOBUF_FIELD_OFFSET(::mqas::tools::proto::p2p::ReqP2PServerReady, _internal_metadata_),
         ~0u,  // no _extensions_
@@ -823,24 +832,24 @@ const ::uint32_t
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, 10, -1, sizeof(::mqas::tools::proto::p2p::PeerData)},
-        {12, 22, -1, sizeof(::mqas::tools::proto::p2p::ClientIpList)},
-        {24, 34, -1, sizeof(::mqas::tools::proto::p2p::Address)},
-        {36, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqPeerList)},
-        {44, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondPeerList)},
-        {53, 62, -1, sizeof(::mqas::tools::proto::p2p::ReqRegistePeer)},
-        {63, 73, -1, sizeof(::mqas::tools::proto::p2p::RespondRegistePeer)},
-        {75, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqUnregistePeer)},
-        {83, 92, -1, sizeof(::mqas::tools::proto::p2p::RespondUnregistePeer)},
-        {93, 107, -1, sizeof(::mqas::tools::proto::p2p::ConnectPeerData)},
-        {113, 125, -1, sizeof(::mqas::tools::proto::p2p::ReqConnectPeer)},
-        {129, 142, -1, sizeof(::mqas::tools::proto::p2p::ReqRespondPeerReqConnect)},
-        {147, 157, -1, sizeof(::mqas::tools::proto::p2p::RespondConnectPeer)},
-        {159, 169, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectPeerData)},
-        {171, 194, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectResult)},
-        {209, 219, -1, sizeof(::mqas::tools::proto::p2p::ReqP2PServerReady)},
-        {221, 231, -1, sizeof(::mqas::tools::proto::p2p::NotifyP2PServerReady)},
-        {233, 242, -1, sizeof(::mqas::tools::proto::p2p::NotifyPeerWantConnect)},
-        {243, 255, -1, sizeof(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode)},
+        {12, 23, -1, sizeof(::mqas::tools::proto::p2p::ClientIpList)},
+        {26, 36, -1, sizeof(::mqas::tools::proto::p2p::Address)},
+        {38, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqPeerList)},
+        {46, -1, -1, sizeof(::mqas::tools::proto::p2p::RespondPeerList)},
+        {55, 64, -1, sizeof(::mqas::tools::proto::p2p::ReqRegistePeer)},
+        {65, 75, -1, sizeof(::mqas::tools::proto::p2p::RespondRegistePeer)},
+        {77, -1, -1, sizeof(::mqas::tools::proto::p2p::ReqUnregistePeer)},
+        {85, 94, -1, sizeof(::mqas::tools::proto::p2p::RespondUnregistePeer)},
+        {95, 110, -1, sizeof(::mqas::tools::proto::p2p::ConnectPeerData)},
+        {117, 129, -1, sizeof(::mqas::tools::proto::p2p::ReqConnectPeer)},
+        {133, 146, -1, sizeof(::mqas::tools::proto::p2p::ReqRespondPeerReqConnect)},
+        {151, 161, -1, sizeof(::mqas::tools::proto::p2p::RespondConnectPeer)},
+        {163, 173, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectPeerData)},
+        {175, 199, -1, sizeof(::mqas::tools::proto::p2p::NotifyConnectResult)},
+        {215, 225, -1, sizeof(::mqas::tools::proto::p2p::ReqP2PServerReady)},
+        {227, 237, -1, sizeof(::mqas::tools::proto::p2p::NotifyP2PServerReady)},
+        {239, 248, -1, sizeof(::mqas::tools::proto::p2p::NotifyPeerWantConnect)},
+        {249, 261, -1, sizeof(::mqas::tools::proto::p2p::ReqSubmitRecvPeerKeyCode)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::mqas::tools::proto::p2p::_PeerData_default_instance_._instance,
@@ -867,62 +876,67 @@ const char descriptor_table_protodef_p2p_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIAB
     protodesc_cold) = {
     "\n\tp2p.proto\022\024mqas.tools.proto.p2p\032\014commo"
     "n.proto\"$\n\010PeerData\022\n\n\002id\030\001 \001(\r\022\014\n\004name\030"
-    "\002 \001(\t\"-\n\014ClientIpList\022\017\n\007ip_list\030\001 \003(\t\022\014"
-    "\n\004port\030\002 \001(\r\"#\n\007Address\022\n\n\002ip\030\001 \001(\t\022\014\n\004p"
-    "ort\030\002 \001(\r\"\r\n\013ReqPeerList\"D\n\017RespondPeerL"
-    "ist\0221\n\tpeer_list\030\001 \003(\0132\036.mqas.tools.prot"
-    "o.p2p.PeerData\"\036\n\016ReqRegistePeer\022\014\n\004name"
-    "\030\001 \001(\t\"L\n\022RespondRegistePeer\022*\n\003ret\030\001 \001("
-    "\0162\035.mqas.tools.proto.p2p.RetCode\022\n\n\002id\030\002"
-    " \001(\r\"\022\n\020ReqUnregistePeer\"B\n\024RespondUnreg"
-    "istePeer\022*\n\003ret\030\001 \001(\0162\035.mqas.tools.proto"
-    ".p2p.RetCode\"z\n\017ConnectPeerData\022\n\n\002ip\030\001 "
-    "\001(\t\022\014\n\004port\030\002 \001(\r\022\023\n\013verify_code\030\003 \001(\r\022\022"
-    "\n\nsend_times\030\004 \001(\r\022\022\n\nsend_delay\030\005 \001(\r\022\020"
-    "\n\010ip_index\030\006 \001(\r\"\300\001\n\016ReqConnectPeer\022\017\n\007p"
-    "eer_id\030\001 \001(\r\0228\n\007ip_list\030\002 \001(\0132\".mqas.too"
-    "ls.proto.p2p.ClientIpListH\000\210\001\001\022\024\n\014auth_v"
-    "ersion\030\003 \001(\r\022A\n\021server_preference\030\004 \001(\0162"
-    "&.mqas.tools.proto.p2p.ServerPreferenceB"
-    "\n\n\010_ip_list\"\331\001\n\030ReqRespondPeerReqConnect"
-    "\022\017\n\007peer_id\030\001 \001(\r\022\r\n\005agree\030\002 \001(\010\0228\n\007ip_l"
-    "ist\030\003 \001(\0132\".mqas.tools.proto.p2p.ClientI"
-    "pListH\000\210\001\001\022\024\n\014auth_version\030\004 \001(\r\022A\n\021serv"
-    "er_preference\030\005 \001(\0162&.mqas.tools.proto.p"
-    "2p.ServerPreferenceB\n\n\010_ip_list\"Q\n\022Respo"
-    "ndConnectPeer\022\017\n\007peer_id\030\001 \001(\r\022*\n\003ret\030\002 "
-    "\001(\0162\035.mqas.tools.proto.p2p.RetCode\"e\n\025No"
-    "tifyConnectPeerData\022\017\n\007peer_id\030\001 \001(\r\022;\n\014"
-    "connect_data\030\002 \001(\0132%.mqas.tools.proto.p2"
-    "p.ConnectPeerData\"\344\004\n\023NotifyConnectResul"
-    "t\022*\n\003ret\030\001 \001(\0162\035.mqas.tools.proto.p2p.Re"
-    "tCode\022\017\n\007peer_id\030\002 \001(\r\022\021\n\tis_server\030\005 \001("
-    "\010\0228\n\014verify_token\030\n \001(\0132\035.mqas.tools.pro"
-    "to.common.UUIDH\000\210\001\001\0225\n\tpeer_addr\030\006 \001(\0132\035"
-    ".mqas.tools.proto.p2p.AddressH\001\210\001\001\022\023\n\006re"
-    "ason\030\003 \001(\tH\002\210\001\001\0223\n\007address\030\004 \001(\0132\035.mqas."
-    "tools.proto.p2p.AddressH\003\210\001\001\0226\n\nrelay_ad"
-    "dr\030\007 \001(\0132\035.mqas.tools.proto.p2p.AddressH"
-    "\004\210\001\001\022\026\n\tuse_relay\030\010 \001(\010H\005\210\001\001\022\030\n\013relay_to"
-    "ken\030\t \001(\014H\006\210\001\001\022\024\n\014psk_identity\030\013 \001(\014\022\022\n\n"
-    "psk_secret\030\014 \001(\014\022\030\n\020psk_issued_at_ms\030\r \001"
-    "(\004\022\031\n\021psk_expires_at_ms\030\016 \001(\004\022\026\n\016negotia"
-    "tion_id\030\017 \001(\014B\017\n\r_verify_tokenB\014\n\n_peer_"
-    "addrB\t\n\007_reasonB\n\n\010_addressB\r\n\013_relay_ad"
-    "drB\014\n\n_use_relayB\016\n\014_relay_token\"<\n\021ReqP"
-    "2PServerReady\022\017\n\007peer_id\030\001 \001(\r\022\026\n\016negoti"
-    "ation_id\030\002 \001(\014\"\?\n\024NotifyP2PServerReady\022\017"
-    "\n\007peer_id\030\001 \001(\r\022\026\n\016negotiation_id\030\002 \001(\014\""
-    "E\n\025NotifyPeerWantConnect\022,\n\004peer\030\001 \001(\0132\036"
-    ".mqas.tools.proto.p2p.PeerData\"\204\001\n\030ReqSu"
-    "bmitRecvPeerKeyCode\022\017\n\007peer_id\030\001 \001(\r\022\023\n\013"
-    "verify_code\030\002 \001(\r\022\020\n\010ip_index\030\003 \001(\r\0220\n\tp"
-    "eer_addr\030\004 \001(\0132\035.mqas.tools.proto.p2p.Ad"
-    "dress*T\n\007RetCode\022\006\n\002ok\020\000\022\022\n\016already_exis"
-    "ts\020\001\022\016\n\nnot_exists\020\002\022\021\n\rpeer_rejected\020\003\022"
-    "\n\n\006failed\020\004*W\n\020ServerPreference\022\030\n\024SERVE"
-    "R_NO_PREFERENCE\020\000\022\024\n\020SERVER_VOLUNTEER\020\001\022"
-    "\023\n\017SERVER_REUSABLE\020\002b\006proto3"
+    "\002 \001(\t\"o\n\014ClientIpList\022\017\n\007ip_list\030\001 \003(\t\022\014"
+    "\n\004port\030\002 \001(\r\022@\n\031additional_ipv6_endpoint"
+    "s\030\003 \003(\0132\035.mqas.tools.proto.p2p.Address\"#"
+    "\n\007Address\022\n\n\002ip\030\001 \001(\t\022\014\n\004port\030\002 \001(\r\"\r\n\013R"
+    "eqPeerList\"D\n\017RespondPeerList\0221\n\tpeer_li"
+    "st\030\001 \003(\0132\036.mqas.tools.proto.p2p.PeerData"
+    "\"\036\n\016ReqRegistePeer\022\014\n\004name\030\001 \001(\t\"L\n\022Resp"
+    "ondRegistePeer\022*\n\003ret\030\001 \001(\0162\035.mqas.tools"
+    ".proto.p2p.RetCode\022\n\n\002id\030\002 \001(\r\"\022\n\020ReqUnr"
+    "egistePeer\"B\n\024RespondUnregistePeer\022*\n\003re"
+    "t\030\001 \001(\0162\035.mqas.tools.proto.p2p.RetCode\"\266"
+    "\001\n\017ConnectPeerData\022\n\n\002ip\030\001 \001(\t\022\014\n\004port\030\002"
+    " \001(\r\022\023\n\013verify_code\030\003 \001(\r\022\022\n\nsend_times\030"
+    "\004 \001(\r\022\022\n\nsend_delay\030\005 \001(\r\022\020\n\010ip_index\030\006 "
+    "\001(\r\022!\n\024use_non_lobby_socket\030\007 \001(\010H\000\210\001\001B\027"
+    "\n\025_use_non_lobby_socket\"\300\001\n\016ReqConnectPe"
+    "er\022\017\n\007peer_id\030\001 \001(\r\0228\n\007ip_list\030\002 \001(\0132\".m"
+    "qas.tools.proto.p2p.ClientIpListH\000\210\001\001\022\024\n"
+    "\014auth_version\030\003 \001(\r\022A\n\021server_preference"
+    "\030\004 \001(\0162&.mqas.tools.proto.p2p.ServerPref"
+    "erenceB\n\n\010_ip_list\"\331\001\n\030ReqRespondPeerReq"
+    "Connect\022\017\n\007peer_id\030\001 \001(\r\022\r\n\005agree\030\002 \001(\010\022"
+    "8\n\007ip_list\030\003 \001(\0132\".mqas.tools.proto.p2p."
+    "ClientIpListH\000\210\001\001\022\024\n\014auth_version\030\004 \001(\r\022"
+    "A\n\021server_preference\030\005 \001(\0162&.mqas.tools."
+    "proto.p2p.ServerPreferenceB\n\n\010_ip_list\"Q"
+    "\n\022RespondConnectPeer\022\017\n\007peer_id\030\001 \001(\r\022*\n"
+    "\003ret\030\002 \001(\0162\035.mqas.tools.proto.p2p.RetCod"
+    "e\"e\n\025NotifyConnectPeerData\022\017\n\007peer_id\030\001 "
+    "\001(\r\022;\n\014connect_data\030\002 \001(\0132%.mqas.tools.p"
+    "roto.p2p.ConnectPeerData\"\240\005\n\023NotifyConne"
+    "ctResult\022*\n\003ret\030\001 \001(\0162\035.mqas.tools.proto"
+    ".p2p.RetCode\022\017\n\007peer_id\030\002 \001(\r\022\021\n\tis_serv"
+    "er\030\005 \001(\010\0228\n\014verify_token\030\n \001(\0132\035.mqas.to"
+    "ols.proto.common.UUIDH\000\210\001\001\0225\n\tpeer_addr\030"
+    "\006 \001(\0132\035.mqas.tools.proto.p2p.AddressH\001\210\001"
+    "\001\022\023\n\006reason\030\003 \001(\tH\002\210\001\001\0223\n\007address\030\004 \001(\0132"
+    "\035.mqas.tools.proto.p2p.AddressH\003\210\001\001\0226\n\nr"
+    "elay_addr\030\007 \001(\0132\035.mqas.tools.proto.p2p.A"
+    "ddressH\004\210\001\001\022\026\n\tuse_relay\030\010 \001(\010H\005\210\001\001\022\030\n\013r"
+    "elay_token\030\t \001(\014H\006\210\001\001\022\024\n\014psk_identity\030\013 "
+    "\001(\014\022\022\n\npsk_secret\030\014 \001(\014\022\030\n\020psk_issued_at"
+    "_ms\030\r \001(\004\022\031\n\021psk_expires_at_ms\030\016 \001(\004\022\026\n\016"
+    "negotiation_id\030\017 \001(\014\022!\n\024use_non_lobby_so"
+    "cket\030\020 \001(\010H\007\210\001\001B\017\n\r_verify_tokenB\014\n\n_pee"
+    "r_addrB\t\n\007_reasonB\n\n\010_addressB\r\n\013_relay_"
+    "addrB\014\n\n_use_relayB\016\n\014_relay_tokenB\027\n\025_u"
+    "se_non_lobby_socket\"<\n\021ReqP2PServerReady"
+    "\022\017\n\007peer_id\030\001 \001(\r\022\026\n\016negotiation_id\030\002 \001("
+    "\014\"\?\n\024NotifyP2PServerReady\022\017\n\007peer_id\030\001 \001"
+    "(\r\022\026\n\016negotiation_id\030\002 \001(\014\"E\n\025NotifyPeer"
+    "WantConnect\022,\n\004peer\030\001 \001(\0132\036.mqas.tools.p"
+    "roto.p2p.PeerData\"\204\001\n\030ReqSubmitRecvPeerK"
+    "eyCode\022\017\n\007peer_id\030\001 \001(\r\022\023\n\013verify_code\030\002"
+    " \001(\r\022\020\n\010ip_index\030\003 \001(\r\0220\n\tpeer_addr\030\004 \001("
+    "\0132\035.mqas.tools.proto.p2p.Address*T\n\007RetC"
+    "ode\022\006\n\002ok\020\000\022\022\n\016already_exists\020\001\022\016\n\nnot_e"
+    "xists\020\002\022\021\n\rpeer_rejected\020\003\022\n\n\006failed\020\004*W"
+    "\n\020ServerPreference\022\030\n\024SERVER_NO_PREFEREN"
+    "CE\020\000\022\024\n\020SERVER_VOLUNTEER\020\001\022\023\n\017SERVER_REU"
+    "SABLE\020\002b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_p2p_2eproto_deps[1] = {
@@ -932,7 +946,7 @@ static ::absl::once_flag descriptor_table_p2p_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_p2p_2eproto = {
     false,
     false,
-    2308,
+    2495,
     descriptor_table_protodef_p2p_2eproto,
     "p2p.proto",
     &descriptor_table_p2p_2eproto_once,
@@ -1281,7 +1295,8 @@ PROTOBUF_NDEBUG_INLINE ClientIpList::Impl_::Impl_(
     const ::mqas::tools::proto::p2p::ClientIpList& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
-        ip_list_{visibility, arena, from.ip_list_} {}
+        ip_list_{visibility, arena, from.ip_list_},
+        additional_ipv6_endpoints_{visibility, arena, from.additional_ipv6_endpoints_} {}
 
 ClientIpList::ClientIpList(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -1304,7 +1319,8 @@ PROTOBUF_NDEBUG_INLINE ClientIpList::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
-        ip_list_{visibility, arena} {}
+        ip_list_{visibility, arena},
+        additional_ipv6_endpoints_{visibility, arena} {}
 
 inline void ClientIpList::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -1330,6 +1346,10 @@ constexpr auto ClientIpList::InternalNewImpl_() {
   constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
       PROTOBUF_FIELD_OFFSET(ClientIpList, _impl_.ip_list_) +
           decltype(ClientIpList::_impl_.ip_list_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(ClientIpList, _impl_.additional_ipv6_endpoints_) +
+          decltype(ClientIpList::_impl_.additional_ipv6_endpoints_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
   });
@@ -1375,18 +1395,18 @@ const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL ClientIpList::Ge
   return ClientIpList_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 49, 2>
+const ::_pbi::TcParseTable<2, 3, 1, 49, 2>
 ClientIpList::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(ClientIpList, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    3, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
+    4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
-    0,  // num_aux_entries
-    offsetof(decltype(_table_), field_names),  // no aux_entries
+    3,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
     ClientIpList_class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::GenericFallback,  // fallback
@@ -1394,12 +1414,16 @@ ClientIpList::_table_ = {
     ::_pbi::TcParser::GetTable<::mqas::tools::proto::p2p::ClientIpList>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // uint32 port = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ClientIpList, _impl_.port_), 0>(),
-     {16, 0, 0, PROTOBUF_FIELD_OFFSET(ClientIpList, _impl_.port_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // repeated string ip_list = 1;
     {::_pbi::TcParser::FastUR1,
      {10, 63, 0, PROTOBUF_FIELD_OFFSET(ClientIpList, _impl_.ip_list_)}},
+    // uint32 port = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ClientIpList, _impl_.port_), 0>(),
+     {16, 0, 0, PROTOBUF_FIELD_OFFSET(ClientIpList, _impl_.port_)}},
+    // repeated .mqas.tools.proto.p2p.Address additional_ipv6_endpoints = 3;
+    {::_pbi::TcParser::FastMtR1,
+     {26, 63, 0, PROTOBUF_FIELD_OFFSET(ClientIpList, _impl_.additional_ipv6_endpoints_)}},
   }}, {{
     65535, 65535
   }}, {{
@@ -1409,8 +1433,13 @@ ClientIpList::_table_ = {
     // uint32 port = 2;
     {PROTOBUF_FIELD_OFFSET(ClientIpList, _impl_.port_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // repeated .mqas.tools.proto.p2p.Address additional_ipv6_endpoints = 3;
+    {PROTOBUF_FIELD_OFFSET(ClientIpList, _impl_.additional_ipv6_endpoints_), -1, 0,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
-  // no aux_entries
+  {{
+      {::_pbi::TcParser::GetTable<::mqas::tools::proto::p2p::Address>()},
+  }},
   {{
     "\41\7\0\0\0\0\0\0"
     "mqas.tools.proto.p2p.ClientIpList"
@@ -1425,6 +1454,7 @@ PROTOBUF_NOINLINE void ClientIpList::Clear() {
   (void) cached_has_bits;
 
   _impl_.ip_list_.Clear();
+  _impl_.additional_ipv6_endpoints_.Clear();
   _impl_.port_ = 0u;
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -1462,6 +1492,17 @@ PROTOBUF_NOINLINE void ClientIpList::Clear() {
     }
   }
 
+  // repeated .mqas.tools.proto.p2p.Address additional_ipv6_endpoints = 3;
+  for (unsigned i = 0, n = static_cast<unsigned>(
+                           this_._internal_additional_ipv6_endpoints_size());
+       i < n; i++) {
+    const auto& repfield = this_._internal_additional_ipv6_endpoints().Get(i);
+    target =
+        ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+            3, repfield, repfield.GetCachedSize(),
+            target, stream);
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -1496,6 +1537,13 @@ PROTOBUF_NOINLINE void ClientIpList::Clear() {
             this_._internal_ip_list().Get(i));
       }
     }
+    // repeated .mqas.tools.proto.p2p.Address additional_ipv6_endpoints = 3;
+    {
+      total_size += 1UL * this_._internal_additional_ipv6_endpoints_size();
+      for (const auto& msg : this_._internal_additional_ipv6_endpoints()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
   }
    {
     // uint32 port = 2;
@@ -1520,6 +1568,8 @@ void ClientIpList::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::go
   (void) cached_has_bits;
 
   _this->_internal_mutable_ip_list()->MergeFrom(from._internal_ip_list());
+  _this->_internal_mutable_additional_ipv6_endpoints()->MergeFrom(
+      from._internal_additional_ipv6_endpoints());
   cached_has_bits = from._impl_._has_bits_[0];
   if ((cached_has_bits & 0x00000001u) != 0) {
     if (from._internal_port() != 0) {
@@ -1543,6 +1593,7 @@ void ClientIpList::InternalSwap(ClientIpList* PROTOBUF_RESTRICT PROTOBUF_NONNULL
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.ip_list_.InternalSwap(&other->_impl_.ip_list_);
+  _impl_.additional_ipv6_endpoints_.InternalSwap(&other->_impl_.additional_ipv6_endpoints_);
   swap(_impl_.port_, other->_impl_.port_);
 }
 
@@ -3129,9 +3180,9 @@ ConnectPeerData::ConnectPeerData(
                offsetof(Impl_, port_),
            reinterpret_cast<const char *>(&from._impl_) +
                offsetof(Impl_, port_),
-           offsetof(Impl_, ip_index_) -
+           offsetof(Impl_, use_non_lobby_socket_) -
                offsetof(Impl_, port_) +
-               sizeof(Impl_::ip_index_));
+               sizeof(Impl_::use_non_lobby_socket_));
 
   // @@protoc_insertion_point(copy_constructor:mqas.tools.proto.p2p.ConnectPeerData)
 }
@@ -3146,9 +3197,9 @@ inline void ConnectPeerData::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char *>(&_impl_) +
                offsetof(Impl_, port_),
            0,
-           offsetof(Impl_, ip_index_) -
+           offsetof(Impl_, use_non_lobby_socket_) -
                offsetof(Impl_, port_) +
-               sizeof(Impl_::ip_index_));
+               sizeof(Impl_::use_non_lobby_socket_));
 }
 ConnectPeerData::~ConnectPeerData() {
   // @@protoc_insertion_point(destructor:mqas.tools.proto.p2p.ConnectPeerData)
@@ -3204,16 +3255,16 @@ const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL ConnectPeerData:
   return ConnectPeerData_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<3, 6, 0, 47, 2>
+const ::_pbi::TcParseTable<3, 7, 0, 47, 2>
 ConnectPeerData::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(ConnectPeerData, _impl_._has_bits_),
     0, // no _extensions_
-    6, 56,  // max_field_number, fast_idx_mask
+    7, 56,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967232,  // skipmap
+    4294967168,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    6,  // num_field_entries
+    7,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     ConnectPeerData_class_data_.base(),
@@ -3242,7 +3293,9 @@ ConnectPeerData::_table_ = {
     // uint32 ip_index = 6;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ConnectPeerData, _impl_.ip_index_), 5>(),
      {48, 5, 0, PROTOBUF_FIELD_OFFSET(ConnectPeerData, _impl_.ip_index_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // optional bool use_non_lobby_socket = 7;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(ConnectPeerData, _impl_.use_non_lobby_socket_), 6>(),
+     {56, 6, 0, PROTOBUF_FIELD_OFFSET(ConnectPeerData, _impl_.use_non_lobby_socket_)}},
   }}, {{
     65535, 65535
   }}, {{
@@ -3264,6 +3317,9 @@ ConnectPeerData::_table_ = {
     // uint32 ip_index = 6;
     {PROTOBUF_FIELD_OFFSET(ConnectPeerData, _impl_.ip_index_), _Internal::kHasBitsOffset + 5, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // optional bool use_non_lobby_socket = 7;
+    {PROTOBUF_FIELD_OFFSET(ConnectPeerData, _impl_.use_non_lobby_socket_), _Internal::kHasBitsOffset + 6, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kBool)},
   }},
   // no aux_entries
   {{
@@ -3283,10 +3339,10 @@ PROTOBUF_NOINLINE void ConnectPeerData::Clear() {
   if ((cached_has_bits & 0x00000001u) != 0) {
     _impl_.ip_.ClearNonDefaultToEmpty();
   }
-  if ((cached_has_bits & 0x0000003eu) != 0) {
+  if ((cached_has_bits & 0x0000007eu) != 0) {
     ::memset(&_impl_.port_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.ip_index_) -
-        reinterpret_cast<char*>(&_impl_.port_)) + sizeof(_impl_.ip_index_));
+        reinterpret_cast<char*>(&_impl_.use_non_lobby_socket_) -
+        reinterpret_cast<char*>(&_impl_.port_)) + sizeof(_impl_.use_non_lobby_socket_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -3362,6 +3418,14 @@ PROTOBUF_NOINLINE void ConnectPeerData::Clear() {
     }
   }
 
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // optional bool use_non_lobby_socket = 7;
+  if ((cached_has_bits & 0x00000040u) != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(
+        7, this_._internal_use_non_lobby_socket(), target);
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -3387,6 +3451,7 @@ PROTOBUF_NOINLINE void ConnectPeerData::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
+  total_size += static_cast<bool>(0x00000040u & cached_has_bits) * 2;
   if ((cached_has_bits & 0x0000003fu) != 0) {
     // string ip = 1;
     if ((cached_has_bits & 0x00000001u) != 0) {
@@ -3444,7 +3509,7 @@ void ConnectPeerData::MergeImpl(::google::protobuf::MessageLite& to_msg, const :
   (void) cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if ((cached_has_bits & 0x0000003fu) != 0) {
+  if ((cached_has_bits & 0x0000007fu) != 0) {
     if ((cached_has_bits & 0x00000001u) != 0) {
       if (!from._internal_ip().empty()) {
         _this->_internal_set_ip(from._internal_ip());
@@ -3479,6 +3544,9 @@ void ConnectPeerData::MergeImpl(::google::protobuf::MessageLite& to_msg, const :
         _this->_impl_.ip_index_ = from._impl_.ip_index_;
       }
     }
+    if ((cached_has_bits & 0x00000040u) != 0) {
+      _this->_impl_.use_non_lobby_socket_ = from._impl_.use_non_lobby_socket_;
+    }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
@@ -3500,8 +3568,8 @@ void ConnectPeerData::InternalSwap(ConnectPeerData* PROTOBUF_RESTRICT PROTOBUF_N
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.ip_, &other->_impl_.ip_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ConnectPeerData, _impl_.ip_index_)
-      + sizeof(ConnectPeerData::_impl_.ip_index_)
+      PROTOBUF_FIELD_OFFSET(ConnectPeerData, _impl_.use_non_lobby_socket_)
+      + sizeof(ConnectPeerData::_impl_.use_non_lobby_socket_)
       - PROTOBUF_FIELD_OFFSET(ConnectPeerData, _impl_.port_)>(
           reinterpret_cast<char*>(&_impl_.port_),
           reinterpret_cast<char*>(&other->_impl_.port_));
@@ -4912,9 +4980,9 @@ NotifyConnectResult::NotifyConnectResult(
                offsetof(Impl_, ret_),
            reinterpret_cast<const char *>(&from._impl_) +
                offsetof(Impl_, ret_),
-           offsetof(Impl_, use_relay_) -
+           offsetof(Impl_, use_non_lobby_socket_) -
                offsetof(Impl_, ret_) +
-               sizeof(Impl_::use_relay_));
+               sizeof(Impl_::use_non_lobby_socket_));
 
   // @@protoc_insertion_point(copy_constructor:mqas.tools.proto.p2p.NotifyConnectResult)
 }
@@ -4933,9 +5001,9 @@ inline void NotifyConnectResult::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE aren
   ::memset(reinterpret_cast<char *>(&_impl_) +
                offsetof(Impl_, address_),
            0,
-           offsetof(Impl_, use_relay_) -
+           offsetof(Impl_, use_non_lobby_socket_) -
                offsetof(Impl_, address_) +
-               sizeof(Impl_::use_relay_));
+               sizeof(Impl_::use_non_lobby_socket_));
 }
 NotifyConnectResult::~NotifyConnectResult() {
   // @@protoc_insertion_point(destructor:mqas.tools.proto.p2p.NotifyConnectResult)
@@ -4999,16 +5067,16 @@ const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL NotifyConnectRes
   return NotifyConnectResult_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<4, 15, 4, 63, 2>
+const ::_pbi::TcParseTable<4, 16, 4, 71, 2>
 NotifyConnectResult::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_._has_bits_),
     0, // no _extensions_
-    15, 120,  // max_field_number, fast_idx_mask
+    16, 120,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294934528,  // skipmap
+    4294901760,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    15,  // num_field_entries
+    16,  // num_field_entries
     4,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     NotifyConnectResult_class_data_.base(),
@@ -5018,7 +5086,9 @@ NotifyConnectResult::_table_ = {
     ::_pbi::TcParser::GetTable<::mqas::tools::proto::p2p::NotifyConnectResult>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    // optional bool use_non_lobby_socket = 16;
+    {::_pbi::TcParser::FastV8S2,
+     {384, 15, 0, PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_.use_non_lobby_socket_)}},
     // .mqas.tools.proto.p2p.RetCode ret = 1;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(NotifyConnectResult, _impl_.ret_), 9>(),
      {8, 9, 0, PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_.ret_)}},
@@ -5112,6 +5182,9 @@ NotifyConnectResult::_table_ = {
     // bytes negotiation_id = 15;
     {PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_.negotiation_id_), _Internal::kHasBitsOffset + 4, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kBytes | ::_fl::kRepAString)},
+    // optional bool use_non_lobby_socket = 16;
+    {PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_.use_non_lobby_socket_), _Internal::kHasBitsOffset + 15, 0,
+    (0 | ::_fl::kFcOptional | ::_fl::kBool)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::mqas::tools::proto::p2p::Address>()},
@@ -5120,7 +5193,7 @@ NotifyConnectResult::_table_ = {
       {::_pbi::TcParser::GetTable<::mqas::tools::proto::common::UUID>()},
   }},
   {{
-    "\50\0\0\6\0\0\0\0\0\0\0\0\0\0\0\0"
+    "\50\0\0\6\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
     "mqas.tools.proto.p2p.NotifyConnectResult"
     "reason"
   }},
@@ -5166,10 +5239,10 @@ PROTOBUF_NOINLINE void NotifyConnectResult::Clear() {
     ABSL_DCHECK(_impl_.verify_token_ != nullptr);
     _impl_.verify_token_->Clear();
   }
-  if ((cached_has_bits & 0x00007e00u) != 0) {
+  if ((cached_has_bits & 0x0000fe00u) != 0) {
     ::memset(&_impl_.ret_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.use_relay_) -
-        reinterpret_cast<char*>(&_impl_.ret_)) + sizeof(_impl_.use_relay_));
+        reinterpret_cast<char*>(&_impl_.use_non_lobby_socket_) -
+        reinterpret_cast<char*>(&_impl_.ret_)) + sizeof(_impl_.use_non_lobby_socket_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -5309,6 +5382,13 @@ PROTOBUF_NOINLINE void NotifyConnectResult::Clear() {
     }
   }
 
+  // optional bool use_non_lobby_socket = 16;
+  if ((cached_has_bits & 0x00008000u) != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(
+        16, this_._internal_use_non_lobby_socket(), target);
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -5334,6 +5414,7 @@ PROTOBUF_NOINLINE void NotifyConnectResult::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
+  total_size += static_cast<bool>(0x00008000u & cached_has_bits) * 3;
   total_size += static_cast<bool>(0x00004000u & cached_has_bits) * 2;
   if ((cached_has_bits & 0x000000ffu) != 0) {
     // optional string reason = 3;
@@ -5497,7 +5578,7 @@ void NotifyConnectResult::MergeImpl(::google::protobuf::MessageLite& to_msg, con
       }
     }
   }
-  if ((cached_has_bits & 0x00007f00u) != 0) {
+  if ((cached_has_bits & 0x0000ff00u) != 0) {
     if ((cached_has_bits & 0x00000100u) != 0) {
       ABSL_DCHECK(from._impl_.verify_token_ != nullptr);
       if (_this->_impl_.verify_token_ == nullptr) {
@@ -5534,6 +5615,9 @@ void NotifyConnectResult::MergeImpl(::google::protobuf::MessageLite& to_msg, con
     if ((cached_has_bits & 0x00004000u) != 0) {
       _this->_impl_.use_relay_ = from._impl_.use_relay_;
     }
+    if ((cached_has_bits & 0x00008000u) != 0) {
+      _this->_impl_.use_non_lobby_socket_ = from._impl_.use_non_lobby_socket_;
+    }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
@@ -5559,8 +5643,8 @@ void NotifyConnectResult::InternalSwap(NotifyConnectResult* PROTOBUF_RESTRICT PR
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.psk_secret_, &other->_impl_.psk_secret_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.negotiation_id_, &other->_impl_.negotiation_id_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_.use_relay_)
-      + sizeof(NotifyConnectResult::_impl_.use_relay_)
+      PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_.use_non_lobby_socket_)
+      + sizeof(NotifyConnectResult::_impl_.use_non_lobby_socket_)
       - PROTOBUF_FIELD_OFFSET(NotifyConnectResult, _impl_.address_)>(
           reinterpret_cast<char*>(&_impl_.address_),
           reinterpret_cast<char*>(&other->_impl_.address_));

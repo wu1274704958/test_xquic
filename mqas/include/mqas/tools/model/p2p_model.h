@@ -77,6 +77,7 @@ namespace mqas::tools::p2p {
 		TryInternal,
 		ChangeToExternal,
 		TryExternal,
+		TryAdditionalIPv6,
 		Success,
 		Wait
 	};
@@ -96,6 +97,7 @@ namespace mqas::tools::p2p {
 		uint32_t request_initiator = 0;
 		std::array<std::vector<std::string>, 2> ip_list;
 		std::array<uint16_t, 2> port_list;
+		std::array<std::optional<proto::p2p::Address>, 2> additional_ipv6;
 		ConnectState state;
 		int8_t stage_1;//who active
 		std::array<int8_t, 2> stage_2;

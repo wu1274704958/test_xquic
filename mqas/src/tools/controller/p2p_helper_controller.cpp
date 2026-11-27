@@ -49,7 +49,7 @@ namespace mqas::tools::controller {
 	void p2p_helper_controller::submit_verify_code(uint64_t merge_id,uint32_t id,const std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>& msg)
 	{
 		auto model = comm::locator::inst()->get<p2p::p2p_model>();
-		if (!*this && !model)
+		if (!is_start() || !model)
 			return;
 		if (model.value().get().submit_verify_code(merge_id,id,msg))
 		{
@@ -67,7 +67,7 @@ namespace mqas::tools::controller {
 	{
 		LOG(INFO) << "p2p_path_selection first_family=" << address_family(_peer_list[0]->ip)
 			<< " second_family=" << address_family(_peer_list[1]->ip)
-			<< " result=" << result;
+			<< " additional_ipv6=" << (_cxt->state == p2p::ConnectState::TryAdditionalIPv6) << " result=" << result;
 	}
 
 	void p2p_helper_controller::on_verify_success() const
@@ -151,8 +151,10 @@ namespace mqas::tools::controller {
 			on_timeout();
 			stop_step();
 		}
-		else if(res.second)
+		else if(res.second) {
+			if (res.second->connect_data().use_non_lobby_socket()) LOG(INFO) << "p2p_probe additional_ipv6 started";
 			_notify_connect_signal[0](*res.second);
+		}
 		res = model.value().get().current_cxt(_cxt->id, _cxt->pid[1]);
 		assert(res.first == p2p::StepResult::Success);
 		if (!peer_exist(_peer_list[1]->id))
@@ -201,6 +203,9 @@ namespace mqas::tools::controller {
 		const auto idx = p2p::self_idx(_cxt->pid, id);
 		switch (_cxt->state)
 		{
+		case p2p::ConnectState::TryAdditionalIPv6:
+			*addr = *_cxt->additional_ipv6[idx];
+			break;
 		case p2p::ConnectState::TryExternal:
 		{
 			const auto peer = model->get()[id];
@@ -261,6 +266,7 @@ namespace mqas::tools::controller {
 		else{
 			auto address = msg.mutable_address();
 			auto peer_addr = msg.mutable_peer_addr();
+			if (_cxt->state == p2p::ConnectState::TryAdditionalIPv6) msg.set_use_non_lobby_socket(true);
 			set_current_address(id,address);
 			set_peer_address(oth_id, peer_addr);
 		}

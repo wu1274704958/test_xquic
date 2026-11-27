@@ -27,7 +27,56 @@ static bool check_candidates(bool first, bool second) {
         second_result->connect_data().ip_index() == (internal ? 0 : connect_cxt::ExternalIpIndex);
 }
 
+static bool check_additional(bool offer_both, bool confirm_both = true) {
+    namespace pb = mqas::tools::proto::p2p;
+    p2p_model model;
+    const auto a = model.registe_client("a", "198.51.100.1", 10001, {});
+    const auto b = model.registe_client("b", "198.51.100.2", 10002, {});
+    pb::ClientIpList local, remote;
+    local.set_port(20001);
+    remote.set_port(20002);
+    for (auto ip : {"::1", "fe80::1", "2001:db8::1", "2001:db8::3"}) {
+        auto* candidate = local.add_additional_ipv6_endpoints();
+        candidate->set_ip(ip);
+        candidate->set_port(40001);
+    }
+    if (offer_both) {
+        auto* candidate = remote.add_additional_ipv6_endpoints();
+        candidate->set_ip("2001:db8::2");
+        candidate->set_port(40002);
+    }
+    const connect_cxt* state = nullptr;
+    const auto id = model.reg_context(a, b, local, {}, &state);
+    model.reg_context(b, a, remote, {}, &state);
+    auto external = model.next_cxt(id, a).second;
+    if (!external || external->connect_data().use_non_lobby_socket()) return false;
+    auto report = std::make_shared<pb::ReqSubmitRecvPeerKeyCode>();
+    report->set_verify_code(external->connect_data().verify_code());
+    report->set_ip_index(external->connect_data().ip_index());
+    if (model.submit_verify_code(id, b, report)) return false;
+    auto next = model.next_cxt(id, a);
+    if (!offer_both) return next.first == StepResult::End;
+    auto reverse = model.current_cxt(id, b).second;
+    if (!next.second || !reverse || !next.second->connect_data().use_non_lobby_socket() ||
+        reverse->connect_data().ip() != "2001:db8::1" || next.second->connect_data().port() != 40002) return false;
+    if (model.submit_verify_code(id, b, report)) return false;
+    report->set_ip_index(0);
+    report->mutable_peer_addr()->set_ip("2001:db8::1");
+    report->mutable_peer_addr()->set_port(40001);
+    report->set_verify_code(next.second->connect_data().verify_code());
+    if (model.submit_verify_code(id, b, report)) return false;
+    if (!confirm_both) {
+        return model.next_cxt(id, a).first == StepResult::End &&
+            !model.submit_verify_code(id, b, report);
+    }
+    auto reply = std::make_shared<pb::ReqSubmitRecvPeerKeyCode>(*report);
+    reply->set_verify_code(reverse->connect_data().verify_code());
+    reply->mutable_peer_addr()->set_ip("2001:db8::2");
+    return model.submit_verify_code(id, a, reply);
+}
+
 int main() {
+    if (!check_additional(true) || !check_additional(false) || !check_additional(true, false)) return 5;
     if (mqas::io::Ip::is_valid_local_ip(nullptr) || mqas::io::Ip::is_valid_local_ip("127.9.1.2") ||
         mqas::io::Ip::is_valid_local_ip("169.254.1.2") || mqas::io::Ip::is_valid_local_ip("invalid") ||
         !mqas::io::Ip::is_valid_local_ip("192.168.1.2")) return 1;
