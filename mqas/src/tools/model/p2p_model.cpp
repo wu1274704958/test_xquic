@@ -96,14 +96,12 @@ namespace mqas::tools::p2p {
 		if (client_self == nullptr || client_oth == nullptr)
 			return 0;
 		auto id = merge_id(self, oth);
-		bool is_new = false;
-		if((is_new = !cxt_map.contains(id)))
-			cxt_map.emplace(id, connect_cxt{});
-		auto& cxt = cxt_map[id];
-		if (is_new)
-		{
+		auto [it, inserted] = cxt_map.try_emplace(id);
+		auto& cxt = it->second;
+		if (inserted) {
 			cxt.id = id;
-			cxt.tag[0] = cxt.tag[1] = -1;
+		} else if (cxt.state != ConnectState::Idle || cxt.port_list[self_idx(cxt.pid, self)] != 0) {
+			return 0;
 		}
 		set_cxt(cxt, first_peer(*client_self, *client_oth), second_peer(*client_self, *client_oth),
 			self, self_ip,std::move(self_stream));
@@ -177,7 +175,6 @@ namespace mqas::tools::p2p {
 		collect_candidates(cxt.ip_list[1], b_ip, b.ip);
 		cxt.state = ConnectState::Idle;
 		cxt.stage_1 = cxt.stage_2[0] = cxt.stage_2[1] =  -1;
-		cxt.tag[0] = cxt.tag[1] = -1;
 		return true;
 	}
 
@@ -243,7 +240,7 @@ namespace mqas::tools::p2p {
 			return std::make_pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>>(StepResult::None, {});
 		auto res = next_cxt(*cxt);
 		if (res == StepResult::Success)
-			return { res,generate_connect_data(*cxt,self)};
+			return { res,generate_connect_data(*cxt,self,cxt->lobby_probes.back())};
 		return { res,{} };
 	}
 
@@ -259,18 +256,14 @@ namespace mqas::tools::p2p {
 		case ConnectState::Ready:
 			return { StepResult::None,{} };
 		case ConnectState::TryInternal:
-		case ConnectState::TryAdditionalIPv6:
 		case ConnectState::TryExternal:
-			return { StepResult::Success,generate_connect_data(*cxt,self) };
+			return { StepResult::Success,generate_connect_data(*cxt,self,cxt->lobby_probes.back()) };
 		case ConnectState::Success:
 		case ConnectState::Wait:
 			return {StepResult::End,{}};
 		}
 		return { StepResult::None,{} };
 	}
-	//int8_t stage_1;//who active
-	//std::array<int8_t, 2> stage_2;//ip index
-	//int8_t tag;// success count
 	StepResult p2p_model::next_cxt(connect_cxt& cxt) const
 	{
 		switch (cxt.state)
@@ -278,13 +271,13 @@ namespace mqas::tools::p2p {
 		case ConnectState::Idle:
 			return StepResult::None;
 		case ConnectState::Ready:
-		case ConnectState::ChangeToExternal:
+		case ConnectState::ChangeToExternal: {
 			cxt.stage_1 = 0;
 			cxt.stage_2[0] = cxt.stage_2[1] = 0;
 			cxt.state = cxt.state == ConnectState::Ready && !cxt.ip_list[0].empty() && !cxt.ip_list[1].empty()
 				? ConnectState::TryInternal : ConnectState::TryExternal;
-			generate_verify_code(cxt.verify_code);
-			return StepResult::Success;
+			break;
+		}
 		case ConnectState::TryInternal:
 		{
 			auto& a = cxt.stage_2[0];
@@ -297,33 +290,37 @@ namespace mqas::tools::p2p {
 			}
 			if (more_a) ++a;
 			if (more_b) ++b;
-			generate_verify_code(cxt.verify_code);
-			return StepResult::Success;
+			break;
 		}
 		case ConnectState::TryExternal:
-			if (cxt.additional_ipv6[0] && cxt.additional_ipv6[1]) {
-				cxt.state = ConnectState::TryAdditionalIPv6;
-				cxt.tag.fill(-1);
-				for (auto& replies : cxt.submit_code_map) replies.clear();
-				generate_verify_code(cxt.verify_code);
-				return StepResult::Success;
-			}
-			[[fallthrough]];
-		case ConnectState::TryAdditionalIPv6:
 			cxt.state = ConnectState::Wait;
 			return StepResult::End;
 		case ConnectState::Success:
 		case ConnectState::Wait:
 			return StepResult::End;
-			break;
 		}
-		return StepResult::None;
+		auto& probe = cxt.lobby_probes.emplace_back();
+		probe.path = cxt.state == ConnectState::TryExternal ? ProbePath::LobbyExternal : ProbePath::LobbyInternal;
+		for (size_t i = 0; i < 2; ++i)
+			probe.index[i] = cxt.state == ConnectState::TryExternal ? connect_cxt::ExternalIpIndex : cxt.stage_2[i];
+		generate_verify_code(probe.code);
+		return StepResult::Success;
 	}
 
-	std::optional<proto::p2p::NotifyConnectPeerData> p2p_model::generate_connect_data(const connect_cxt& cxt, uint32_t self) const
+	bool p2p_model::start_ipv6_probe(uint64_t id)
 	{
-		if(!(cxt.state == ConnectState::TryInternal || cxt.state == ConnectState::TryExternal || cxt.state == ConnectState::TryAdditionalIPv6))
-			return {};
+		auto* cxt = get_context(id);
+		if (!cxt || cxt->lobby_probes.empty() || cxt->state == ConnectState::Success || cxt->state == ConnectState::Wait ||
+			cxt->ipv6_probe || !cxt->additional_ipv6[0] || !cxt->additional_ipv6[1]) return false;
+		auto& probe = cxt->ipv6_probe.emplace();
+		probe.path = ProbePath::AdditionalIPv6;
+		probe.index.fill(connect_cxt::AdditionalIPv6Index);
+		generate_verify_code(probe.code);
+		return true;
+	}
+
+	std::optional<proto::p2p::NotifyConnectPeerData> p2p_model::generate_connect_data(const connect_cxt& cxt, uint32_t self, const ProbeAttempt& probe) const
+	{
 		auto oth = other(cxt.pid, self);
 		auto idx_oth = oth_idx(cxt.pid,self);
 		auto self_data = (*this)[self];
@@ -332,26 +329,24 @@ namespace mqas::tools::p2p {
 		proto::p2p::NotifyConnectPeerData data;
 		data.set_peer_id(oth);
 		auto* d = data.mutable_connect_data();
-		int ip_idx = 0;
-		if (cxt.state == ConnectState::TryAdditionalIPv6) {
+		const auto ip_idx = probe.index[idx_oth];
+		if (probe.path == ProbePath::AdditionalIPv6) {
 			const auto& endpoint = *cxt.additional_ipv6[idx_oth];
 			d->set_ip(endpoint.ip());
 			d->set_port(endpoint.port());
 			d->set_use_non_lobby_socket(true);
 		} else {
 			if ((self_data->ip.find(':') == std::string::npos) != (oth_data->ip.find(':') == std::string::npos)) return {};
-			if (cxt.state == ConnectState::TryInternal) {
-				ip_idx = cxt.stage_2[idx_oth];
+			if (probe.path == ProbePath::LobbyInternal) {
 				if (ip_idx < 0 || static_cast<size_t>(ip_idx) >= cxt.ip_list[idx_oth].size()) return {};
 				d->set_ip(cxt.ip_list[idx_oth][ip_idx]);
 				d->set_port(cxt.port_list[idx_oth]);
 			} else {
-				ip_idx = connect_cxt::ExternalIpIndex;
 				d->set_ip(oth_data->ip);
 				d->set_port(oth_data->port);
 			}
 		}
-		d->set_verify_code( cxt.verify_code[idx_oth]);
+		d->set_verify_code(probe.code[idx_oth]);
 		d->set_send_times(3);
 		d->set_send_delay(200);
 		d->set_ip_index(ip_idx);
@@ -372,30 +367,39 @@ namespace mqas::tools::p2p {
 	bool p2p_model::submit_verify_code(uint64_t merge_id, uint32_t id, const std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>& msg)
 	{
 		auto cxt = get_context(merge_id);
-		if(cxt == nullptr)
-			return false;
-		if (!(cxt->state == ConnectState::TryInternal || cxt->state == ConnectState::TryExternal || cxt->state == ConnectState::TryAdditionalIPv6))
-			return false;
-		auto idx_oth = oth_idx(cxt->pid, id);
-		auto idx = self_idx(cxt->pid, id);
-		sockaddr_in6 observed{};
-		if (cxt->state == ConnectState::TryAdditionalIPv6 &&
-			(msg->ip_index() != 0 || !msg->peer_addr().port() || msg->peer_addr().port() > UINT16_MAX ||
-			msg->peer_addr().ip().find('\0') != std::string::npos ||
-			uv_ip6_addr(msg->peer_addr().ip().c_str(), 0, &observed) != 0 || !valid_probe_ipv6(observed))) return false;
-		if (cxt->verify_code[idx] == msg->verify_code())
-		{
-			auto& map = cxt->submit_code_map[idx_oth];
-			map[(int16_t)msg->ip_index()] = msg;
-			cxt->tag[idx_oth] = msg->ip_index();
+		if (!cxt || !msg || (id != cxt->pid[0] && id != cxt->pid[1]) ||
+			(cxt->state != ConnectState::TryInternal && cxt->state != ConnectState::TryExternal)) return false;
+		const auto receiver = self_idx(cxt->pid, id);
+		auto matches = [&](const ProbeAttempt& attempt) {
+			return attempt.index[receiver] == msg->ip_index() && attempt.code[receiver] == msg->verify_code();
+		};
+		if (msg->peer_id() != other(cxt->pid, id)) return false;
+		ProbeAttempt* probe = nullptr;
+		if (msg->ip_index() == connect_cxt::AdditionalIPv6Index) {
+			if (cxt->ipv6_probe && matches(*cxt->ipv6_probe)) probe = &*cxt->ipv6_probe;
+		} else {
+			auto it = std::find_if(cxt->lobby_probes.begin(), cxt->lobby_probes.end(), matches);
+			if (it != cxt->lobby_probes.end()) probe = &*it;
 		}
-		return *cxt;
-	}
-
-	bool connect_cxt::is_receive(uint32_t id) const
-	{
-		auto idx = self_idx(pid, id);
-		return tag[idx] >= 0;
+		if (!probe || probe->replies[receiver]) return false;
+		const auto& observed = msg->peer_addr();
+		if (!observed.port() || observed.port() > UINT16_MAX || observed.ip().find('\0') != std::string::npos) return false;
+		if (probe->path == ProbePath::AdditionalIPv6) {
+			sockaddr_in6 addr{};
+			if (uv_ip6_addr(observed.ip().c_str(), 0, &addr) || !valid_probe_ipv6(addr)) return false;
+		} else {
+			const auto* sender = (*this)[msg->peer_id()];
+			if (!sender) return false;
+			sockaddr_storage addr{};
+			if (!io::Ip::str2addr(observed.ip().c_str(), observed.port(), addr) ||
+				addr.ss_family != (sender->ip.find(':') == std::string::npos ? AF_INET : AF_INET6)) return false;
+		}
+		probe->replies[receiver] = msg;
+		if (!probe->replies[1 - receiver]) return false;
+		if (probe->path != ProbePath::AdditionalIPv6)
+			cxt->winning_lobby_index = static_cast<size_t>(probe - cxt->lobby_probes.data());
+		cxt->state = ConnectState::Success;
+		return true;
 	}
 
 	const boost::uuids::uuid& connect_cxt::get_relay_token()

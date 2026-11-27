@@ -51,8 +51,6 @@ namespace mqas::tools::p2p {
 		if (finished_ || msg->peer_id() != peer_) return;
 		on_connect_peer.emit(msg);
 		auto& path = msg->connect_data().use_non_lobby_socket() ? ipv6_ : lobby_;
-		if (lobby_) lobby_->stop();
-		if (ipv6_) ipv6_->stop();
 		if (path) path->start(msg);
 	}
 	core::StreamVariantErrcode P2PHelperClientStream::on_peer_quit_msg_s(const std::shared_ptr<proto::p2p::NotifyConnectResult>& msg, std::vector<uint8_t>&) {

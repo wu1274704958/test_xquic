@@ -77,7 +77,6 @@ namespace mqas::tools::p2p {
 		TryInternal,
 		ChangeToExternal,
 		TryExternal,
-		TryAdditionalIPv6,
 		Success,
 		Wait
 	};
@@ -89,8 +88,19 @@ namespace mqas::tools::p2p {
 		End = 4
 	};
 
+	enum class ProbePath { LobbyInternal, LobbyExternal, AdditionalIPv6 };
+
+	struct ProbeAttempt {
+		ProbePath path;
+		std::array<uint32_t, 2> code{};
+		std::array<int16_t, 2> index{};
+		// Indexed by the receiving peer. The address belongs to the sender.
+		std::array<std::shared_ptr<const proto::p2p::ReqSubmitRecvPeerKeyCode>, 2> replies{};
+	};
+
 	struct connect_cxt {
 		static constexpr int16_t ExternalIpIndex = 9999;
+		static constexpr int16_t AdditionalIPv6Index = 10000;
 		uint64_t id;
 		std::array<uint32_t, 2> pid;
 		std::array<proto::p2p::ServerPreference, 2> server_preferences{};
@@ -101,19 +111,22 @@ namespace mqas::tools::p2p {
 		ConnectState state;
 		int8_t stage_1;//who active
 		std::array<int8_t, 2> stage_2;
-		std::array<int16_t, 2> tag;// success tag
+		// One entry per issued lobby candidate pair, bounded by collect_candidates plus the external pair.
+		std::vector<ProbeAttempt> lobby_probes;
+		std::optional<ProbeAttempt> ipv6_probe;
+		std::optional<size_t> winning_lobby_index;
+		const ProbeAttempt* winner() const noexcept {
+			if (state != ConnectState::Success) return nullptr;
+			return winning_lobby_index ? &lobby_probes[*winning_lobby_index] : &*ipv6_probe;
+		}
 		bool is_same_external;
-		std::array<uint32_t,2> verify_code;
 		std::array<std::weak_ptr<mqas::core::IStreamVariant>, 2> stream;
-		std::array<std::unordered_map<int16_t,std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>>,2> submit_code_map;
 		private:
 		std::optional<boost::uuids::uuid> relay_token;
 		std::shared_ptr<session_credential> tls_credential;
 		//func
 		public:
 		connect_cxt() : port_list({0,0}) {}
-		inline operator bool() const { return tag[0] >= 0 && tag[1] >= 0; }
-		bool is_receive(uint32_t id) const;
 		uint32_t select_server() const noexcept {
 			const auto a = server_preferences[0], b = server_preferences[1];
 			if (a != b) return a > b ? pid[0] : pid[1];
@@ -195,7 +208,8 @@ namespace mqas::tools::p2p {
 		const connect_cxt* get_context_const(uint32_t a, uint32_t b) const;
 		std::pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>> next_cxt(uint64_t id, uint32_t self);
 		std::pair<StepResult, std::optional<proto::p2p::NotifyConnectPeerData>> current_cxt(uint64_t id, uint32_t self) const;
-		std::optional<proto::p2p::NotifyConnectPeerData> generate_connect_data(const connect_cxt& cxt, uint32_t self) const;
+		std::optional<proto::p2p::NotifyConnectPeerData> generate_connect_data(const connect_cxt& cxt, uint32_t self, const ProbeAttempt& probe) const;
+		bool start_ipv6_probe(uint64_t id);
 		bool submit_verify_code(uint64_t merge_id, uint32_t id, const std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>& msg);
 		#ifndef NDEBUG  
 		void test_step_cxt();

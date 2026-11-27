@@ -7,6 +7,9 @@
 #include <openssl/crypto.h>
 
 namespace mqas::tools::controller {
+	static constexpr uint64_t probe_window_ms = 1000;
+	static constexpr uint64_t ipv6_start_delay_ms = 250;
+
 	p2p_helper_controller::p2p_helper_controller(uint32_t a, uint32_t b,io::Context* io_cxt,std::optional<toml::value> config) : _is_start(false), _cxt(nullptr),
 		_io_cxt(io_cxt),_config(config)
 	{
@@ -32,17 +35,7 @@ namespace mqas::tools::controller {
 	bool p2p_helper_controller::init(uint32_t a, uint32_t b)
 	{
 		auto model = comm::locator::inst()->get<p2p::p2p_model>();
-		if (model)
-		{
-			_cxt = model.value().get().get_context_const(a, b);
-			if ((bool)(*this))
-			{
-				_peer_list[0] = model.value().get()[_cxt->pid[0]];
-				_peer_list[1] = model.value().get()[_cxt->pid[1]];
-			}
-		}
-		else
-			_cxt = nullptr;
+		_cxt = model ? model->get().get_context_const(a, b) : nullptr;
 		return *this;
 	}
 
@@ -63,11 +56,27 @@ namespace mqas::tools::controller {
 		return ip.empty() ? "unknown" : ip.find(':') == std::string::npos ? "ipv4" : "ipv6";
 	}
 
+	static unsigned confirmations(const p2p::ProbeAttempt& probe) {
+		return unsigned(bool(probe.replies[0])) + unsigned(bool(probe.replies[1]));
+	}
 	void p2p_helper_controller::log_path_result(const char* result) const
 	{
-		LOG(INFO) << "p2p_path_selection first_family=" << address_family(_peer_list[0]->ip)
-			<< " second_family=" << address_family(_peer_list[1]->ip)
-			<< " additional_ipv6=" << (_cxt->state == p2p::ConnectState::TryAdditionalIPv6) << " result=" << result;
+		unsigned best_lobby = 0;
+		for (const auto& attempt : _cxt->lobby_probes)
+			best_lobby = std::max(best_lobby, confirmations(attempt));
+		auto model = comm::locator::inst()->get<p2p::p2p_model>();
+		auto family = [&](uint32_t id) {
+			const auto* peer = model ? model->get()[id] : nullptr;
+			return peer ? address_family(peer->ip) : "unknown";
+		};
+		LOG(INFO) << "p2p_path_selection first_family=" << family(_cxt->pid[0])
+			<< " second_family=" << family(_cxt->pid[1])
+			<< " elapsed_ms=" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - _probe_start).count()
+			<< " lobby_confirmations=" << best_lobby
+			<< " ipv6_confirmations=" << (_cxt->ipv6_probe ? confirmations(*_cxt->ipv6_probe) : 0)
+			<< " lobby_pairs=" << _cxt->lobby_probes.size()
+			<< " ipv6_started=" << _cxt->ipv6_probe.has_value()
+			<< " additional_ipv6=" << (_cxt->winner() && _cxt->winner()->path == p2p::ProbePath::AdditionalIPv6) << " result=" << result;
 	}
 
 	void p2p_helper_controller::on_verify_success() const
@@ -78,8 +87,8 @@ namespace mqas::tools::controller {
 			std::chrono::system_clock::now().time_since_epoch()).count();
 		if (now < 0 || !const_cast<p2p::connect_cxt*>(_cxt)->prepare_tls_credential(static_cast<uint64_t>(now)))
 		{
-			notify_failed(_peer_list[0]->id, std::string("Unable to create session credential"));
-			notify_failed(_peer_list[1]->id, std::string("Unable to create session credential"));
+			notify_failed(_cxt->pid[0], std::string("Unable to create session credential"));
+			notify_failed(_cxt->pid[1], std::string("Unable to create session credential"));
 			return;
 		}
 		if (auto model = comm::locator::inst()->get<p2p::p2p_model>()) {
@@ -90,8 +99,8 @@ namespace mqas::tools::controller {
 			model->get().track_ready(std::string(reinterpret_cast<const char*>(id.data()), id.size()), server, client, credential->expires_at_ms());
 		}
 		log_path_result(has_relay_config() && always_use_relay() ? "relay_selected" : "direct_selected");
-		notify_success(_peer_list[0]->id);
-		notify_success(_peer_list[1]->id);
+		notify_success(_cxt->pid[0]);
+		notify_success(_cxt->pid[1]);
 	}
 
 	void p2p_helper_controller::on_timeout() const
@@ -99,8 +108,8 @@ namespace mqas::tools::controller {
 		if (!ready())
 			return;
 		log_path_result(has_relay_config() ? "relay_fallback" : "failed");
-		notify_failed(_peer_list[0]->id,_reason);
-		notify_failed(_peer_list[1]->id,_reason);
+		notify_failed(_cxt->pid[0],_reason);
+		notify_failed(_cxt->pid[1],_reason);
 	}
 
 	void p2p_helper_controller::start() 
@@ -109,8 +118,13 @@ namespace mqas::tools::controller {
 			return;
 		if (!_timer)
 			_timer = _io_cxt->make_shared<io::Timer>();
+		_probe_start = std::chrono::steady_clock::now();
 		_is_start = true;
-		_timer->start(std::bind(&p2p_helper_controller::on_step, this, std::placeholders::_1), 0, 1000);
+		_timer->start(std::bind_front(&p2p_helper_controller::on_step, this), 0, probe_window_ms);
+		if (_cxt->additional_ipv6[0] && _cxt->additional_ipv6[1]) {
+			_ipv6_timer = _io_cxt->make_shared<io::Timer>();
+			_ipv6_timer->start(std::bind_front(&p2p_helper_controller::start_ipv6, this), ipv6_start_delay_ms, 0);
+		}
 	}
 
 	void p2p_helper_controller::stop_step()
@@ -119,9 +133,33 @@ namespace mqas::tools::controller {
 		{
 			_is_start = false;
 			_timer->stop();
+			if (_ipv6_timer) _ipv6_timer->stop();
 		}
 	}
 
+	void p2p_helper_controller::start_ipv6(io::Timer*)
+	{
+		auto model = comm::locator::inst()->get<p2p::p2p_model>();
+		if (!is_start() || !model || !peers_available() || !model->get().start_ipv6_probe(_cxt->id)) return;
+		// If the external pair is already running, the next lobby tick ends negotiation.
+		// Give the later IPv6 probes their full reply window as well.
+		if (_cxt->state == p2p::ConnectState::TryExternal)
+			_timer->start(std::bind_front(&p2p_helper_controller::on_step, this), probe_window_ms, probe_window_ms);
+		for (size_t i = 0; i < 2; ++i) {
+			auto msg = model->get().generate_connect_data(*_cxt, _cxt->pid[i], *_cxt->ipv6_probe);
+			if (msg) _notify_connect_signal[i](*msg);
+		}
+	}
+	bool p2p_helper_controller::peers_available()
+	{
+		for (auto id : _cxt->pid) {
+			if (!peer_exist(id)) {
+				stop(std::format("peer {} left", id));
+				return false;
+			}
+		}
+		return true;
+	}
 	void p2p_helper_controller::on_step(io::Timer* t)
 	{
 		if (!ready())
@@ -145,25 +183,10 @@ namespace mqas::tools::controller {
 		default:
 			break;
 		}
-		if (!peer_exist(_peer_list[0]->id))
-		{
-			set_reason(std::format("peer {} leaved", _peer_list[0]->id));
-			on_timeout();
-			stop_step();
-		}
-		else if(res.second) {
-			if (res.second->connect_data().use_non_lobby_socket()) LOG(INFO) << "p2p_probe additional_ipv6 started";
-			_notify_connect_signal[0](*res.second);
-		}
-		res = model.value().get().current_cxt(_cxt->id, _cxt->pid[1]);
-		assert(res.first == p2p::StepResult::Success);
-		if (!peer_exist(_peer_list[1]->id))
-		{
-			set_reason(std::format("peer {} leaved", _peer_list[1]->id));
-			on_timeout();
-			stop_step();
-		}else if(res.second)
-			_notify_connect_signal[1](*res.second);
+		if (!peers_available()) return;
+		if (res.second) _notify_connect_signal[0](*res.second);
+		res = model->get().current_cxt(_cxt->id, _cxt->pid[1]);
+		if (res.second) _notify_connect_signal[1](*res.second);
 	}
 
 	void p2p_helper_controller::register_event(uint32_t id, std::function<void(const proto::p2p::NotifyConnectPeerData&)> notify_connect,
@@ -176,37 +199,20 @@ namespace mqas::tools::controller {
 		_notify_connect_signal[idx] = notify_connect;
 	}
 
-	void p2p_helper_controller::set_peer_address(uint32_t id, proto::p2p::Address* addr) const
-	{
-		if (!*this && !*_cxt)
-			return;
-		auto model = comm::locator::inst()->get<p2p::p2p_model>();
-		if (!model)
-			return;
-		const auto idx = p2p::self_idx(_cxt->pid, id);
-		auto ip_idx = _cxt->tag[idx];
-		auto& map = _cxt->submit_code_map[idx];
-		if (map.contains(ip_idx))
-		{
-			addr->set_ip(map.at(ip_idx)->peer_addr().ip());
-			addr->set_port(map.at(ip_idx)->peer_addr().port());
-		}
-	}
-
 	void p2p_helper_controller::set_current_address(uint32_t id,proto::p2p::Address* addr) const
 	{
-		if (!*this && !*_cxt)
+		if (!*this)
 			return;
 		auto model = comm::locator::inst()->get<p2p::p2p_model>();
 		if (!model)
 			return;
 		const auto idx = p2p::self_idx(_cxt->pid, id);
-		switch (_cxt->state)
+		switch (_cxt->winner()->path)
 		{
-		case p2p::ConnectState::TryAdditionalIPv6:
+		case p2p::ProbePath::AdditionalIPv6:
 			*addr = *_cxt->additional_ipv6[idx];
 			break;
-		case p2p::ConnectState::TryExternal:
+		case p2p::ProbePath::LobbyExternal:
 		{
 			const auto peer = model->get()[id];
 			if (peer == nullptr)
@@ -215,14 +221,11 @@ namespace mqas::tools::controller {
 			addr->set_port(peer->port);
 			break;
 		}
-		case p2p::ConnectState::TryInternal:
+		case p2p::ProbePath::LobbyInternal:
 		{
 			addr->set_port(_cxt->port_list[idx]);
 			const auto& list = _cxt->ip_list[idx];
-			auto ip_idx = _cxt->tag[idx];
-			if (ip_idx >= list.size())
-				ip_idx = list.size() - 1;
-			addr->set_ip(list[ip_idx]);
+			addr->set_ip(list[_cxt->winner()->index[idx]]);
 			break;
 		}
 		default:
@@ -232,7 +235,7 @@ namespace mqas::tools::controller {
 	
 	void p2p_helper_controller::set_external_address(uint32_t id,proto::p2p::Address* addr) const
 	{
-		if (!*this && !*_cxt)
+		if (!*this)
 			return;
 		auto model = comm::locator::inst()->get<p2p::p2p_model>();
 		if (!model)
@@ -249,7 +252,6 @@ namespace mqas::tools::controller {
 		if (!peer_exist(id))
 			return;
 		const auto idx = p2p::self_idx(_cxt->pid, id);
-		const auto oth_id = p2p::other(_cxt->pid, id);
 		mqas::tools::proto::p2p::NotifyConnectResult msg;
 		msg.set_peer_id(tools::p2p::other(_cxt->pid, id));
 		msg.set_ret(mqas::tools::proto::p2p::RetCode::ok);
@@ -266,9 +268,9 @@ namespace mqas::tools::controller {
 		else{
 			auto address = msg.mutable_address();
 			auto peer_addr = msg.mutable_peer_addr();
-			if (_cxt->state == p2p::ConnectState::TryAdditionalIPv6) msg.set_use_non_lobby_socket(true);
+			if (_cxt->winner() && _cxt->winner()->path == p2p::ProbePath::AdditionalIPv6) msg.set_use_non_lobby_socket(true);
 			set_current_address(id,address);
-			set_peer_address(oth_id, peer_addr);
+			*peer_addr = _cxt->winner()->replies[idx]->peer_addr();
 		}
 		_notify_connect_result[idx](msg);
 		auto* secret = msg.mutable_psk_secret();
@@ -279,7 +281,6 @@ namespace mqas::tools::controller {
 		if (!peer_exist(id))
 			return;
 		const auto idx = p2p::self_idx(_cxt->pid, id);
-		const auto oth_id = p2p::other(_cxt->pid, id);
 		mqas::tools::proto::p2p::NotifyConnectResult msg;
 		msg.set_peer_id(tools::p2p::other(_cxt->pid, id));
 		msg.set_ret(mqas::tools::proto::p2p::RetCode::failed);

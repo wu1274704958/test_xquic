@@ -3,6 +3,7 @@
 #include "mqas/tools/model/p2p_model.h"
 #include "mqas/io/timer.h"
 #include <functional>
+#include <chrono>
 #include <toml.hpp>
 
 
@@ -25,10 +26,11 @@ namespace mqas::tools::controller {
 		void stop(std::optional<std::string> reason);
 	protected:
 		void stop_step();
+		void start_ipv6(io::Timer*);
+		bool peers_available();
 		void on_step(io::Timer*);
 		void notify_success(uint32_t id) const;
 		void set_current_address(uint32_t id,proto::p2p::Address* addr) const;
-		void set_peer_address(uint32_t id, proto::p2p::Address* addr) const;
 		void notify_failed(uint32_t id,const std::optional<std::string>& reason) const;
 		void set_reason(const std::string&);
 		bool has_relay_config() const;
@@ -38,10 +40,10 @@ namespace mqas::tools::controller {
 	protected:
 		const p2p::connect_cxt* _cxt;
 		io::Context* _io_cxt;
-		std::array<const p2p::peer_data*, 2> _peer_list;
 		std::array<std::function<void(const proto::p2p::NotifyConnectPeerData&)>, 2> _notify_connect_signal;
 		std::array<std::function<void(const proto::p2p::NotifyConnectResult&)>, 2> _notify_connect_result;
-		std::shared_ptr<io::Timer> _timer;
+		std::shared_ptr<io::Timer> _timer, _ipv6_timer;
+		std::chrono::steady_clock::time_point _probe_start;
 		bool _is_start : 1;
 		std::optional<std::string> _reason;
 		std::optional<toml::value> _config;
