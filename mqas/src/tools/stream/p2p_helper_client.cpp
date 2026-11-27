@@ -87,8 +87,8 @@ namespace mqas::tools::p2p {
 		auto data = pkg.generate();
 		if (data)
 		{
-			sockaddr addr;
-			if(io::Ip::str2addr(msg->connect_data().ip().c_str(),msg->connect_data().port(),addr))
+			io::SocketAddress addr;
+			if(io::Ip::str2addr(msg->connect_data().ip().c_str(),msg->connect_data().port(),addr.storage))
 			{
 				try{
 					_socket->try_send(*data,addr);

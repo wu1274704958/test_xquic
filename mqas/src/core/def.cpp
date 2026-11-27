@@ -23,9 +23,16 @@ mqas::core::engine_config toml::from<mqas::core::engine_config>::from_toml(const
 size_t std::hash<sockaddr>::operator()(const sockaddr& addr) const {
 
     size_t h = std::hash<int>{}(addr.sa_family);
-
-    for (size_t i = 0; i < sizeof(addr.sa_data); ++i) {
-        h ^= std::hash<unsigned char>{}(addr.sa_data[i]) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    auto combine = [&h](size_t value) { h ^= value + 0x9e3779b9 + (h << 6) + (h >> 2); };
+    if (addr.sa_family == AF_INET) {
+        const auto& v4 = reinterpret_cast<const sockaddr_in&>(addr);
+        combine(v4.sin_addr.s_addr);
+        combine(v4.sin_port);
+    } else if (addr.sa_family == AF_INET6) {
+        const auto& v6 = reinterpret_cast<const sockaddr_in6&>(addr);
+        for (auto byte : v6.sin6_addr.s6_addr) combine(byte);
+        combine(v6.sin6_port);
+        combine(v6.sin6_scope_id);
     }
 
     return h;

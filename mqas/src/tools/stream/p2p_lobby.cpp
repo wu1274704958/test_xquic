@@ -3,6 +3,7 @@
 #include "mqas/comm/locator.h"
 #include "mqas/io/ip.h"
 #include <chrono>
+#include <easylogging++.h>
 
 namespace mqas::tools::p2p {
 	void P2PLobbyStream::on_read_msg_s(const std::shared_ptr<proto::p2p::ReqP2PServerReady>& msg)
@@ -10,16 +11,19 @@ namespace mqas::tools::p2p {
 		auto model = comm::locator::inst()->get<p2p_model>();
 		const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		if (!model || !msg || now < 0 || msg->negotiation_id().size() != 16 ||
-			!model->get().consume_ready(msg->negotiation_id(), id, msg->peer_id(), static_cast<uint64_t>(now))) return;
-		model->get().visit_client_stream<P2PLobbyStream>(msg->peer_id(), [this, msg](std::shared_ptr<P2PLobbyStream> peer) {
-			return peer->notify_server_ready(id, msg->negotiation_id());
-		});
+			!model->get().consume_ready(msg->negotiation_id(), id, msg->peer_id(), static_cast<uint64_t>(now))) {
+            LOG(WARNING) << "P2P ready ignored: negotiation is unavailable or was already signaled";
+            return;
+        }
+		if (!model->get().visit_client_stream<P2PLobbyStream>(msg->peer_id(), [this, msg](std::shared_ptr<P2PLobbyStream> peer) {
+            return peer->notify_server_ready(id, msg->negotiation_id());
+        })) LOG(WARNING) << "P2P ready could not be sent to the peer lobby stream";
 	}
 	bool P2PLobbyStream::notify_server_ready(uint32_t server, const std::string& negotiation)
 	{
 		proto::p2p::NotifyP2PServerReady msg;
 		msg.set_peer_id(server); msg.set_negotiation_id(negotiation);
-		return send_lazy<NotifyP2PServerReadyPair>(msg);
+		return send<NotifyP2PServerReadyPair>(msg);
 	}
 
 	core::StreamVariantErrcode P2PLobbyStream::on_change_msg_s(const std::shared_ptr<proto::p2p::ReqRegistePeer>& msg,

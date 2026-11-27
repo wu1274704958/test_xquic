@@ -152,6 +152,18 @@ namespace mqas::tools::p2p {
 		return res;
 	}
 
+	static void collect_candidates(std::vector<std::string>& target, const proto::p2p::ClientIpList& list,
+		const std::string& observed_address)
+	{
+		target.clear();
+		const auto family = observed_address.find(':') == std::string::npos ? AF_INET : AF_INET6;
+		for (const auto& ip : list.ip_list()) {
+			if (target.size() == 32) break;
+			if (ip.find('\0') == std::string::npos && mqas::io::Ip::is_valid_local_ip(ip.c_str(), family) &&
+				std::find(target.begin(), target.end(), ip) == target.end()) target.push_back(ip);
+		}
+	}
+
 	bool p2p_model::init_cxt(connect_cxt& cxt, const peer_data& a, const peer_data& b, const proto::p2p::ClientIpList& a_ip,
 		const proto::p2p::ClientIpList& b_ip) const
 	{
@@ -160,14 +172,8 @@ namespace mqas::tools::p2p {
 		cxt.port_list[1] = b_ip.port();
 		cxt.pid[0] = a.id;
 		cxt.pid[1] = b.id;
-		for (int i = 0; i < a_ip.ip_list_size(); ++i)
-			if (mqas::io::Ip::is_valid_local_ip(a_ip.ip_list().Get(i).c_str()) && 
-				mqas::io::Ip::valid_ip(a_ip.ip_list().Get(i).c_str(), a_ip.port()))
-				cxt.ip_list[0].push_back(a_ip.ip_list().Get(i));
-		for (int i = 0; i < b_ip.ip_list_size(); ++i)
-			if (mqas::io::Ip::is_valid_local_ip(b_ip.ip_list().Get(i).c_str()) &&
-				mqas::io::Ip::valid_ip(b_ip.ip_list().Get(i).c_str(), b_ip.port()))
-				cxt.ip_list[1].push_back(b_ip.ip_list().Get(i));
+		collect_candidates(cxt.ip_list[0], a_ip, a.ip);
+		collect_candidates(cxt.ip_list[1], b_ip, b.ip);
 		cxt.state = ConnectState::Idle;
 		cxt.stage_1 = cxt.stage_2[0] = cxt.stage_2[1] =  -1;
 		cxt.tag[0] = cxt.tag[1] = -1;
@@ -183,10 +189,7 @@ namespace mqas::tools::p2p {
 		const auto idx = a.id == id ? 0 : 1;
 		//const auto oth_idx = idx == 0 ? 1 : 0;
 		cxt.port_list[idx] = self_ip.port();
-		for (int i = 0; i < self_ip.ip_list_size(); ++i)
-			if(mqas::io::Ip::is_valid_local_ip(self_ip.ip_list().Get(i).c_str()) &&
-			   mqas::io::Ip::valid_ip(self_ip.ip_list().Get(i).c_str(), self_ip.port()))
-				cxt.ip_list[idx].push_back(self_ip.ip_list().Get(i));
+		collect_candidates(cxt.ip_list[idx], self_ip, idx == 0 ? a.ip : b.ip);
 		cxt.stage_1 = cxt.stage_2[idx] = -1;
 		cxt.state =  (cxt.port_list[0] > 0 && cxt.port_list[1] > 0) ? ConnectState::Ready : ConnectState::Idle;
 		cxt.stream[idx] = std::move(self_stream);
@@ -267,7 +270,9 @@ namespace mqas::tools::p2p {
 		case ConnectState::ChangeToExternal:
 			cxt.stage_1 = 0;
 			cxt.stage_2[0] = cxt.stage_2[1] = 0;
-			cxt.state = cxt.state == ConnectState::Ready ? ConnectState::TryInternal : ConnectState::TryExternal;
+			cxt.state = cxt.state == ConnectState::Ready && !cxt.ip_list[0].empty() && !cxt.ip_list[1].empty()
+				? ConnectState::TryInternal : ConnectState::TryExternal;
+			generate_verify_code(cxt.verify_code);
 			return StepResult::Success;
 		case ConnectState::TryInternal:
 		case ConnectState::TryExternal:
@@ -316,7 +321,9 @@ namespace mqas::tools::p2p {
 		if (idx_oth >= cxt.stage_2.size())
 			return {};
 		ip_idx = cxt.stage_2[idx_oth];
-		if(self_data == nullptr || oth_data == nullptr || ip_idx >= cxt.ip_list[idx_oth].size())
+		if(self_data == nullptr || oth_data == nullptr ||
+			(self_data->ip.find(':') == std::string::npos) != (oth_data->ip.find(':') == std::string::npos) ||
+			(cxt.state == ConnectState::TryInternal && (ip_idx < 0 || static_cast<size_t>(ip_idx) >= cxt.ip_list[idx_oth].size())))
 			return {};
 		if(cxt.state == ConnectState::TryExternal)
 			ip_idx = connect_cxt::ExternalIpIndex;

@@ -181,13 +181,19 @@ namespace mqas::core {
 			if constexpr(std::is_same_v<SC,io::UdpSocket>)
 			{
 				_socket = io_cxt.make_shared<SC>();
-				sockaddr addr{};
-				io::Ip::str2addr_ipv4(_conf->bind_ip.c_str(), _conf->port, addr);
-				_socket->bind(addr, UV_UDP_REUSEADDR);
+				io::SocketAddress addr{};
+				io::Ip::str2addr(_conf->bind_ip.c_str(), _conf->port, addr.storage);
+				_socket->bind(addr, UV_UDP_REUSEADDR | (addr.storage.ss_family == AF_INET6 ? UV_UDP_IPV6ONLY : 0));
 			}
 		}else
 			_socket = std::move(sock);
-		_socket->get_sock_addr(this->_local_addr);
+		if constexpr (requires { _socket->get_sock_addr(_local_addr.storage); }) {
+            _socket->get_sock_addr(_local_addr.storage);
+        } else {
+            sockaddr local{};
+            _socket->get_sock_addr(local);
+            _local_addr = io::SocketAddress(local);
+        }
 
 		MQAS_DBG("sub engine socket local addr = " << io::Ip::addr2str(_local_addr) << ':' << io::Ip::addr_get_port(_local_addr));
 
@@ -305,7 +311,7 @@ namespace mqas::core {
 				if (_engine_extern->on_recv(buf, nread, addr, flags))
 				{
 					const int ret = ::lsquic_engine_packet_in(_engine, reinterpret_cast<const unsigned char*>(buf->data()), nread,
-						&this->_local_addr, addr, (void*)&(_peer_context_mgr.get_or_create(addr,this)), 0);
+						&this->_local_addr.native(), addr, (void*)&(_peer_context_mgr.get_or_create(addr,this)), 0);
 					if(ret == -1)
 						LOG(WARNING) << "lsquic_engine_packet_in return -1 " << " size = " << nread;
 					this->process_conns();

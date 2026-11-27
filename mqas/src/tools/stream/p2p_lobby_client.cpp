@@ -112,16 +112,16 @@ namespace mqas::tools::p2p {
 		if (!conn)
 			return false;
 
+		const sockaddr *local = nullptr, *peer = nullptr;
+		if (!conn->get_sockaddr(&local, &peer) || !local) return false;
 		std::vector<std::string> list;
-		mqas::io::Ip::collect_local_ip(list);
-
-		for (auto& it : list)
-		{
-			auto ip = res.add_ip_list();
-			ip->assign(it.c_str());
+		const auto local_ip = mqas::io::Ip::addr2str(*local);
+		if (local_ip == "0.0.0.0" || local_ip == "::") {
+			mqas::io::Ip::collect_local_ip(list, local->sa_family);
+		} else if (mqas::io::Ip::is_valid_local_ip(local_ip.c_str(), local->sa_family)) {
+			list.push_back(local_ip);
 		}
-		const sockaddr *local, *peer;
-		conn->get_sockaddr(&local, &peer);
+		for (auto& ip : list) *res.add_ip_list() = std::move(ip);
 		res.set_port(mqas::io::Ip::addr_get_port(*local));
 		return true;
 	}

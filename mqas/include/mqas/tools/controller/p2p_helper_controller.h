@@ -18,6 +18,7 @@ namespace mqas::tools::controller {
 		void start();
 		void submit_verify_code(uint64_t merge_id, uint32_t id, const std::shared_ptr<proto::p2p::ReqSubmitRecvPeerKeyCode>& msg);
 		void on_verify_success() const;
+		void log_path_result(const char* result) const;
 		void on_timeout() const;
 		void register_event(uint32_t id, std::function<void(const proto::p2p::NotifyConnectPeerData&)> notify_connect,
 			std::function<void(const proto::p2p::NotifyConnectResult&)> notify_result);

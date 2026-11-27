@@ -208,7 +208,15 @@ EngineSettingsView prepare_engine_settings(const toml::value& config, EngineFlag
     return {addr, *settings, string_field("ssl_cert_path"), string_field("ssl_key_path"), string_field("alpn"), pin, flags, tls};
 }
 bool bind_endpoints_overlap(const sockaddr& a, const sockaddr& b) noexcept {
-    if (a.sa_family != b.sa_family || a.sa_family != AF_INET) return false;
+    if (a.sa_family != b.sa_family) return false;
+    if (a.sa_family == AF_INET6) {
+        const auto& x = reinterpret_cast<const sockaddr_in6&>(a);
+        const auto& y = reinterpret_cast<const sockaddr_in6&>(b);
+        return x.sin6_port != 0 && x.sin6_port == y.sin6_port &&
+            (IN6_IS_ADDR_UNSPECIFIED(&x.sin6_addr) || IN6_IS_ADDR_UNSPECIFIED(&y.sin6_addr) ||
+                io::Ip::compare_ip(a, b));
+    }
+    if (a.sa_family != AF_INET) return false;
     const auto& x = reinterpret_cast<const sockaddr_in&>(a); const auto& y = reinterpret_cast<const sockaddr_in&>(b);
     return x.sin_port != 0 && x.sin_port == y.sin_port && (x.sin_addr.s_addr == y.sin_addr.s_addr || x.sin_addr.s_addr == INADDR_ANY || y.sin_addr.s_addr == INADDR_ANY);
 }

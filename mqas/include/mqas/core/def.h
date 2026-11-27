@@ -107,12 +107,12 @@ namespace mqas::core
 
     struct MQAS_EXTERN engine_cxt
     {
-        engine_cxt(io::Context& io_cxt, ::sockaddr& local_addr) :
+        engine_cxt(io::Context& io_cxt, const ::sockaddr& local_addr) :
         io_cxt(io_cxt),local_addr(local_addr){}
         EngineFlags engine_flags;
         io::Context& io_cxt;
         ::lsquic_engine* engine_core;
-        ::sockaddr& local_addr;
+        const ::sockaddr& local_addr;
         std::weak_ptr<mqas::core::IEngine> engine;
         std::function<void()> process_conns;
         std::function<void()> process_conns_lazy;

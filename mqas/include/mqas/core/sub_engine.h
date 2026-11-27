@@ -94,7 +94,7 @@ namespace mqas::core {
 		bool _settings_ready = false;
 		::lsquic_engine* _engine = nullptr;
 		EngineFlags _engine_flags;
-		::sockaddr _local_addr = {};
+		io::SocketAddress _local_addr{};
 		std::shared_ptr<E> _engine_extern;
 		::lsquic_engine_api _lsquic_engine_api = {};
 		sigc::connection _recv_connection;

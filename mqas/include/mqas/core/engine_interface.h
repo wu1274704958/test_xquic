@@ -1,4 +1,5 @@
 #pragma once
+#include "mqas/io/ip.h"
 #include <lsquic.h>
 #include <lsquic_types.h>
 #include <mqas/macro.h>
@@ -55,7 +56,7 @@ namespace mqas::core
 	public:
 		std::shared_ptr<engine_cxt> context;
 		std::vector<uint16_t> whitelist_port;
-		std::vector<sockaddr> whitelist_addr;
+		std::vector<io::SocketAddress> whitelist_addr;
 	protected:
 		void* connect_peer_context_ = nullptr;
 		PeerAuthentication authentication_policy_ = PeerAuthentication::None;

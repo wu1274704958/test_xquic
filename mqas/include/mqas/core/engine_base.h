@@ -100,7 +100,7 @@ namespace mqas::core
 		::lsquic_engine* engine_ = nullptr;
 		::SSL_CTX* ssl_ctx_ = nullptr;
 		EngineFlags engine_flags_;
-		::sockaddr local_addr_;
+		io::SocketAddress local_addr_;
 		std::shared_ptr<E> engine_extern_;
 		::lsquic_logger_if lsquic_logger_if_;
 		::lsquic_engine_api lsquic_engine_api_;

@@ -3,6 +3,7 @@
 #include <format>
 #include <boost/uuid/uuid.hpp>
 #include <chrono>
+#include <easylogging++.h>
 #include <openssl/crypto.h>
 
 namespace mqas::tools::controller {
@@ -58,6 +59,17 @@ namespace mqas::tools::controller {
 		}
 	}
 
+	static const char* address_family(const std::string& ip) {
+		return ip.empty() ? "unknown" : ip.find(':') == std::string::npos ? "ipv4" : "ipv6";
+	}
+
+	void p2p_helper_controller::log_path_result(const char* result) const
+	{
+		LOG(INFO) << "p2p_path_selection first_family=" << address_family(_peer_list[0]->ip)
+			<< " second_family=" << address_family(_peer_list[1]->ip)
+			<< " result=" << result;
+	}
+
 	void p2p_helper_controller::on_verify_success() const
 	{
 		if (!ready())
@@ -77,6 +89,7 @@ namespace mqas::tools::controller {
 			const auto& id = credential->negotiation_id();
 			model->get().track_ready(std::string(reinterpret_cast<const char*>(id.data()), id.size()), server, client, credential->expires_at_ms());
 		}
+		log_path_result(has_relay_config() && always_use_relay() ? "relay_selected" : "direct_selected");
 		notify_success(_peer_list[0]->id);
 		notify_success(_peer_list[1]->id);
 	}
@@ -85,6 +98,7 @@ namespace mqas::tools::controller {
 	{
 		if (!ready())
 			return;
+		log_path_result(has_relay_config() ? "relay_fallback" : "failed");
 		notify_failed(_peer_list[0]->id,_reason);
 		notify_failed(_peer_list[1]->id,_reason);
 	}

@@ -35,6 +35,8 @@ namespace mqas::io
 		void connect(const sockaddr& addr) const;
 		void get_peer_addr(sockaddr& name) const;
 		void get_sock_addr(sockaddr& name) const;
+		void get_peer_addr(sockaddr_storage& name) const;
+		void get_sock_addr(sockaddr_storage& name) const;
 		void set_broadcast(int on) const;
 		void set_ttl(int ttl) const;
 		void send(const std::vector<std::span<uint8_t>>& d,const sockaddr& addr,

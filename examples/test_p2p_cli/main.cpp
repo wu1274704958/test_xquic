@@ -161,7 +161,7 @@ protected:
 	std::shared_ptr<mqas::tools::proto::p2p::NotifyP2PServerReady> early_server_ready;
 	bool waiting_for_server_ready = false;
 	bool server_ready_pending = false;
-	sockaddr p2p_addr;
+	io::SocketAddress p2p_addr;
 	//relay
 	std::shared_ptr<RelayEngineType> relay_engine;
 	std::shared_ptr<mqas::tools::RelayStreamClient> relay_stream;
@@ -181,10 +181,10 @@ int main(int argc, const char** argv)
 		e.init(argc > 1 ? argv[1] : "conf.txt", core::EngineFlags::None);
 		e.start_recv();
 		e.process_conns();
-		sockaddr addr{};
+		io::SocketAddress addr{};
 		auto ip = toml::find<std::string>(*e.get_engine()->get_config(),"client", "ip");
 		auto port = toml::find<int>(*e.get_engine()->get_config(), "client", "port");
-		if(!io::Ip::str2addr_ipv4(ip.c_str(), port, addr))
+		if(!io::Ip::str2addr(ip.c_str(), port, addr.storage))
 			throw new std::exception("Not found target address!");
 		auto c = e.get_engine()->connect(addr, N_LSQVER);
 		e.get_engine()->whitelist_addr.push_back(addr);
@@ -869,11 +869,13 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 
 	auto io_cxt = comm::locator::inst()->get_ref<io::Context>();
 		
-	io::Ip::str2addr(msg->peer_addr().ip().c_str(), msg->peer_addr().port(), p2p_addr);
-
-	if constexpr(std::is_same_v<SOCK,tools::RelayStreamClient>)
-	{
-		sock->get_peer_addr(p2p_addr);
+	if constexpr (std::is_same_v<SOCK,tools::RelayStreamClient>) {
+		sockaddr relay_peer{};
+		sock->get_peer_addr(relay_peer);
+		p2p_addr = io::SocketAddress(relay_peer);
+	} else if (!io::Ip::str2addr(msg->peer_addr().ip().c_str(), msg->peer_addr().port(), p2p_addr.storage)) {
+		LOG(ERROR) << "Invalid direct P2P endpoint";
+		return;
 	}
 
 #ifndef NDEBUG
@@ -916,7 +918,7 @@ void tui::launch_p2p(const std::shared_ptr<mqas::tools::proto::p2p::NotifyConnec
 	}else
 	{
 		p2p_engine = comm::engine_util::launch_sub_engine<P2PStreamType>(io_cxt.value().get(), p2p_conf.c_str(),
-			core::EngineFlags::None, sock, func, &p2p_addr,exception_func, on_init_func, tls);
+			core::EngineFlags::None, sock, func, &p2p_addr.native(),exception_func, on_init_func, tls);
 	}
 	if (!p2p_engine || !std::static_pointer_cast<EngineTy>(p2p_engine)->get_engine()) {
 		lazy_task.push_back([this] { on_p2p_peer_quit(nullptr); });

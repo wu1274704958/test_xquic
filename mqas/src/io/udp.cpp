@@ -51,6 +51,18 @@ void mqas::io::UdpSocket::get_sock_addr(sockaddr& name) const
 	if (const int ret = uv_udp_getsockname(handle_, &name, &addrlen); ret != 0)throw Exception(ret);
 }
 
+void mqas::io::UdpSocket::get_peer_addr(sockaddr_storage& name) const
+{
+	int addrlen = sizeof(name);
+	if (const int ret = uv_udp_getpeername(handle_, reinterpret_cast<sockaddr*>(&name), &addrlen); ret != 0) throw Exception(ret);
+}
+
+void mqas::io::UdpSocket::get_sock_addr(sockaddr_storage& name) const
+{
+	int addrlen = sizeof(name);
+	if (const int ret = uv_udp_getsockname(handle_, reinterpret_cast<sockaddr*>(&name), &addrlen); ret != 0) throw Exception(ret);
+}
+
 void mqas::io::UdpSocket::set_broadcast(int on) const
 {
 	if (const int ret = uv_udp_set_broadcast(handle_, on); ret != 0)throw Exception(ret);

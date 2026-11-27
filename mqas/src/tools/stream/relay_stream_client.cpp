@@ -187,7 +187,12 @@ namespace mqas::tools {
 
     void RelayStreamClient::on_read_msg_s(const std::shared_ptr<proto::relay::RespondReady>& m)
     {
-        LOG(DEBUG) << "relay client recvive ready respond";
+        const sockaddr* local = nullptr;
+        const sockaddr* peer = nullptr;
+        const auto connection = connect.lock();
+        const bool known = connection && connection->get_sockaddr(&local, &peer) && peer;
+        LOG(INFO) << "p2p_connected route=relay family="
+                  << (!known ? "unknown" : peer->sa_family == AF_INET6 ? "ipv6" : "ipv4");
         on_ready.emit();
     }
 }
